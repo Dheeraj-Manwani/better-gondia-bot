@@ -1,0 +1,101 @@
+export type AuthStep = "language" | "login" | "otp" | "profile" | "complete";
+export type Section = "chat" | "community" | "status";
+export type Language = "english" | "hindi" | "marathi";
+export type Gender = "Male" | "Female" | "Other";
+
+export interface User {
+  id?: number;
+  authStep: AuthStep;
+  language: Language;
+  // firstName: string;
+  // lastName: string;
+  name: string;
+  age?: number;
+  gender?: Gender;
+  mobile: string;
+  email?: string;
+  address: string;
+  ward?: string;
+  // isVerified: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface UserData {
+  id: string;
+  name: string;
+  authStep: AuthStep;
+  language: Language;
+}
+
+export interface Complaint {
+  id: number;
+  complaintId: string;
+  userId: number;
+  title: string;
+  description: string;
+  category: string;
+  location?: string;
+  latitude?: string;
+  longitude?: string;
+  status: string;
+  department?: string;
+  priority: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  isPublic: boolean;
+  isResolved: boolean;
+  resolvedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  coSignCount?: number;
+}
+
+export interface ChatMessage {
+  id: number;
+  userId?: number;
+  complaintId?: number;
+  content: string;
+  messageType: "user" | "bot" | "system";
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface StatusUpdate {
+  id: number;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  complaintId?: number;
+  isActive: boolean;
+  expiresAt?: string;
+  createdAt: string;
+}
+
+export interface ComplaintFormData {
+  title: string;
+  description: string;
+  category: string;
+  location?: string;
+  latitude?: string;
+  longitude?: string;
+  imageUrl?: string;
+}
+
+export interface OTPFormData {
+  mobile: string;
+  otp: string;
+}
+
+export interface ProfileFormData {
+  name: string;
+  age: number;
+  gender: Gender | "";
+
+  mobile: string;
+  address: string;
+
+  // firstName: string;
+  // lastName: string;
+}
