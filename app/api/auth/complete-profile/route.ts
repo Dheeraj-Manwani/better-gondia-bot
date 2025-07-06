@@ -12,17 +12,20 @@ export async function POST(req: Request) {
 
   if (existingUser) {
     return Response.json(
-      { error: "Mobile number already exists" },
-      { status: 409 }
+      { success: true, message: "Hello World", data: existingUser },
+      { status: 200 }
     );
   }
+
+  console.log("body recieved in complete profile ", body);
 
   const user = await prisma.user.create({
     data: {
       name: body.name,
       mobile: body.mobile,
       address: body.address,
-      ward: body.ward,
+      age: Number(body.age),
+      gender: body.gender,
     },
   });
 

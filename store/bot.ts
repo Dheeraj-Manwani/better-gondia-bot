@@ -5,7 +5,14 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
 interface BotState {
-  step: "idle" | "category" | "description" | "location" | "media" | "preview";
+  step:
+    | "idle"
+    | "category"
+    | "description"
+    | "location"
+    | "media"
+    | "preview"
+    | "done";
   complaintData: Partial<ComplaintFormData>;
 }
 

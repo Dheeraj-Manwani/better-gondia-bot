@@ -9,7 +9,7 @@ import ProfileScreen from "@/components/auth/profile-screen";
 import ChatSection from "@/components/chat-section";
 import CommunitySection from "@/components/community-section";
 import StatusSection from "@/components/status-section";
-import { MessageCircle, Users, Circle, Check } from "lucide-react";
+import { MessageCircle, Users, Circle, Check, BadgeCheck } from "lucide-react";
 import { AuthStep, Language, Section, User, UserData } from "@/types";
 import Image from "next/image";
 import logo from "@/public/logo.svg";
@@ -17,6 +17,10 @@ import { v4 as uuid } from "uuid";
 import { initUserData } from "@/lib/data";
 import { useLanguage } from "@/store/language";
 import { useTheme } from "next-themes";
+import { useChatSection } from "@/store/chat-section";
+import { AllChats } from "@/components/Chats";
+import { BottomNavigation } from "@/components/bottom-navigation";
+import { TopHeader } from "@/components/TopHeader";
 
 export default function Home() {
   // const [authStep, setAuthStep] = useState<AuthStep>("language");
@@ -131,80 +135,29 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-screen ">
-      {/* Top Header */}
-      <div className="whatsapp-green text-white p-4 flex items-center justify-between">
-        <div className="flex items-center">
-          <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-3">
-            <Image src={logo} width={50} height={50} alt="logo"></Image>
-          </div>
-          <div>
-            <div className="flex items-center gap-1">
-              <h1 className="font-semibold text-lg">Better Gondia</h1>
-              <svg width="16" height="16" viewBox="0 0 16 16" className="ml-1">
-                <circle cx="8" cy="8" r="8" fill="#25D366" />
-                <path
-                  d="M6.5 10.5L4 8l1-1 1.5 1.5L10 5l1 1-4.5 4.5z"
-                  fill="white"
-                  strokeWidth="0.5"
-                />
-              </svg>
-            </div>
-            <p className="text-xs opacity-90">Making Gondia Better</p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-4">
-          <button className="p-2 hover:bg-white hover:bg-opacity-10 rounded-full transition-colors">
-            <i className="fas fa-search"></i>
-          </button>
-          <button className="p-2 hover:bg-white hover:bg-opacity-10 rounded-full transition-colors">
-            <i className="fas fa-ellipsis-v"></i>
-          </button>
-        </div>
-      </div>
+      <TopHeader />
 
       {/* Content Area */}
       <div className="flex-1 overflow-hidden">
-        {currentSection === "chat" && <ChatSection user={userData!} />}
+        {
+          currentSection === "chat" && (
+            // (chatSection == "all-chats" ? (
+            <AllChats user={userData!} />
+          )
+          // ) : (
+          // <ChatSection user={userData!} />
+          // ))
+        }
         {currentSection === "community" && (
           <CommunitySection user={userData!} />
         )}
         {currentSection === "status" && <StatusSection />}
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="bg-white border-t border-gray-200 px-4 py-2">
-        <div className="flex justify-around">
-          <button
-            className={`flex flex-col items-center py-2 px-4 ${
-              currentSection === "chat" ? "text-green-600" : "text-gray-500"
-            }`}
-            onClick={() => handleSectionChange("chat")}
-          >
-            <MessageCircle className="w-6 h-6 mb-1" />
-            <span className="text-xs font-medium">Chat</span>
-          </button>
-          <button
-            className={`flex flex-col items-center py-2 px-4 ${
-              currentSection === "community"
-                ? "text-green-600"
-                : "text-gray-500"
-            }`}
-            onClick={() => handleSectionChange("community")}
-          >
-            <Users className="w-6 h-6 mb-1" />
-            <span className="text-xs">Community</span>
-          </button>
-          <button
-            className={`flex flex-col items-center py-2 px-4 ${
-              currentSection === "status" ? "text-green-600" : "text-gray-500"
-            }`}
-            onClick={() => handleSectionChange("status")}
-          >
-            <Circle className="w-6 h-6 mb-1" />
-            <span className="text-xs">Status</span>
-          </button>
-        </div>
-      </div>
+      <BottomNavigation
+        currentSection={currentSection}
+        handleSectionChange={handleSectionChange}
+      />
     </div>
   );
 }

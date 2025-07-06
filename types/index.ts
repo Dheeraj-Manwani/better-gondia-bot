@@ -10,8 +10,8 @@ export interface User {
   // firstName: string;
   // lastName: string;
   name: string;
-  age?: number;
-  gender?: Gender;
+  age: number;
+  gender: Gender;
   mobile: string;
   email?: string;
   address: string;
@@ -49,6 +49,7 @@ export interface Complaint {
   createdAt: string;
   updatedAt: string;
   coSignCount?: number;
+  message: string;
 }
 
 export interface ChatMessage {

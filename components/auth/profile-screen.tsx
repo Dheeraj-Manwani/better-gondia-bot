@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 // import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { ArrowLeft, Cross } from "lucide-react";
+import { ArrowLeft, Cross, X } from "lucide-react";
 import { ProfileFormData, User } from "@/types";
 import { toast } from "sonner";
 
@@ -54,12 +54,16 @@ export default function ProfileScreen({
     onSuccess: (res) => {
       toast.success("Profile creation successfull!", {
         description: "Welcome to Better Gondia Mitra!",
-        action: {
-          label: <Cross />,
-          onClick: (id) => {
-            toast.dismiss();
-          },
-        },
+        // action: {
+        //   label: <X className="bg-transparent fill-white text-white" />,
+        //   onClick: (id) => {
+        //     toast.dismiss();
+        //   },
+        //   actionButtonStyle: {
+        //     backgroundColor: "transparent",
+        //     color: "transparent",
+        //   },
+        // },
       });
 
       console.log("Data recieved on success:", res);
@@ -87,7 +91,13 @@ export default function ProfileScreen({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.mobile || !formData.address) {
+    if (
+      !formData.name ||
+      !formData.mobile ||
+      !formData.address ||
+      !formData.age ||
+      !formData.gender
+    ) {
       // toast({
       //   title: "Required Fields",
       //   description: "Please fill in all required fields",

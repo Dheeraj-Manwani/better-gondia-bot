@@ -25,6 +25,7 @@ import singleColorLogo from "@/public/single-color-logo.svg";
 import { useBot } from "@/store/bot";
 import { useMessages } from "@/store/messages";
 import { toast } from "sonner";
+import { Background } from "./Background";
 
 // Web Speech API type declarations
 interface SpeechRecognitionEvent {
@@ -74,10 +75,6 @@ export default function ChatSection({ user }: ChatSectionProps) {
   // const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: chatMessages, isLoading } = useQuery<ChatMessage[]>({
-    queryKey: ["/api/chat/messages"],
-  });
-
   // const { sendChatMessage } = useWebSocket({
   //   userId: user.id,
   //   onMessage: (message) => {
@@ -87,18 +84,21 @@ export default function ChatSection({ user }: ChatSectionProps) {
 
   const createComplaintMutation = useMutation({
     mutationFn: async (data: FormData) => {
+      const id = toast.loading("Submitting Complaint...");
+
       const response = await fetch("/api/complaints", {
         method: "POST",
         body: data,
         credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to create complaint");
+      toast.success("Complaint Submitted Successfully !!", { id });
       return response.json();
     },
-    onSuccess: (response) => {
-      setBotState({ step: "idle", complaintData: {} });
-      queryClient.invalidateQueries({ queryKey: ["/api/complaints/my"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/complaints/public"] });
+    onSuccess: (response: { complaintId: string }) => {
+      setBotState({ step: "done", complaintData: botState.complaintData });
+      // queryClient.invalidateQueries({ queryKey: ["/api/complaints/my"] });
+      // queryClient.invalidateQueries({ queryKey: ["/api/complaints/public"] });
 
       // Add success message to chat
       setTimeout(() => {
@@ -113,7 +113,8 @@ export default function ChatSection({ user }: ChatSectionProps) {
       //   description: `Your complaint ${response.complaintId} has been registered successfully.`,
       // });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
+      console.error("Complaint submission error:", error);
       // toast({
       //   title: "Submission Failed",
       //   description: "Failed to submit complaint. Please try again.",
@@ -123,18 +124,12 @@ export default function ChatSection({ user }: ChatSectionProps) {
   });
 
   useEffect(() => {
-    if (chatMessages) {
-      setMessages(chatMessages);
-    }
-  }, [chatMessages]);
-
-  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
     // Add welcome message if no messages exist
-    if (messages.length === 1 && !isLoading) {
+    if (messages.length === 1) {
       // const welcomeMessage: ChatMessage = {
       //   id: 0,
       //   content:
@@ -150,7 +145,7 @@ export default function ChatSection({ user }: ChatSectionProps) {
         "Please select the category for your complaint:"
       );
     }
-  }, [messages.length, isLoading]);
+  }, [messages.length]);
 
   const addBotMessage = (content: string, delay = 1000) => {
     setTimeout(() => {
@@ -214,7 +209,7 @@ export default function ChatSection({ user }: ChatSectionProps) {
       const finish = (voiceText: string) => {
         const userMessage: ChatMessage = {
           id: Date.now(),
-          userId: user.id,
+          userId: user.id || 0,
           content: voiceText,
           messageType: "user",
           isRead: false,
@@ -273,7 +268,7 @@ export default function ChatSection({ user }: ChatSectionProps) {
 
     const userMessage: ChatMessage = {
       id: Date.now(),
-      userId: user.id,
+      userId: user.id || 0,
       content: messageInput,
       messageType: "user",
       isRead: false,
@@ -336,7 +331,7 @@ export default function ChatSection({ user }: ChatSectionProps) {
 
     const userMessage: ChatMessage = {
       id: Date.now(),
-      userId: user.id,
+      userId: user.id || 0,
       content: categoryMap[category],
       messageType: "user",
       isRead: false,
@@ -438,7 +433,7 @@ export default function ChatSection({ user }: ChatSectionProps) {
         toast.error("Upload Failed", { id });
         throw new Error("Upload failed");
       }
-      toast.success("Upload successful");
+      toast.success("Upload successful", { id });
       const data = await response.json();
 
       console.log("res data ========= ", data);
@@ -531,12 +526,12 @@ Would you like to submit this complaint?
       // });
       return;
     }
-    const id = toast.loading("Submitting Complaint...");
 
     const formData = new FormData();
     // formData.append("title", botState.complaintData.title);
-    formData.append("userId", user.id ?? 0);
+    formData.append("userId", String(user.id) || "0");
     formData.append("description", botState.complaintData.description);
+    formData.append("messages", JSON.stringify(messages));
     formData.append("category", botState.complaintData.category);
     formData.append("isPublic", "true");
 
@@ -775,32 +770,35 @@ Would you like to submit this complaint?
             </div>
           )}
 
-          <div className="flex space-x-2">
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex-1 bg-gray-100 text-gray-700"
-              onClick={() => {
-                setBotState({
-                  step: "category",
-                  complaintData: { title: botState.complaintData.title },
-                });
-                addBotMessage(
-                  "Let's edit your complaint. Please select the category again:"
-                );
-              }}
-            >
-              Edit
-            </Button>
-            <Button
-              size="sm"
-              className="flex-1 whatsapp-green text-white"
-              onClick={handleComplaintSubmit}
-              disabled={createComplaintMutation.isPending}
-            >
-              {createComplaintMutation.isPending ? "Submitting..." : "Submit"}
-            </Button>
-          </div>
+          {botState.step == "preview" && (
+            <div className="flex space-x-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 bg-gray-100 text-gray-700"
+                onClick={() => {
+                  setBotState({
+                    step: "category",
+                    complaintData: { title: botState.complaintData.title },
+                  });
+                  setMessages([]);
+                  addBotMessage(
+                    "Let's edit your complaint. Please select the category again:"
+                  );
+                }}
+              >
+                Edit
+              </Button>
+              <Button
+                size="sm"
+                className="flex-1 whatsapp-green text-white"
+                onClick={handleComplaintSubmit}
+                disabled={createComplaintMutation.isPending}
+              >
+                {createComplaintMutation.isPending ? "Submitting..." : "Submit"}
+              </Button>
+            </div>
+          )}
           <div className="flex items-center text-xs whatsapp-gray mt-2">
             <span className="flex items-center gap-1">
               Better Gondia Bot
@@ -845,9 +843,15 @@ Would you like to submit this complaint?
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div
+      className="h-full flex flex-col  bg-[#E5DDD5]"
+      style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d4d4d4' fill-opacity='0.1' fill-rule='evenodd'%3E%3Cpath d='m0 40l40-40h-40v40z'/%3E%3C/g%3E%3C/svg%3E")`,
+      }}
+    >
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-2 space-y-4">
+        {/* <Background> */}
         {/* Welcome Message */}
         {/* <div className="flex justify-center">
           <div className="bg-yellow-100 border-l-4 border-yellow-400 px-4 py-2 rounded-r-lg max-w-10/12">
@@ -900,83 +904,91 @@ Would you like to submit this complaint?
         ))}
 
         <div ref={messagesEndRef} />
+        {/* </Background> */}
       </div>
 
       {/* Chat Input */}
       <div className="p-4 bg-white border-t border-gray-200">
-        <div className="space-y-3">
-          <div className="flex items-center space-x-3">
-            {/* <Button
+        {botState.step != "done" ? (
+          <div className="space-y-3">
+            <div className="flex items-center space-x-3">
+              {/* <Button
                 variant="ghost"
                 size="sm"
                 className="p-2 whatsapp-gray hover:text-green-600"
               >
                 <Paperclip className="h-5 w-5" />
               </Button> */}
-            <div className="flex-1 chat-input-container flex items-center">
-              <Input
-                placeholder="Describe your complaint in detail..."
-                className="flex-1 bg-transparent outline-none border-none text-sm"
-                value={messageInput}
-                onChange={(e) => setMessageInput(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                disabled={botState.step == "category"}
-              />
-              {/* <Button
+              <div className="flex-1 chat-input-container flex items-center">
+                <Input
+                  placeholder="Describe your complaint in detail..."
+                  className="flex-1 bg-transparent outline-none border-none text-sm"
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                  disabled={botState.step == "category"}
+                />
+                {/* <Button
                   variant="ghost"
                   size="sm"
                   className="p-1 whatsapp-gray hover:text-green-600"
                 >
                   <Smile className="h-5 w-5" />
                 </Button> */}
-            </div>
-            <Button
-              className="w-10 h-10 whatsapp-green rounded-full flex items-center justify-center text-white hover:bg-green-600 shadow-lg"
-              onClick={handleSendMessage}
-              disabled={!messageInput.trim()}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Voice Message Option */}
-
-          {botState.step === "description" && (
-            <>
-              <div className="flex items-center justify-center">
-                <div className="text-xs whatsapp-gray mr-3">or</div>
-                <Button
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-200 ${
-                    isRecording
-                      ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
-                      : "bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200"
-                  }`}
-                  onClick={isRecording ? stopRecording : startRecording}
-                >
-                  {isRecording ? (
-                    <>
-                      <MicOff className="h-4 w-4" />
-                      <span className="text-sm">Stop Recording</span>
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="h-4 w-4" />
-                      <span className="text-sm">Voice Message</span>
-                    </>
-                  )}
-                </Button>
               </div>
+              <Button
+                className="w-10 h-10 whatsapp-green rounded-full flex items-center justify-center text-white hover:bg-green-600 shadow-lg"
+                onClick={handleSendMessage}
+                disabled={!messageInput.trim()}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
 
-              {isRecording && (
-                <div className="text-center">
-                  <div className="text-xs text-red-500 animate-pulse">
-                    Recording... Speak clearly about your complaint
-                  </div>
+            {/* Voice Message Option */}
+
+            {botState.step === "description" && (
+              <>
+                <div className="flex items-center justify-center">
+                  <div className="text-xs whatsapp-gray mr-3">or</div>
+                  <Button
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-200 ${
+                      isRecording
+                        ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
+                        : "bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200"
+                    }`}
+                    onClick={isRecording ? stopRecording : startRecording}
+                  >
+                    {isRecording ? (
+                      <>
+                        <MicOff className="h-4 w-4" />
+                        <span className="text-sm">Stop Recording</span>
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="h-4 w-4" />
+                        <span className="text-sm">Voice Message</span>
+                      </>
+                    )}
+                  </Button>
                 </div>
-              )}
-            </>
-          )}
-        </div>
+
+                {isRecording && (
+                  <div className="text-center">
+                    <div className="text-xs text-red-500 animate-pulse">
+                      Recording... Speak clearly about your complaint
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="flex gap-2 w-full">
+            <Button className="bg-whatsapp-green">View my complaints</Button>
+            <Button variant={"secondary"}>Done</Button>
+          </div>
+        )}
       </div>
     </div>
   );
