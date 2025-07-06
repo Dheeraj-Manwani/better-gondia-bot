@@ -1,43 +1,95 @@
 import { Section } from "@/types";
-import { Circle, MessageCircle, Users } from "lucide-react";
+import { Circle, Globe, List, MessageCircle, Users } from "lucide-react";
+import { Button } from "./ui/button";
+import { v4 as uuid } from "uuid";
 
 export const BottomNavigation = ({
   currentSection,
   handleSectionChange,
 }: {
-  currentSection: string;
+  currentSection: Section;
   handleSectionChange: (sec: Section) => void;
 }) => {
   return (
     <div className="bg-white border-t border-gray-200 px-4 py-2">
       <div className="flex justify-around">
-        <button
-          className={`flex flex-col items-center py-2 px-4 ${
-            currentSection === "chat" ? "text-green-600" : "text-gray-500"
-          }`}
+        <Button
+          variant="ghost"
+          className={`flex flex-col items-center py-2 px-3 ${
+            currentSection == "chat"
+              ? "text-whatsapp-green"
+              : "text-gray-500 hover:text-whatsapp-green"
+          } transition-colors`}
           onClick={() => handleSectionChange("chat")}
+          key={uuid()}
         >
-          <MessageCircle className="w-6 h-6 mb-1" />
-          <span className="text-xs font-medium">Chat</span>
-        </button>
-        <button
-          className={`flex flex-col items-center py-2 px-4 ${
-            currentSection === "community" ? "text-green-600" : "text-gray-500"
-          }`}
+          <MessageCircle className="w-5 h-5 mb-1" />
+          <span
+            className={`text-xs ${
+              currentSection == "chat" ? "font-medium" : ""
+            }`}
+          >
+            Chat
+          </span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          className={`flex flex-col items-center py-2 px-3 ${
+            currentSection == "my-issues"
+              ? "text-whatsapp-green"
+              : "text-gray-500 hover:text-whatsapp-green"
+          } transition-colors`}
+          onClick={() => handleSectionChange("my-issues")}
+          key={uuid()}
+        >
+          <List className="w-5 h-5 mb-1" />
+          <span
+            className={`text-xs ${
+              currentSection == "my-issues" ? "font-medium" : ""
+            }`}
+          >
+            My Issues
+          </span>
+        </Button>
+        <Button
+          variant="ghost"
+          className={`flex flex-col items-center py-2 px-3 ${
+            currentSection == "community"
+              ? "text-whatsapp-green"
+              : "text-gray-500 hover:text-whatsapp-green"
+          } transition-colors`}
           onClick={() => handleSectionChange("community")}
+          key={uuid()}
         >
-          <Users className="w-6 h-6 mb-1" />
-          <span className="text-xs">Community</span>
-        </button>
-        <button
-          className={`flex flex-col items-center py-2 px-4 ${
-            currentSection === "status" ? "text-green-600" : "text-gray-500"
-          }`}
+          <Globe className="w-5 h-5 mb-1" />
+          <span
+            className={`text-xs ${
+              currentSection == "community" ? "font-medium" : ""
+            }`}
+          >
+            Community
+          </span>
+        </Button>
+        <Button
+          variant="ghost"
+          className={`flex flex-col items-center py-2 px-3 ${
+            currentSection == "status"
+              ? "text-whatsapp-green"
+              : "text-gray-500 hover:text-whatsapp-green"
+          } transition-colors`}
           onClick={() => handleSectionChange("status")}
+          key={uuid()}
         >
-          <Circle className="w-6 h-6 mb-1" />
-          <span className="text-xs">Status</span>
-        </button>
+          <Circle className="w-5 h-5 mb-1" />
+          <span
+            className={`text-xs ${
+              currentSection == "status" ? "font-medium" : ""
+            }`}
+          >
+            Status
+          </span>
+        </Button>
       </div>
     </div>
   );
