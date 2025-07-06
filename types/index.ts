@@ -80,7 +80,8 @@ export interface ComplaintFormData {
   location?: string;
   latitude?: string;
   longitude?: string;
-  imageUrl?: string;
+  imageUrls?: string[];
+  videoUrls?: string[];
 }
 
 export interface OTPFormData {

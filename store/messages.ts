@@ -1,20 +1,31 @@
-import { ComplaintFormData } from "@/types";
+"use client";
+
+import { ChatMessage } from "@/types";
 import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 
-interface BotState {
-  step: "idle" | "category" | "description" | "location" | "media" | "preview";
-  complaintData: Partial<ComplaintFormData>;
+interface UseMessages {
+  messages: ChatMessage[];
+  setMessages: (messages: ChatMessage[]) => void;
 }
 
-interface UseBot {
-  botState: BotState;
-  setBotState: (state: BotState) => void;
-}
+const initMessage: ChatMessage = {
+  id: 0,
+  content:
+    "Hi! I'm here to help you file complaints about civic issues in Gondia. Just describe the problem in your own words.",
+  messageType: "bot",
+  isRead: false,
+  createdAt: new Date().toISOString(),
+};
 
-export const useBot = create<UseBot>((set) => ({
-  botState: {
-    step: "idle",
-    complaintData: {},
-  },
-  setBotState: (state: BotState) => set({ botState: state }),
-}));
+export const useMessages = create<UseMessages>()(
+  devtools(
+    (set) => ({
+      messages: [initMessage],
+      setMessages: (messages: ChatMessage[]) => set({ messages }),
+    }),
+    {
+      name: "messages",
+    }
+  )
+);

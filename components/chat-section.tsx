@@ -22,7 +22,35 @@ import {
 import Image from "next/image";
 import logo from "@/public/logo.svg";
 import singleColorLogo from "@/public/single-color-logo.svg";
-import { useBot } from "@/store/messages";
+import { useBot } from "@/store/bot";
+import { useMessages } from "@/store/messages";
+import { toast } from "sonner";
+
+// Web Speech API type declarations
+interface SpeechRecognitionEvent {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionResultList {
+  [index: number]: SpeechRecognitionResult;
+  length: number;
+}
+
+interface SpeechRecognitionResult {
+  [index: number]: SpeechRecognitionAlternative;
+  length: number;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string;
+  message: string;
+}
 
 interface ChatSectionProps {
   user: User;
@@ -30,11 +58,12 @@ interface ChatSectionProps {
 
 export default function ChatSection({ user }: ChatSectionProps) {
   const [messageInput, setMessageInput] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // const [messages, setMessages] = useState<ChatMessage[]>([]);
   // const [botState, setBotState] = useState<BotState>({
   //   step: "idle",
   //   complaintData: {},
   // });
+  const { messages, setMessages } = useMessages();
   const { botState, setBotState } = useBot();
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
@@ -105,47 +134,84 @@ export default function ChatSection({ user }: ChatSectionProps) {
 
   useEffect(() => {
     // Add welcome message if no messages exist
-    if (messages.length === 0 && !isLoading) {
-      const welcomeMessage: ChatMessage = {
-        id: 0,
-        content:
-          "Hi! I'm here to help you file complaints about civic issues in Gondia. Just describe the problem in your own words.",
-        messageType: "bot",
-        isRead: false,
-        createdAt: new Date().toISOString(),
-      };
-      setMessages([welcomeMessage]);
+    if (messages.length === 1 && !isLoading) {
+      // const welcomeMessage: ChatMessage = {
+      //   id: 0,
+      //   content:
+      //     "Hi! I'm here to help you file complaints about civic issues in Gondia. Just describe the problem in your own words.",
+      //   messageType: "bot",
+      //   isRead: false,
+      //   createdAt: new Date().toISOString(),
+      // };
+      // setMessages([welcomeMessage]);
+
+      addBotMessage(
+        // "Thanks for reporting! Please select the category for your complaint:"
+        "Please select the category for your complaint:"
+      );
     }
   }, [messages.length, isLoading]);
 
   const addBotMessage = (content: string, delay = 1000) => {
     setTimeout(() => {
-      const botMessage: ChatMessage = {
-        id: Date.now(),
-        content,
-        messageType: "bot",
-        isRead: false,
-        createdAt: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, botMessage]);
+      const botMessage = getBotMessage(content);
+      setMessages([...messages, botMessage]);
     }, delay);
+  };
+
+  const getBotMessage = (content: string): ChatMessage => {
+    return {
+      id: Date.now(),
+      content,
+      messageType: "bot",
+      isRead: false,
+      createdAt: new Date().toISOString(),
+    };
   };
 
   // Voice recording functions
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      const chunks: BlobPart[] = [];
+      const SpeechRecognition =
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition;
 
-      recorder.ondataavailable = (e) => chunks.push(e.data);
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "audio/webm" });
+      if (!SpeechRecognition) {
+        alert("Speech Recognition is not supported in this browser.");
+        return;
+      }
 
-        // Simulate voice-to-text conversion for demo
-        const voiceText =
-          "This is a detailed description of my complaint. The road has multiple potholes that make it dangerous for vehicles. It needs immediate attention from the municipal authorities.";
+      // The languages you want to try
+      const preferredLangs = ["hi-IN", "mr-IN", "en-IN"];
+      let currentLangIndex = 0;
 
+      // Recursive function that creates a new recognizer each time
+      const tryRecognize = () => {
+        const recognition = new SpeechRecognition();
+        recognition.lang = preferredLangs[currentLangIndex];
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onresult = (event: SpeechRecognitionEvent) => {
+          const voiceText = event.results[0][0].transcript;
+          finish(voiceText);
+        };
+
+        recognition.onerror = () => {
+          // Move to next language if any left
+          if (currentLangIndex < preferredLangs.length - 1) {
+            currentLangIndex++;
+            tryRecognize();
+          } else {
+            alert("Sorry, we couldn't understand your speech in any language.");
+          }
+        };
+
+        recognition.start();
+      };
+
+      // Function to run once we have text
+      const finish = (voiceText: string) => {
         const userMessage: ChatMessage = {
           id: Date.now(),
           userId: user.id,
@@ -155,10 +221,8 @@ export default function ChatSection({ user }: ChatSectionProps) {
           createdAt: new Date().toISOString(),
         };
 
-        setMessages((prev) => [...prev, userMessage]);
-
+        setMessages([...messages, userMessage]);
         setBotState({
-          ...botState,
           step: "location",
           complaintData: { ...botState.complaintData, description: voiceText },
         });
@@ -170,20 +234,23 @@ export default function ChatSection({ user }: ChatSectionProps) {
         }, 500);
       };
 
+      // Kick off the recognition chain
+      tryRecognize();
+
+      // (Optional) If you still need to record the raw audio blob:
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks: BlobPart[] = [];
+      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        // you can upload or save 'blob' if needed
+      };
       setMediaRecorder(recorder);
       setIsRecording(true);
       recorder.start();
-
-      // toast({
-      //   title: "Recording Started",
-      //   description: "Speak clearly to describe your complaint in detail.",
-      // });
     } catch (error) {
-      // toast({
-      //   title: "Microphone Access Required",
-      //   description: "Please allow microphone access to record voice messages.",
-      //   variant: "destructive",
-      // });
+      alert("Please allow microphone access to use voice input.");
     }
   };
 
@@ -213,31 +280,33 @@ export default function ChatSection({ user }: ChatSectionProps) {
       createdAt: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
-
     // Handle bot responses based on current state
-    if (botState.step === "idle") {
-      // User is describing a complaint
-      setBotState({
-        step: "category",
-        complaintData: {
-          title: messageInput,
-          description: messageInput,
-        },
-      });
+    // if (botState.step === "idle") {
+    //   // User is describing a complaint
+    //   setBotState({
+    //     step: "category",
+    //     complaintData: {
+    //       title: messageInput,
+    //       description: messageInput,
+    //     },
+    //   });
 
-      addBotMessage(
-        // "Thanks for reporting! Please select the category for your complaint:"
-        "Please select the category for your complaint:"
-      );
-    } else if (botState.step === "description") {
+    //   addBotMessage(
+    //     // "Thanks for reporting! Please select the category for your complaint:"
+    //     "Please select the category for your complaint:"
+    //   );
+    // }
+
+    // else
+    let botMessage: ChatMessage | null = null;
+    if (botState.step === "description") {
       // User provided detailed description
       setBotState({
         step: "location",
         complaintData: { ...botState.complaintData, description: messageInput },
       });
 
-      addBotMessage(
+      botMessage = getBotMessage(
         "Thank you for the detailed description! Now, can you provide the location? You can share your current location, type the address manually, or skip this step."
       );
     } else if (botState.step === "location") {
@@ -247,34 +316,14 @@ export default function ChatSection({ user }: ChatSectionProps) {
         complaintData: { ...botState.complaintData, location: messageInput },
       });
 
-      addBotMessage(
+      botMessage = getBotMessage(
         "Great! Would you like to add a photo or video to help illustrate the issue? You can also skip this step."
       );
     }
 
+    setMessages([...messages, userMessage, botMessage || getBotMessage("")]);
+
     setMessageInput("");
-  };
-
-  const handleDescriptionInput = (description: string) => {
-    const userMessage: ChatMessage = {
-      id: Date.now(),
-      userId: user.id,
-      content: description,
-      messageType: "user",
-      isRead: false,
-      createdAt: new Date().toISOString(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-
-    setBotState({
-      step: "location",
-      complaintData: { ...botState.complaintData, description },
-    });
-
-    addBotMessage(
-      "Thank you for the detailed description! Now, can you provide the location? You can share your current location, type the address manually, or skip this step."
-    );
   };
 
   const handleCategorySelect = (category: string) => {
@@ -294,23 +343,35 @@ export default function ChatSection({ user }: ChatSectionProps) {
       createdAt: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
-
     setBotState({
       step: "description",
       complaintData: { ...botState.complaintData, category },
     });
 
-    addBotMessage(
-      "Perfect! Now please describe your complaint in detail. Explain what exactly is the problem, when you noticed it, and how it's affecting you or your community."
-    );
+    setMessages([
+      ...messages,
+      userMessage,
+      getBotMessage(
+        "Perfect! Now please describe your complaint in detail. Explain what exactly is the problem, when you noticed it, and how it's affecting you or your community."
+      ),
+    ]);
   };
 
   const handleLocationAction = (action: string) => {
     if (action === "current") {
+      if (!navigator.geolocation) {
+        addBotMessage(
+          "Geolocation is not supported in your browser. Please type your address."
+        );
+        return;
+      }
+
+      addBotMessage("Fetching your current location…");
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setBotState({
+            ...botState,
             step: "media",
             complaintData: {
               ...botState.complaintData,
@@ -323,13 +384,21 @@ export default function ChatSection({ user }: ChatSectionProps) {
             "Location captured! Would you like to add a photo or video?"
           );
         },
-        () => {
-          // toast({
-          //   title: "Location Error",
-          //   description:
-          //     "Unable to get your location. Please type it manually.",
-          //   variant: "destructive",
-          // });
+        (error) => {
+          if (error.code === error.PERMISSION_DENIED) {
+            addBotMessage(
+              "Permission denied. Please type your address manually."
+            );
+          } else {
+            addBotMessage(
+              "Unable to retrieve location. Please type your address manually."
+            );
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
         }
       );
     } else if (action === "manual") {
@@ -342,43 +411,104 @@ export default function ChatSection({ user }: ChatSectionProps) {
     }
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
     const formData = new FormData();
-    formData.append("file", file);
+    const imageUrls: string[] = [];
+    const videoUrls: string[] = [];
 
-    fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setBotState({
-          step: "preview",
-          complaintData: { ...botState.complaintData, imageUrl: data.url },
-        });
-        addBotMessage("Photo uploaded! Here's a preview of your complaint:");
-        showComplaintPreview();
-      })
-      .catch((error) => {
-        // toast({
-        //   title: "Upload Failed",
-        //   description: "Failed to upload file. Please try again.",
-        //   variant: "destructive",
-        // });
+    // Add all files to form data
+    for (let i = 0; i < files.length; i++) {
+      formData.append("files", files[i]);
+    }
+
+    try {
+      const id = toast.loading("Uploading Files");
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
       });
+
+      if (!response.ok) {
+        toast.error("Upload Failed", { id });
+        throw new Error("Upload failed");
+      }
+      toast.success("Upload successful");
+      const data = await response.json();
+
+      console.log("res data ========= ", data);
+
+      // Separate image and video URLs
+      data.urls.forEach((url: string) => {
+        const fileExtension = url.split(".").pop()?.toLowerCase();
+        if (
+          ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(
+            fileExtension || ""
+          )
+        ) {
+          imageUrls.push(url);
+        } else if (
+          ["mp4", "avi", "mov", "webm"].includes(fileExtension || "")
+        ) {
+          videoUrls.push(url);
+        }
+      });
+
+      setBotState({
+        step: "preview",
+        complaintData: {
+          ...botState.complaintData,
+          imageUrls: [
+            ...(botState.complaintData.imageUrls || []),
+            ...imageUrls,
+          ],
+          videoUrls: [
+            ...(botState.complaintData.videoUrls || []),
+            ...videoUrls,
+          ],
+        },
+      });
+
+      // const totalFiles = imageUrls.length + videoUrls.length;
+      // const fileTypeText =
+      //   imageUrls.length > 0 && videoUrls.length > 0
+      //     ? "files"
+      //     : imageUrls.length > 0
+      //     ? "photos"
+      //     : "videos";
+
+      // addBotMessage(
+      //   `${totalFiles} ${fileTypeText} uploaded! Here's a preview of your complaint:`
+      // );
+      showComplaintPreview();
+    } catch (error) {
+      console.error("Upload error:", error);
+      // toast({
+      //   title: "Upload Failed",
+      //   description: "Failed to upload files. Please try again.",
+      //   variant: "destructive",
+      // });
+    }
   };
 
   const showComplaintPreview = () => {
-    const preview = `
-**Complaint Preview:**
-- Issue: ${botState.complaintData.title}
+    const imageCount = botState.complaintData.imageUrls?.length || 0;
+    const videoCount = botState.complaintData.videoUrls?.length || 0;
+    const mediaInfo =
+      imageCount > 0 || videoCount > 0
+        ? `\n- Media: ${imageCount} photo(s), ${videoCount} video(s)`
+        : "";
+
+    const preview = `**Complaint Preview:**
+- Issue: ${botState.complaintData.description}
 - Category: ${botState.complaintData.category}
 - Location: ${botState.complaintData.location || "Not specified"}
-- Your Details: ${user.name} • +91 ${user.mobile}
+- Your Details: ${user.name} • +91 ${user.mobile}${mediaInfo}
 
 Would you like to submit this complaint?
     `;
@@ -390,7 +520,10 @@ Would you like to submit this complaint?
 
   const handleComplaintSubmit = () => {
     // Ensure we have the required data
-    if (!botState.complaintData.title || !botState.complaintData.category) {
+    if (
+      !botState.complaintData.description ||
+      !botState.complaintData.category
+    ) {
       // toast({
       //   title: "Missing Information",
       //   description: "Please complete all required fields before submitting.",
@@ -398,13 +531,12 @@ Would you like to submit this complaint?
       // });
       return;
     }
+    const id = toast.loading("Submitting Complaint...");
 
     const formData = new FormData();
-    formData.append("title", botState.complaintData.title);
-    formData.append(
-      "description",
-      botState.complaintData.description || botState.complaintData.title
-    );
+    // formData.append("title", botState.complaintData.title);
+    formData.append("userId", user.id ?? 0);
+    formData.append("description", botState.complaintData.description);
     formData.append("category", botState.complaintData.category);
     formData.append("isPublic", "true");
 
@@ -418,6 +550,26 @@ Would you like to submit this complaint?
       formData.append("longitude", botState.complaintData.longitude);
     }
 
+    // Add multiple image URLs
+    if (
+      botState.complaintData.imageUrls &&
+      botState.complaintData.imageUrls.length > 0
+    ) {
+      botState.complaintData.imageUrls.forEach((url, index) => {
+        formData.append(`imageUrls[${index}]`, url);
+      });
+    }
+
+    // Add multiple video URLs
+    if (
+      botState.complaintData.videoUrls &&
+      botState.complaintData.videoUrls.length > 0
+    ) {
+      botState.complaintData.videoUrls.forEach((url, index) => {
+        formData.append(`videoUrls[${index}]`, url);
+      });
+    }
+
     createComplaintMutation.mutate(formData);
   };
 
@@ -427,7 +579,7 @@ Would you like to submit this complaint?
       message.content.includes("select the category")
     ) {
       return (
-        <div className="chat-bubble-received p-3 max-w-sm shadow-sm">
+        <div className="chat-bubble-received p-3 max-w-sm shadow-sm border border-gray-200">
           <p className="text-sm whatsapp-dark mb-3">{message.content}</p>
           <div className="grid grid-cols-2 gap-2">
             <Button
@@ -487,7 +639,7 @@ Would you like to submit this complaint?
       message.content.includes("provide the location")
     ) {
       return (
-        <div className="chat-bubble-received p-3 max-w-sm shadow-sm">
+        <div className="chat-bubble-received p-3 max-w-sm shadow-sm  border border-gray-200">
           <p className="text-sm whatsapp-dark mb-3">{message.content}</p>
           <div className="space-y-2">
             <Button
@@ -540,7 +692,7 @@ Would you like to submit this complaint?
       message.content.includes("photo or video")
     ) {
       return (
-        <div className="chat-bubble-received p-3 max-w-sm shadow-sm">
+        <div className="chat-bubble-received p-3 max-w-sm shadow-sm border border-gray-200">
           <p className="text-sm whatsapp-dark mb-3">{message.content}</p>
           <div className="space-y-2">
             <Button
@@ -550,7 +702,7 @@ Would you like to submit this complaint?
               onClick={() => fileInputRef.current?.click()}
             >
               <Camera className="w-4 h-4 mr-2" />
-              Add Photo/Video
+              Add Photos/Videos
             </Button>
             <Button
               size="sm"
@@ -565,6 +717,7 @@ Would you like to submit this complaint?
             ref={fileInputRef}
             type="file"
             accept="image/*,video/*"
+            multiple
             className="hidden"
             onChange={handleFileUpload}
           />
@@ -589,10 +742,39 @@ Would you like to submit this complaint?
 
     if (message.content.includes("Complaint Preview")) {
       return (
-        <div className="chat-bubble-received p-3 max-w-sm shadow-sm">
+        <div className="chat-bubble-received p-3 max-w-sm shadow-sm border border-gray-200">
           <div className="text-sm whatsapp-dark whitespace-pre-line mb-3">
             {message.content}
           </div>
+
+          {/* Show uploaded files if any */}
+          {((botState.complaintData.imageUrls?.length || 0) > 0 ||
+            (botState.complaintData.videoUrls?.length || 0) > 0) && (
+            <div className="mb-3">
+              <div className="text-xs text-gray-500 mb-2">Uploaded files:</div>
+              <div className="grid grid-cols-2 gap-2">
+                {botState.complaintData.imageUrls?.map((url, index) => (
+                  <div key={`img-${index}`} className="relative">
+                    <img
+                      src={url}
+                      alt={`Uploaded image ${index + 1}`}
+                      className="w-full object-cover rounded border"
+                    />
+                  </div>
+                ))}
+                {botState.complaintData.videoUrls?.map((url, index) => (
+                  <div key={`vid-${index}`} className="relative">
+                    <video
+                      src={url}
+                      className="w-full  object-cover rounded border"
+                      controls
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex space-x-2">
             <Button
               size="sm"
@@ -722,98 +904,31 @@ Would you like to submit this complaint?
 
       {/* Chat Input */}
       <div className="p-4 bg-white border-t border-gray-200">
-        {botState.step === "description" ? (
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <Button
+        <div className="space-y-3">
+          <div className="flex items-center space-x-3">
+            {/* <Button
                 variant="ghost"
                 size="sm"
                 className="p-2 whatsapp-gray hover:text-green-600"
               >
                 <Paperclip className="h-5 w-5" />
-              </Button>
-              <div className="flex-1 chat-input-container flex items-center">
-                <Input
-                  placeholder="Describe your complaint in detail..."
-                  className="flex-1 bg-transparent outline-none border-none text-sm"
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                />
-                <Button
+              </Button> */}
+            <div className="flex-1 chat-input-container flex items-center">
+              <Input
+                placeholder="Describe your complaint in detail..."
+                className="flex-1 bg-transparent outline-none border-none text-sm"
+                value={messageInput}
+                onChange={(e) => setMessageInput(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                disabled={botState.step == "category"}
+              />
+              {/* <Button
                   variant="ghost"
                   size="sm"
                   className="p-1 whatsapp-gray hover:text-green-600"
                 >
                   <Smile className="h-5 w-5" />
-                </Button>
-              </div>
-              <Button
-                className="w-10 h-10 whatsapp-green rounded-full flex items-center justify-center text-white hover:bg-green-600 shadow-lg"
-                onClick={handleSendMessage}
-                disabled={!messageInput.trim()}
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Voice Message Option */}
-            <div className="flex items-center justify-center">
-              <div className="text-xs whatsapp-gray mr-3">or</div>
-              <Button
-                className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-200 ${
-                  isRecording
-                    ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
-                    : "bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200"
-                }`}
-                onClick={isRecording ? stopRecording : startRecording}
-              >
-                {isRecording ? (
-                  <>
-                    <MicOff className="h-4 w-4" />
-                    <span className="text-sm">Stop Recording</span>
-                  </>
-                ) : (
-                  <>
-                    <Mic className="h-4 w-4" />
-                    <span className="text-sm">Voice Message</span>
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {isRecording && (
-              <div className="text-center">
-                <div className="text-xs text-red-500 animate-pulse">
-                  Recording... Speak clearly about your complaint
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="flex items-center space-x-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 whatsapp-gray hover:text-green-600"
-            >
-              <Paperclip className="h-5 w-5" />
-            </Button>
-            <div className="flex-1 chat-input-container flex items-center">
-              <Input
-                placeholder="Type your message..."
-                className="flex-1 bg-transparent outline-none border-none text-sm"
-                value={messageInput}
-                onChange={(e) => setMessageInput(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-1 whatsapp-gray hover:text-green-600"
-              >
-                <Smile className="h-5 w-5" />
-              </Button>
+                </Button> */}
             </div>
             <Button
               className="w-10 h-10 whatsapp-green rounded-full flex items-center justify-center text-white hover:bg-green-600 shadow-lg"
@@ -823,7 +938,45 @@ Would you like to submit this complaint?
               <Send className="h-4 w-4" />
             </Button>
           </div>
-        )}
+
+          {/* Voice Message Option */}
+
+          {botState.step === "description" && (
+            <>
+              <div className="flex items-center justify-center">
+                <div className="text-xs whatsapp-gray mr-3">or</div>
+                <Button
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-200 ${
+                    isRecording
+                      ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
+                      : "bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200"
+                  }`}
+                  onClick={isRecording ? stopRecording : startRecording}
+                >
+                  {isRecording ? (
+                    <>
+                      <MicOff className="h-4 w-4" />
+                      <span className="text-sm">Stop Recording</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="h-4 w-4" />
+                      <span className="text-sm">Voice Message</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {isRecording && (
+                <div className="text-center">
+                  <div className="text-xs text-red-500 animate-pulse">
+                    Recording... Speak clearly about your complaint
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

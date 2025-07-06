@@ -39,6 +39,13 @@ model Complaint {
   title       String
   description String
   status      String   @default("pending")
+  category    String
+  location    String? // e.g. address or place name
+  latitude    String?
+  longitude   String?
+  imageUrls   String[] @default([])
+  videoUrls   String[] @default([])
+  isPublic    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
