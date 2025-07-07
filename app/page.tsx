@@ -139,15 +139,9 @@ export default function Home() {
 
       {/* Content Area */}
       <div className="flex-1 overflow-hidden">
-        {
-          currentSection === "chat" && (
-            // (chatSection == "all-chats" ? (
-            <AllChats user={userData!} />
-          )
-          // ) : (
-          // <ChatSection user={userData!} />
-          // ))
-        }
+        {currentSection === "chat" && <ChatSection user={userData!} />}
+        {currentSection === "my-issues" && <AllChats user={userData!} />}
+
         {currentSection === "community" && (
           <CommunitySection user={userData!} />
         )}

@@ -71,6 +71,18 @@
   }
 } */
 
+.chat-bubble-right {
+  border-radius: 18px 18px 4px 18px;
+}
+
+.chat-bubble-left {
+  border-radius: 18px 18px 18px 4px;
+}
+
+.typing-indicator {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
 @layer components {
   .chat-bubble-sent {
     background: var(--whatsapp-light-green);

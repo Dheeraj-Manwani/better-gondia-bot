@@ -12,7 +12,8 @@ interface BotState {
     | "location"
     | "media"
     | "preview"
-    | "done";
+    | "done"
+    | "existing";
   complaintData: Partial<ComplaintFormData>;
 }
 
