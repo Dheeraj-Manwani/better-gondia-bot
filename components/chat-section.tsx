@@ -171,89 +171,50 @@ export default function ChatSection({
     }, delay);
   };
 
+  // Function to run once we have text
+  const finish = (voiceText: string) => {
+    setMessageInput(voiceText);
+    // const userMessage: ChatMessage = {
+    //   id: Date.now(),
+    //   userId: userData.id || 0,
+    //   content: voiceText,
+    //   messageType: "user",
+    //   isRead: false,
+    //   createdAt: new Date().toISOString(),
+    // };
+
+    // addMessage(userMessage);
+    // setBotState({
+    //   step: "location",
+    //   complaintData: { ...botState.complaintData, description: voiceText },
+    // });
+
+    // setTimeout(() => {
+    //   addBotMessage(
+    //     "Thank you for the detailed description! Now, can you provide the location? You can share your current location, type the address manually, or skip this step."
+    //   );
+    // }, 500);
+  };
+
   // Voice recording functions
   const startRecording = async () => {
-    try {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition ||
-        (window as any).webkitSpeechRecognition;
+    // @ts-ignore
+    const recognition = new (window.SpeechRecognition ||
+      // @ts-ignore
+      window.webkitSpeechRecognition)();
+    recognition.lang = "en-US";
+    recognition.start();
 
-      if (!SpeechRecognition) {
-        alert("Speech Recognition is not supported in this browser.");
-        return;
-      }
+    // @ts-ignore
+    recognition.onresult = async (event) => {
+      const query = event.results[0][0].transcript;
+      finish(query);
+    };
 
-      // The languages you want to try
-      const preferredLangs = ["hi-IN", "mr-IN", "en-IN"];
-      let currentLangIndex = 0;
-
-      // Recursive function that creates a new recognizer each time
-      const tryRecognize = () => {
-        const recognition = new SpeechRecognition();
-        recognition.lang = preferredLangs[currentLangIndex];
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-
-        recognition.onresult = (event: SpeechRecognitionEvent) => {
-          const voiceText = event.results[0][0].transcript;
-          finish(voiceText);
-        };
-
-        recognition.onerror = () => {
-          // Move to next language if any left
-          if (currentLangIndex < preferredLangs.length - 1) {
-            currentLangIndex++;
-            tryRecognize();
-          } else {
-            alert("Sorry, we couldn't understand your speech in any language.");
-          }
-        };
-
-        recognition.start();
-      };
-
-      // Function to run once we have text
-      const finish = (voiceText: string) => {
-        const userMessage: ChatMessage = {
-          id: Date.now(),
-          userId: userData.id || 0,
-          content: voiceText,
-          messageType: "user",
-          isRead: false,
-          createdAt: new Date().toISOString(),
-        };
-
-        addMessage(userMessage);
-        setBotState({
-          step: "location",
-          complaintData: { ...botState.complaintData, description: voiceText },
-        });
-
-        setTimeout(() => {
-          addBotMessage(
-            "Thank you for the detailed description! Now, can you provide the location? You can share your current location, type the address manually, or skip this step."
-          );
-        }, 500);
-      };
-
-      // Kick off the recognition chain
-      tryRecognize();
-
-      // (Optional) If you still need to record the raw audio blob:
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      const chunks: BlobPart[] = [];
-      recorder.ondataavailable = (e) => chunks.push(e.data);
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "audio/webm" });
-        // you can upload or save 'blob' if needed
-      };
-      setMediaRecorder(recorder);
-      setIsRecording(true);
-      recorder.start();
-    } catch (error) {
-      alert("Please allow microphone access to use voice input.");
-    }
+    // @ts-ignore
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error", event.error);
+    };
   };
 
   const stopRecording = () => {

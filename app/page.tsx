@@ -27,7 +27,7 @@ import { useMessages } from "@/store/messages";
 
 export default function Home() {
   const { authStep, setAuthStep } = useAuthStep();
-  const [currentSection, setCurrentSection] = useState<Section>("my-issues");
+  const [currentSection, setCurrentSection] = useState<Section>("chat");
   const [pendingMobile, setPendingMobile] = useState<string>("");
   // const [selectedLanguage, setSelectedLanguage] = useState<Language>("english");
   // const [userData, setUserData] = useState<User>(initUserData);

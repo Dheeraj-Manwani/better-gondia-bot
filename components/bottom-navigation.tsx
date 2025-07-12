@@ -47,7 +47,7 @@ export const BottomNavigation = ({
               className={`flex flex-col items-center px-3 my-2 ${
                 isActive
                   ? "text-black font-extrabold"
-                  : "text-gray-600 hover:text-black"
+                  : "text-gray-500 hover:text-black"
               } transition-colors`}
               onClick={() => handleSectionChange(item.id)}
             >

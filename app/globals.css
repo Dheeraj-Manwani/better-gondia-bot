@@ -75,11 +75,13 @@
   .chat-bubble-sent {
     background: var(--whatsapp-light-green);
     border-radius: 7.5px 7.5px 7.5px 0;
+    max-width: 82% !important;
   }
 
   .chat-bubble-received {
     background: var(--whatsapp-input);
     border-radius: 7.5px 7.5px 0 7.5px;
+    max-width: 82% !important;
   }
 
   .status-ring {
