@@ -74,9 +74,7 @@ export default function LanguageSelection({
             </motion.div>
             <Image src={logo} height={50} width={50} alt="logo" />
           </div>
-          <h1 className="text-2xl font-bold whatsapp-dark mb-2">
-            Better Gondia Mitra
-          </h1>
+          <h1 className="text-2xl font-bold mb-2">Better Gondia Mitra</h1>
           <p className="whatsapp-gray text-sm">
             Choose your preferred language
           </p>

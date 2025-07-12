@@ -1,5 +1,7 @@
 // app/api/complaints/route.ts
+import { generateComplaintIdFromDate, getBotMessage } from "@/lib/utils";
 import prisma from "@/prisma/db";
+import { ChatMessage } from "@/types";
 import { NextRequest } from "next/server";
 
 // Helper to parse FormData arrays
@@ -79,6 +81,7 @@ export async function GET(req: NextRequest) {
       createdAt: complaint.createdAt.toISOString(),
       updatedAt: complaint.updatedAt.toISOString(),
       coSignCount: 0, // Default value, implement co-sign functionality later
+      messages: complaint.messages,
     }));
 
     return Response.json({
@@ -113,7 +116,9 @@ export async function POST(req: NextRequest) {
   const location = form.get("location") as string | undefined;
   const latitude = form.get("latitude") as string | undefined;
   const longitude = form.get("longitude") as string | undefined;
-  const messages = form.get("messages") as string;
+  let messages = form.get("messages") as string;
+  const parsedMmessages: ChatMessage[] = JSON.parse(messages);
+
   const imageUrls = getFormDataArray(form, "imageUrls");
   const videoUrls = getFormDataArray(form, "videoUrls");
 
@@ -132,23 +137,47 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    const complaint = await prisma.complaint.create({
-      data: {
-        userId,
-        title: description, // Or use a separate title if you have one
-        description,
-        category,
-        location,
-        latitude,
-        longitude,
-        imageUrls,
-        videoUrls,
-        isPublic,
-      },
+    const data = await prisma.$transaction(async (tx) => {
+      const complaint = await tx.complaint.create({
+        data: {
+          userId,
+          title: description, // Or use a separate title if you have one
+          description,
+          category,
+          location,
+          latitude,
+          longitude,
+          imageUrls,
+          videoUrls,
+          isPublic,
+        },
+      });
+
+      parsedMmessages.push(
+        getBotMessage(
+          `✅ Complaint submitted successfully! Your complaint ID is ${generateComplaintIdFromDate(
+            complaint.id
+          )}. We'll keep you updated on the progress.`
+        )
+      );
+      parsedMmessages.push(
+        getBotMessage(`Call to action (to be framed in requirement).`)
+      );
+
+      const stringMess = JSON.stringify(parsedMmessages);
+      console.log("updating messages for complaint ", parsedMmessages);
+      await tx.complaint.update({
+        data: { messages: stringMess },
+        where: {
+          id: complaint.id,
+        },
+      });
+
+      return complaint;
     });
 
     return Response.json({
-      complaintId: complaint.id,
+      complaintId: data.id,
       success: true,
     });
   } catch (error) {

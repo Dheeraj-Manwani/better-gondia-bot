@@ -67,7 +67,7 @@ export default function StatusSection() {
       <div className="h-full flex flex-col">
         {/* Status Header */}
         <div className="bg-white p-4 border-b border-gray-200">
-          <h2 className="font-semibold whatsapp-dark">Civic Updates</h2>
+          <h2 className="font-semibold ">Civic Updates</h2>
           <p className="text-sm whatsapp-gray">
             Photos & videos of resolved complaints
           </p>
@@ -84,7 +84,7 @@ export default function StatusSection() {
                   <Plus className="w-6 h-6 text-gray-500" />
                 </div>
               </div>
-              <p className="text-xs whatsapp-dark text-center">My Status</p>
+              <p className="text-xs  text-center">My Status</p>
             </div>
 
             {/* Admin Status Updates */}
@@ -101,7 +101,7 @@ export default function StatusSection() {
                     className="w-full h-full object-cover rounded-full"
                   />
                 </div>
-                <p className="text-xs whatsapp-dark text-center">
+                <p className="text-xs  text-center">
                   {status.title.slice(0, 10)}...
                 </p>
               </div>
@@ -110,7 +110,7 @@ export default function StatusSection() {
 
           {/* Recent Updates */}
           <div className="space-y-4">
-            <h3 className="font-medium whatsapp-dark">Recent Updates</h3>
+            <h3 className="font-medium ">Recent Updates</h3>
 
             {statusUpdates?.map((update) => (
               <div
@@ -123,7 +123,7 @@ export default function StatusSection() {
                       <i className="fas fa-shield-alt text-white text-xs"></i>
                     </div>
                     <div>
-                      <p className="font-medium text-sm whatsapp-dark">
+                      <p className="font-medium text-sm ">
                         Gondia Municipal Corp
                       </p>
                       <p className="text-xs whatsapp-gray">
@@ -141,7 +141,7 @@ export default function StatusSection() {
                   />
                 )}
 
-                <p className="text-sm whatsapp-dark mb-2">
+                <p className="text-sm  mb-2">
                   <strong>{update.title}</strong>
                 </p>
                 {update.description && (

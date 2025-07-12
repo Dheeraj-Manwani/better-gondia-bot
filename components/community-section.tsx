@@ -115,7 +115,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
     <div className="h-full flex flex-col">
       {/* Community Header */}
       <div className="bg-white p-4 border-b border-gray-200">
-        <h2 className="font-semibold whatsapp-dark">Gondia Public Wall</h2>
+        <h2 className="font-semibold ">Gondia Public Wall</h2>
         <p className="text-sm whatsapp-gray">
           See what others are reporting • Co-sign to support
         </p>

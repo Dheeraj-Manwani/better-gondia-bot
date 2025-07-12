@@ -16,6 +16,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, Cross, X } from "lucide-react";
 import { ProfileFormData, User } from "@/types";
 import { toast } from "sonner";
+import { useUserData } from "@/store/userData";
+import { useAuthStep } from "@/store/authStep";
 
 interface ProfileScreenProps {
   mobile: string;
@@ -37,6 +39,8 @@ export default function ProfileScreen({
     age: 0,
     gender: "",
   });
+  const setUserData = useUserData((state) => state.setUserData);
+  const setAuthStep = useAuthStep((state) => state.setAuthStep);
 
   // const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -68,10 +72,13 @@ export default function ProfileScreen({
 
       console.log("Data recieved on success:", res);
       const savedUser = res.data;
-      localStorage.setItem(
-        "userData",
-        JSON.stringify({ ...savedUser, authStep: "complete" } as User)
-      );
+      const newUser = { ...savedUser } as User;
+      localStorage.setItem("userData", JSON.stringify(newUser));
+      setUserData(newUser);
+
+      setAuthStep("complete");
+      localStorage.setItem("authStep", "complete");
+
       // queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       onNext();
     },
@@ -134,9 +141,7 @@ export default function ProfileScreen({
         <div className="flex-1 overflow-y-auto px-6 py-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label className="block text-sm font-medium whatsapp-dark mb-2">
-                Name *
-              </Label>
+              <Label className="block text-sm font-medium  mb-2">Name *</Label>
               <Input
                 type="text"
                 className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:border-none "
@@ -149,9 +154,7 @@ export default function ProfileScreen({
 
             <div className="flex gap-2 w-full justify-between">
               <div className="w-full">
-                <Label className="block text-sm font-medium whatsapp-dark mb-2">
-                  Age *
-                </Label>
+                <Label className="block text-sm font-medium  mb-2">Age *</Label>
                 <Input
                   type="number"
                   className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:border-none "
@@ -163,7 +166,7 @@ export default function ProfileScreen({
               </div>
 
               <div className="w-full">
-                <Label className="block text-sm font-medium whatsapp-dark mb-2">
+                <Label className="block text-sm font-medium  mb-2">
                   Gender *
                 </Label>
                 <Select
@@ -176,14 +179,14 @@ export default function ProfileScreen({
                   <SelectContent className="bg-white shadow-2xl">
                     <SelectItem value="Male">Male</SelectItem>
                     <SelectItem value="Female">Female</SelectItem>
-                    <SelectItem value="Others">Others</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div>
-              <Label className="block text-sm font-medium whatsapp-dark mb-2">
+              <Label className="block text-sm font-medium  mb-2">
                 Phone Number *
               </Label>
               <Input
@@ -197,7 +200,7 @@ export default function ProfileScreen({
             </div>
 
             {/* <div>
-              <Label className="block text-sm font-medium whatsapp-dark mb-2">
+              <Label className="block text-sm font-medium  mb-2">
                 Last Name *
               </Label>
               <Input
@@ -211,7 +214,7 @@ export default function ProfileScreen({
             </div> */}
 
             <div>
-              <Label className="block text-sm font-medium whatsapp-dark mb-2">
+              <Label className="block text-sm font-medium  mb-2">
                 Address *
               </Label>
               <Textarea

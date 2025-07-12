@@ -18,18 +18,26 @@ import { initUserData } from "@/lib/data";
 import { useLanguage } from "@/store/language";
 import { useTheme } from "next-themes";
 import { useChatSection } from "@/store/chat-section";
-import { AllChats } from "@/components/Chats";
+import { AllChats } from "@/components/my-complaints";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { TopHeader } from "@/components/TopHeader";
+import { useUserData } from "@/store/userData";
+import { useAuthStep } from "@/store/authStep";
+import { useBot } from "@/store/bot";
+import { useMessages } from "@/store/messages";
 
 export default function Home() {
-  // const [authStep, setAuthStep] = useState<AuthStep>("language");
-  const [currentSection, setCurrentSection] = useState<Section>("chat");
+  const { authStep, setAuthStep } = useAuthStep();
+  const [currentSection, setCurrentSection] = useState<Section>("my-issues");
   const [pendingMobile, setPendingMobile] = useState<string>("");
   // const [selectedLanguage, setSelectedLanguage] = useState<Language>("english");
-  const [userData, setUserData] = useState<User>(initUserData);
+  // const [userData, setUserData] = useState<User>(initUserData);
+  const { userData, setUserData } = useUserData();
+  // const {}
   const setLanguage = useLanguage((state) => state.setLanguage);
+  const setBotState = useBot((state) => state.setBotState);
   const { setTheme } = useTheme();
+  const resetToInitial = useMessages((state) => state.resetToInitial);
 
   // const { data: user, isLoading } = useQuery<User>({
   //   queryKey: ["/api/auth/user"],
@@ -44,17 +52,22 @@ export default function Home() {
 
   useEffect(() => {
     const currentUserData = localStorage.getItem("userData");
+    const currentAuthStep = localStorage.getItem("authStep");
+    const currLang = localStorage.getItem("language");
+
     if (currentUserData) {
       const parsedCurrentUser: User = JSON.parse(currentUserData);
       setUserData(parsedCurrentUser);
-      setLanguage(parsedCurrentUser.language);
-      // setAuthStep(parsedCurrentUser.authStep);
+      setLanguage(currLang as Language);
+      setAuthStep(currentAuthStep! as AuthStep);
     } else {
-      setUserData(initUserData);
+      // setUserData(initUserData);
       setLanguage("english");
       // setSelectedLanguage("english");
       // setAuthStep("language");
       localStorage.setItem("userData", JSON.stringify(initUserData));
+      localStorage.setItem("authStep", "language");
+      localStorage.setItem("language", "english");
     }
     setTheme("light");
   }, []);
@@ -62,23 +75,21 @@ export default function Home() {
   const handleLanguageSelect = (language: Language) => {
     // setSelectedLanguage(language);
 
-    // setAuthStep("profile");
-    const updatedUserData: User = {
-      ...userData,
-      authStep: "profile",
-      language: language,
-    };
-    setUserData(updatedUserData);
-    localStorage.setItem("userData", JSON.stringify(updatedUserData));
+    setAuthStep("profile");
+    localStorage.setItem("authStep", "profile");
+
+    setLanguage(language);
+    localStorage.setItem("language", language);
   };
 
   const handleAuthStepChange = (step: AuthStep, mobile?: string) => {
     // setAuthStep(step);
-    const updatedUserData: User = {
-      ...userData,
-      authStep: step,
-    };
-    setUserData(updatedUserData);
+    // const updatedUserData: User = {
+    //   ...userData,
+    //   authStep: step,
+    // };
+    // setUserData(updatedUserData);
+    setAuthStep(step);
     if (mobile) {
       setPendingMobile(mobile);
     }
@@ -86,6 +97,12 @@ export default function Home() {
 
   const handleSectionChange = (section: Section) => {
     setCurrentSection(section);
+  };
+
+  const handleOpenNewChat = () => {
+    handleSectionChange("chat");
+    setBotState({ step: "category", complaintData: {} });
+    resetToInitial();
   };
 
   // if (isLoading) {
@@ -101,17 +118,17 @@ export default function Home() {
   //   );
   // }
 
-  if (userData.authStep === "language") {
+  if (authStep === "language") {
     return <LanguageSelection onLanguageSelect={handleLanguageSelect} />;
   }
 
-  if (userData.authStep === "login") {
+  if (authStep === "login") {
     return (
       <LoginScreen onNext={(mobile) => handleAuthStepChange("otp", mobile)} />
     );
   }
 
-  if (userData.authStep === "otp") {
+  if (authStep === "otp") {
     return (
       <OTPScreen
         mobile={pendingMobile}
@@ -123,7 +140,7 @@ export default function Home() {
     );
   }
 
-  if (userData.authStep === "profile") {
+  if (authStep === "profile") {
     return (
       <ProfileScreen
         mobile={pendingMobile}
@@ -134,13 +151,24 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col h-screen ">
+    <div className="flex flex-col h-screen bg-[#E5DDD5]">
       <TopHeader />
 
       {/* Content Area */}
       <div className="flex-1 overflow-hidden">
-        {currentSection === "chat" && <ChatSection user={userData!} />}
-        {currentSection === "my-issues" && <AllChats user={userData!} />}
+        {currentSection === "my-issues" && (
+          <AllChats
+            user={userData!}
+            handleSectionChange={handleSectionChange}
+            handleOpenNewChat={handleOpenNewChat}
+          />
+        )}
+        {currentSection === "chat" && (
+          <ChatSection
+            handleSectionChange={handleSectionChange}
+            handleOpenNewChat={handleOpenNewChat}
+          />
+        )}
 
         {currentSection === "community" && (
           <CommunitySection user={userData!} />

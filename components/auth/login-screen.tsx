@@ -85,7 +85,7 @@ export default function LoginScreen({ onNext }: LoginScreenProps) {
           <div className="w-24 h-24 whatsapp-green rounded-full flex items-center justify-center mx-auto mb-4">
             <i className="fas fa-city text-white text-3xl"></i>
           </div>
-          <h2 className="text-2xl font-semibold whatsapp-dark mb-2">
+          <h2 className="text-2xl font-semibold  mb-2">
             Welcome to Better Gondia
           </h2>
           <p className="whatsapp-gray">
@@ -95,7 +95,7 @@ export default function LoginScreen({ onNext }: LoginScreenProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label className="block text-sm font-medium whatsapp-dark mb-2">
+            <Label className="block text-sm font-medium  mb-2">
               Mobile Number
             </Label>
             <div className="flex">

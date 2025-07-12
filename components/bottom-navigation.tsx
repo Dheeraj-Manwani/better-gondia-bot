@@ -6,14 +6,14 @@ import { v4 as uuid } from "uuid";
 // Define the navigation items array
 const navigationItems = [
   {
-    id: "chat" as Section,
-    label: "Chat",
-    icon: MessageCircle,
-  },
-  {
     id: "my-issues" as Section,
     label: "My Issues",
     icon: List,
+  },
+  {
+    id: "chat" as Section,
+    label: "Chat",
+    icon: MessageCircle,
   },
   {
     id: "community" as Section,

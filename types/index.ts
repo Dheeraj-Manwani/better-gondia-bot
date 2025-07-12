@@ -5,8 +5,8 @@ export type Gender = "Male" | "Female" | "Other";
 
 export interface User {
   id?: number;
-  authStep: AuthStep;
-  language: Language;
+  // authStep: AuthStep;
+  // language: Language;
   // firstName: string;
   // lastName: string;
   name: string;
@@ -49,7 +49,7 @@ export interface Complaint {
   createdAt: string;
   updatedAt: string;
   coSignCount?: number;
-  message: string;
+  messages: string;
 }
 
 export interface ChatMessage {

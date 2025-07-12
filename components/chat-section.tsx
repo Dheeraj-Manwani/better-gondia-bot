@@ -14,7 +14,13 @@ import { Input } from "@/components/ui/input";
 // import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import { User, ChatMessage, Complaint, ComplaintFormData } from "@/types";
+import {
+  User,
+  ChatMessage,
+  Complaint,
+  ComplaintFormData,
+  Section,
+} from "@/types";
 import {
   Paperclip,
   Smile,
@@ -26,6 +32,7 @@ import {
   Mic,
   MicOff,
   Info,
+  ArrowLeft,
 } from "lucide-react";
 import Image from "next/image";
 import logo from "@/public/logo.svg";
@@ -37,6 +44,8 @@ import { Background } from "./Background";
 import { ChatBubble } from "./chat-bubble";
 import { BotLogo } from "./BotLogo";
 import { Alert } from "@/components/message-alrert";
+import { useUserData } from "@/store/userData";
+import { generateComplaintIdFromDate, getBotMessage } from "@/lib/utils";
 
 // Web Speech API type declarations
 interface SpeechRecognitionEvent {
@@ -68,13 +77,20 @@ interface ChatSectionProps {
   user: User;
 }
 
-export default function ChatSection({ user }: ChatSectionProps) {
+export default function ChatSection({
+  handleSectionChange,
+  handleOpenNewChat,
+}: {
+  handleSectionChange: (sec: Section) => void;
+  handleOpenNewChat: () => void;
+}) {
   const [messageInput, setMessageInput] = useState("");
   // const [messages, setMessages] = useState<ChatMessage[]>([]);
   // const [botState, setBotState] = useState<BotState>({
   //   step: "idle",
   //   complaintData: {},
   // });
+  const userData = useUserData((state) => state.userData);
   const { messages, addMessage, addMessages, setMessages, resetToInitial } =
     useMessages();
   const { botState, setBotState } = useBot();
@@ -86,7 +102,7 @@ export default function ChatSection({ user }: ChatSectionProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // const { toast } = useToast();
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
   // const { sendChatMessage } = useWebSocket({
   //   userId: user.id,
@@ -123,7 +139,9 @@ export default function ChatSection({ user }: ChatSectionProps) {
       // Add success message to chat
       setTimeout(() => {
         addBotMessage(
-          `✅ Complaint submitted successfully! Your complaint ID is ${response.complaintId}. We'll keep you updated on the progress.`,
+          `✅ Complaint submitted successfully! Your complaint ID is ${generateComplaintIdFromDate(
+            Number(response.complaintId)
+          )}. We'll keep you updated on the progress.`,
           500
         );
       }, 1000);
@@ -188,16 +206,6 @@ export default function ChatSection({ user }: ChatSectionProps) {
     }, delay);
   };
 
-  const getBotMessage = (content: string): ChatMessage => {
-    return {
-      id: Date.now(),
-      content,
-      messageType: "bot",
-      isRead: false,
-      createdAt: new Date().toISOString(),
-    };
-  };
-
   // Voice recording functions
   const startRecording = async () => {
     try {
@@ -243,7 +251,7 @@ export default function ChatSection({ user }: ChatSectionProps) {
       const finish = (voiceText: string) => {
         const userMessage: ChatMessage = {
           id: Date.now(),
-          userId: user.id || 0,
+          userId: userData.id || 0,
           content: voiceText,
           messageType: "user",
           isRead: false,
@@ -304,7 +312,7 @@ export default function ChatSection({ user }: ChatSectionProps) {
 
     const userMessage: ChatMessage = {
       id: Date.now(),
-      userId: user.id || 0,
+      userId: userData.id || 0,
       content: messageInput,
       messageType: "user",
       isRead: false,
@@ -368,7 +376,7 @@ export default function ChatSection({ user }: ChatSectionProps) {
 
     const userMessage: ChatMessage = {
       id: Date.now(),
-      userId: user.id || 0,
+      userId: userData.id || 0,
       content: categoryMap[category],
       messageType: "user",
       isRead: false,
@@ -538,7 +546,7 @@ export default function ChatSection({ user }: ChatSectionProps) {
 - Issue: ${botState.complaintData.description}
 - Category: ${botState.complaintData.category}
 - Location: ${botState.complaintData.location || "Not specified"}
-- Your Details: ${user.name} • +91 ${user.mobile}${mediaInfo}
+- Your Details: ${userData.name} • +91 ${userData.mobile}${mediaInfo}
 
 Would you like to submit this complaint?
     `;
@@ -564,7 +572,7 @@ Would you like to submit this complaint?
 
     const formData = new FormData();
     // formData.append("title", botState.complaintData.title);
-    formData.append("userId", String(user.id) || "0");
+    formData.append("userId", String(userData.id) || "0");
     formData.append("description", botState.complaintData.description);
     formData.append("messages", JSON.stringify(messages));
     formData.append("category", botState.complaintData.category);
@@ -610,7 +618,9 @@ Would you like to submit this complaint?
     ) {
       return (
         <div className="chat-bubble-received p-3 max-w-sm shadow-sm border border-gray-200">
-          <p className="text-sm whatsapp-dark mb-3">{message.content}</p>
+          <p className="text-sm bg-white chat-bubble-left mb-3">
+            {message.content}
+          </p>
           <div className="grid grid-cols-2 gap-2">
             <Button
               size="sm"
@@ -670,7 +680,9 @@ Would you like to submit this complaint?
     ) {
       return (
         <div className="chat-bubble-received p-3 max-w-sm shadow-sm  border border-gray-200">
-          <p className="text-sm whatsapp-dark mb-3">{message.content}</p>
+          <p className="text-sm bg-white chat-bubble-left mb-3">
+            {message.content}
+          </p>
           <div className="space-y-2">
             <Button
               size="sm"
@@ -723,7 +735,9 @@ Would you like to submit this complaint?
     ) {
       return (
         <div className="chat-bubble-received p-3 max-w-sm shadow-sm border border-gray-200">
-          <p className="text-sm whatsapp-dark mb-3">{message.content}</p>
+          <p className="text-sm bg-white chat-bubble-left mb-3">
+            {message.content}
+          </p>
           <div className="space-y-2">
             <Button
               size="sm"
@@ -779,7 +793,7 @@ Would you like to submit this complaint?
     if (message.content.includes("Complaint Preview")) {
       return (
         <div className="chat-bubble-received p-3 max-w-sm shadow-sm border border-gray-200">
-          <div className="text-sm whatsapp-dark whitespace-pre-line mb-3">
+          <div className="text-sm bg-white chat-bubble-left whitespace-pre-line mb-3">
             {message.content}
           </div>
 
@@ -832,7 +846,7 @@ Would you like to submit this complaint?
               </Button>
               <Button
                 size="sm"
-                className="flex-1 whatsapp-green text-white"
+                className="flex-1 whatsapp-green text-white hover:bg-[#128C7E]"
                 onClick={handleComplaintSubmit}
                 disabled={createComplaintMutation.isPending}
               >
@@ -861,7 +875,7 @@ Would you like to submit this complaint?
 
     return (
       <div className="chat-bubble-received p-3 max-w-xs shadow-sm border border-gray-200">
-        <p className="text-sm whatsapp-dark whitespace-pre-line">
+        <p className="text-sm bg-white chat-bubble-left whitespace-pre-line">
           {message.content}
         </p>
         <div className="flex items-center text-xs whatsapp-gray mt-2">
@@ -890,6 +904,13 @@ Would you like to submit this complaint?
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d4d4d4' fill-opacity='0.1' fill-rule='evenodd'%3E%3Cpath d='m0 40l40-40h-40v40z'/%3E%3C/g%3E%3C/svg%3E")`,
       }}
     >
+      {/* {botState.step == "existing" && ( */}
+      <div className="bg-white w-full p-2">
+        <Button onClick={(e) => handleSectionChange("my-issues")}>
+          <ArrowLeft /> My Complaints
+        </Button>
+      </div>
+      {/* )} */}
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto px-1 py-4 space-y-4">
         {/* <Background> */}
@@ -920,8 +941,10 @@ Would you like to submit this complaint?
             ) : (
               <div className="flex justify-end mr-2">
                 <div className="chat-bubble-sent p-3 max-w-xs shadow-sm ">
-                  <p className="text-sm whatsapp-dark">{message.content}</p>
-                  <div className="flex items-center justify-end text-xs whatsapp-gray mt-2 gap-1">
+                  <p className="text-sm chat-bubble-left break-all">
+                    {message.content}
+                  </p>
+                  <div className="flex items-center justify-end text-xs mt-2 gap-1">
                     <span>
                       {new Date(message.createdAt).toLocaleTimeString([], {
                         hour: "2-digit",
@@ -938,13 +961,41 @@ Would you like to submit this complaint?
         {isTyping && <ChatBubble />}
         {(botState.step == "done" || botState.step == "existing") && (
           // <></>
-          <Alert type="warning" className="w-11/12 m-auto">
-            This chat has ended, please start a fresh chat to submit another
-            complaint.
-            {botState.step == "existing" && (
-              <Button className="bg-green-600">Start New</Button>
-            )}
-          </Alert>
+          <div className=" mb-1 flex flex-col gap-3">
+            <Alert type="warning" className="w-11/12 m-auto">
+              This chat has ended, please start a fresh chat to submit another
+              complaint.
+            </Alert>
+
+            <div className="flex justify-around items-center w-11/12 m-auto">
+              {botState.step == "existing" && (
+                <>
+                  <Button
+                    className="w-5/12"
+                    variant={"default"}
+                    onClick={() => handleSectionChange("my-issues")}
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    className="bg-[#5cd388] w-5/12  hover:bg-[#25D366]"
+                    onClick={handleOpenNewChat}
+                  >
+                    New Complaint
+                  </Button>
+                </>
+              )}
+              {botState.step == "done" && (
+                <Button
+                  className="w-8/12 m-auto text-yellow-800 border border-yellow-300  hover:bg-yellow-50"
+                  variant={"default"}
+                  onClick={() => handleSectionChange("my-issues")}
+                >
+                  View My Complaints
+                </Button>
+              )}
+            </div>
+          </div>
           // <div className={`text-blue-800 border border-blue-300 bg-blue-50`}>
           //   <Info />
           //   <div>{"Change a few things up and try submitting again."}</div>
@@ -955,8 +1006,10 @@ Would you like to submit this complaint?
 
       {/* Chat Input */}
       <div className="">
-        {botState.step != "done" ? (
-          <div className="space-y-3">
+        {!["done", "existing", "category", "media", "preview"].includes(
+          botState.step
+        ) ? (
+          <div className="">
             <div className="bg-[#F0F0F0] p-2 border-t border-gray-300">
               <form
                 onSubmit={(e) => handleSendMessage(e)}

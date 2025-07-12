@@ -22,23 +22,16 @@ interface UseBot {
   setBotState: (state: BotState) => void;
 }
 
-export const useBot = create<UseBot>()(
-  devtools(
-    (set) => ({
-      botState: {
-        step: "category",
-        complaintData: {},
-      },
-      setBotState: (state: BotState) => {
-        console.log("Bot state changed:", state);
-        set({ botState: state });
-      },
-    }),
-    {
-      name: "bot",
-    }
-  )
-);
+export const useBot = create<UseBot>((set) => ({
+  botState: {
+    step: "category",
+    complaintData: {},
+  },
+  setBotState: (state: BotState) => {
+    console.log("Bot state changed:", state);
+    set({ botState: state });
+  },
+}));
 
 // Subscribe to state changes and log them
 useBot.subscribe((state) => {
