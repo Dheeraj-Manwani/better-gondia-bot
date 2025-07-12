@@ -1,29 +1,12 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useRef,
-  ReactEventHandler,
-  FormEventHandler,
-  FormEvent,
-} from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useRef, FormEvent } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 // import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { useWebSocket } from "@/hooks/useWebSocket";
+import { User, ChatMessage, Section } from "@/types";
 import {
-  User,
-  ChatMessage,
-  Complaint,
-  ComplaintFormData,
-  Section,
-} from "@/types";
-import {
-  Paperclip,
-  Smile,
   Send,
   MapPin,
   Camera,
@@ -31,21 +14,17 @@ import {
   CheckCheck,
   Mic,
   MicOff,
-  Info,
   ArrowLeft,
 } from "lucide-react";
-import Image from "next/image";
-import logo from "@/public/logo.svg";
-import singleColorLogo from "@/public/single-color-logo.svg";
 import { useBot } from "@/store/bot";
 import { useMessages } from "@/store/messages";
 import { toast } from "sonner";
-import { Background } from "./Background";
 import { ChatBubble } from "./chat-bubble";
 import { BotLogo } from "./BotLogo";
 import { Alert } from "@/components/message-alrert";
 import { useUserData } from "@/store/userData";
 import { generateComplaintIdFromDate, getBotMessage } from "@/lib/utils";
+import { useRefetch } from "@/store/refetch";
 
 // Web Speech API type declarations
 interface SpeechRecognitionEvent {
@@ -85,11 +64,7 @@ export default function ChatSection({
   handleOpenNewChat: () => void;
 }) {
   const [messageInput, setMessageInput] = useState("");
-  // const [messages, setMessages] = useState<ChatMessage[]>([]);
-  // const [botState, setBotState] = useState<BotState>({
-  //   step: "idle",
-  //   complaintData: {},
-  // });
+  const setRefetch = useRefetch((state) => state.setRefetch);
   const userData = useUserData((state) => state.userData);
   const { messages, addMessage, addMessages, setMessages, resetToInitial } =
     useMessages();
@@ -101,15 +76,6 @@ export default function ChatSection({
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // const { toast } = useToast();
-  // const queryClient = useQueryClient();
-
-  // const { sendChatMessage } = useWebSocket({
-  //   userId: user.id,
-  //   onMessage: (message) => {
-  //     setMessages((prev) => [...prev, message]);
-  //   },
-  // });
 
   const showTypingIndicator = (time: number) => {
     setIsTyping(true);
@@ -319,25 +285,6 @@ export default function ChatSection({
       createdAt: new Date().toISOString(),
     };
 
-    // Handle bot responses based on current state
-    // if (botState.step === "idle") {
-    //   // User is describing a complaint
-    //   setBotState({
-    //     step: "category",
-    //     complaintData: {
-    //       title: messageInput,
-    //       description: messageInput,
-    //     },
-    //   });
-
-    //   addBotMessage(
-    //     // "Thanks for reporting! Please select the category for your complaint:"
-    //     "Please select the category for your complaint:"
-    //   );
-    // }
-
-    // else
-    let botMessage: ChatMessage | null = null;
     if (botState.step === "description") {
       // User provided detailed description
       setBotState({
@@ -361,7 +308,6 @@ export default function ChatSection({
     }
 
     addMessage(userMessage);
-    // addBotMessage(botMessage || getBotMessage(""))
 
     setMessageInput("");
   };
@@ -989,7 +935,10 @@ Would you like to submit this complaint?
                 <Button
                   className="w-8/12 m-auto text-yellow-800 border border-yellow-300  hover:bg-yellow-50"
                   variant={"default"}
-                  onClick={() => handleSectionChange("my-issues")}
+                  onClick={() => {
+                    handleSectionChange("my-issues");
+                    setRefetch(true);
+                  }}
                 >
                   View My Complaints
                 </Button>

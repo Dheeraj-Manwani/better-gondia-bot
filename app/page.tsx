@@ -17,7 +17,6 @@ import { v4 as uuid } from "uuid";
 import { initUserData } from "@/lib/data";
 import { useLanguage } from "@/store/language";
 import { useTheme } from "next-themes";
-import { useChatSection } from "@/store/chat-section";
 import { AllChats } from "@/components/my-complaints";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { TopHeader } from "@/components/TopHeader";

@@ -1,7 +1,6 @@
 import { Section } from "@/types";
 import { Circle, Globe, List, MessageCircle, Users } from "lucide-react";
 import { Button } from "./ui/button";
-import { v4 as uuid } from "uuid";
 
 // Define the navigation items array
 const navigationItems = [

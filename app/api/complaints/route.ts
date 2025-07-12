@@ -22,14 +22,14 @@ export async function GET(req: NextRequest) {
     const userId = searchParams.get("userId");
     console.log("userId and searchParam ===== ", userId, searchParams);
 
-    if (!userId) {
-      return Response.json(
-        { error: "userId parameter is required" },
-        { status: 400 }
-      );
-    }
+    // if (!userId) {
+    //   return Response.json(
+    //     { error: "userId parameter is required" },
+    //     { status: 400 }
+    //   );
+    // }
 
-    const userIdNumber = parseInt(userId, 10);
+    const userIdNumber = parseInt(userId ?? "-1", 10);
 
     if (isNaN(userIdNumber)) {
       return Response.json(
@@ -38,9 +38,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    console.log("user id number ", userIdNumber);
+
     const complaints = await prisma.complaint.findMany({
       where: {
-        userId: userIdNumber,
+        ...(userIdNumber !== -1 && { userId: userIdNumber }),
       },
       include: {
         user: {
@@ -70,8 +72,8 @@ export async function GET(req: NextRequest) {
       status: complaint.status,
       department: undefined, // Not in schema yet
       priority: "medium", // Default priority
-      imageUrl: complaint.imageUrls?.[0], // Use first image as main image
-      videoUrl: complaint.videoUrls?.[0], // Use first video as main video
+      imageUrls: complaint.imageUrls, // Use first image as main image
+      videoUrls: complaint.videoUrls, // Use first video as main video
       isPublic: complaint.isPublic,
       isResolved: complaint.status === "resolved",
       resolvedAt:

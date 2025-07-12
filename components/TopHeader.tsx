@@ -1,8 +1,8 @@
-import { BadgeCheck, Ellipsis, EllipsisVertical } from "lucide-react";
+// import { BadgeCheck, Ellipsis, EllipsisVertical } from "lucide-react";
 import Image from "next/image";
 import logo from "@/public/logo.svg";
-import { Button } from "./ui/button";
-import { DropdownMenuContent, DropdownMenuTrigger } from "./ui/dropdown-menu";
+// import { Button } from "./ui/button";
+// import { DropdownMenuContent, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { HeaderDropdown } from "./HeaderDropdown";
 
 export const TopHeader = () => {

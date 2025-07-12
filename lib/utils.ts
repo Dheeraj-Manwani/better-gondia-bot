@@ -43,3 +43,13 @@ export const getBotMessage = (content: string): ChatMessage => {
     createdAt: new Date().toISOString(),
   };
 };
+
+export const getCategoryIcon = (category: string) => {
+  const icons: Record<string, string> = {
+    roads: "🛣️",
+    water: "💧",
+    electricity: "⚡",
+    sanitation: "🗑️",
+  };
+  return icons[category] || "📝";
+};

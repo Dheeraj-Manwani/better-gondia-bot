@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
 import { User, Complaint } from "@/types";
 import { ThumbsUp, Flag, ArrowLeft, Users } from "lucide-react";
+import { generateComplaintIdFromDate, getCategoryIcon } from "@/lib/utils";
 
 interface CommunitySectionProps {
   user: User;
@@ -18,10 +19,10 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
   // const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: complaints, isLoading } = useQuery<
-    (Complaint & { coSignCount: number })[]
-  >({
-    queryKey: ["/api/complaints/public"],
+  const { data: complaints, isLoading } = useQuery<{
+    data: { complaints: Complaint[] };
+  }>({
+    queryKey: ["/api/complaints"],
   });
 
   const coSignMutation = useMutation({
@@ -51,16 +52,6 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
 
   const handleCoSign = (complaintId: number) => {
     coSignMutation.mutate(complaintId);
-  };
-
-  const getCategoryIcon = (category: string) => {
-    const icons: Record<string, string> = {
-      roads: "🛣️",
-      water: "💧",
-      electricity: "⚡",
-      sanitation: "🗑️",
-    };
-    return icons[category] || "📝";
   };
 
   const getCategoryColor = (category: string) => {
@@ -116,7 +107,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
       {/* Community Header */}
       <div className="bg-white p-4 border-b border-gray-200">
         <h2 className="font-semibold ">Gondia Public Wall</h2>
-        <p className="text-sm whatsapp-gray">
+        <p className="text-sm ">
           See what others are reporting • Co-sign to support
         </p>
       </div>
@@ -124,7 +115,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
       {/* Community Feed */}
       <div className="flex-1 overflow-y-auto">
         <div className="space-y-4 p-4">
-          {complaints?.map((complaint) => (
+          {complaints?.data?.complaints?.map((complaint) => (
             <div
               key={complaint.id}
               className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
@@ -138,10 +129,13 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium text-sm whatsapp-dark">
-                        Anonymous Citizen
+                      <p className="font-medium text-sm ">
+                        {generateComplaintIdFromDate(
+                          complaint.id,
+                          complaint.createdAt
+                        )}
                       </p>
-                      <p className="text-xs whatsapp-gray">
+                      <p className="text-xs ">
                         Ward {Math.floor(Math.random() * 5) + 1} •{" "}
                         {formatTimeAgo(complaint.createdAt)}
                       </p>
@@ -166,15 +160,11 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
                 )}
 
                 {/* Complaint Text */}
-                <p className="text-sm whatsapp-dark mb-3">
-                  {complaint.description}
-                </p>
+                <p className="text-sm  mb-3">{complaint.description}</p>
 
                 {/* Location */}
                 {complaint.location && (
-                  <p className="text-sm whatsapp-gray mb-3">
-                    📍 {complaint.location}
-                  </p>
+                  <p className="text-sm  mb-3">📍 {complaint.location}</p>
                 )}
 
                 {/* Resolved Update */}
@@ -231,7 +221,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
             </div>
           ))}
 
-          {(!complaints || complaints.length === 0) && (
+          {(!complaints || complaints.data.complaints.length === 0) && (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8 text-gray-400" />

@@ -2,7 +2,6 @@
 
 import { ChatMessage } from "@/types";
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
 
 interface UseMessages {
   messages: ChatMessage[];

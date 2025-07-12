@@ -1,8 +1,8 @@
-"use client";
+// "use client";
 
-import { useLanguage } from "@/store/language";
+// import { useLanguage } from "@/store/language";
 
-export const Translator = ({ text: string }) => {
-  const language = useLanguage((state) => state.language);
-  return "";
-};
+// export const Translator = ({ text: string }) => {
+//   const language = useLanguage((state) => state.language);
+//   return "";
+// };

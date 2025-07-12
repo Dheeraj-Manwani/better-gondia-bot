@@ -1,5 +1,5 @@
-import { Button } from "./ui/button";
-import { Card, CardContent } from "./ui/card";
+// import { Button } from "./ui/button";
+// import { Card, CardContent } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
 
 export const ComplaintScreenSkeleton = () => {
@@ -16,45 +16,31 @@ export const ComplaintScreenSkeleton = () => {
           <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-200 w-full max-w-md flex flex-col gap-2 mb-4">
             {/* <!-- Header --> */}
             <div className="flex items-center justify-between text-sm text-gray-500">
-              <Skeleton className="w-24 h-3.5" />
+              <Skeleton className="w-16 h-3.5" />
               <Skeleton className="w-24 h-3.5" />
             </div>
 
             {/* <!-- Description --> */}
-            <p className="text-gray-700 text-sm line-clamp-2">
+            <p className="text-gray-700 text-sm line-clamp-2 mt-2">
               {/* Garbage is not being collected regularly in our colony near ABC Road.
              It&apos;s smelling bad. */}
-              <Skeleton className="w-24 h-3.5" />
+              <Skeleton className="w-full h-2.5" />
+              <Skeleton className="w-10/12 h-2.5 mt-1.5" />
             </p>
-
-            {/* <!-- Media thumbnails --> */}
-            {/* <div className="flex gap-2 mt-1">
-             <img
-               src="/example1.jpg"
-               alt="Complaint image"
-               className="w-16 h-16 rounded object-cover border"
-             />
-             <video
-               src="/example2.mp4"
-               className="w-16 h-16 rounded object-cover border"
-               muted
-               loop
-             ></video>
-           </div> */}
 
             {/* <!-- Footer --> */}
             <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
               <span>
-                <Skeleton className="w-24 h-3.5" />
+                <Skeleton className="w-56 h-3" />
               </span>
-              <Skeleton className="w-24 h-3.5" />
+              <Skeleton className="w-24 h-3" />
             </div>
 
             {/* <!-- Status and Button --> */}
             <div className="flex items-center justify-between mt-2">
-              <Skeleton className="w-24 h-3.5" />
+              <Skeleton className="w-24 h-4.5" />
 
-              <Skeleton className="w-24 h-3.5" />
+              <Skeleton className="w-20 h-3.5" />
             </div>
           </div>
         ))}

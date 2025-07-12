@@ -2,6 +2,7 @@ import {
   cn,
   formatCreatedAtLabel,
   generateComplaintIdFromDate,
+  getCategoryIcon,
 } from "@/lib/utils";
 import { Complaint } from "@/types";
 import { Button } from "./ui/button";
@@ -12,7 +13,7 @@ export const ComplaintCard = ({
   handleOpenExistingChat,
 }: {
   complaint: Complaint;
-  handleOpenExistingChat: (mess: string) => void;
+  handleOpenExistingChat: (mess: Complaint) => void;
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -47,7 +48,9 @@ export const ComplaintCard = ({
     <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-200 w-full max-w-md flex flex-col gap-2 mb-2">
       {/* <!-- Header --> */}
       <div className="flex items-center justify-between text-sm text-gray-500">
-        <span className="font-medium text-gray-800">{complaint.category}</span>
+        <span className="font-medium text-gray-800">
+          {getCategoryIcon(complaint.category)} {complaint.category}
+        </span>
         <span className="text-xs font-mono text-gray-400">
           {generateComplaintIdFromDate(complaint.id, complaint.createdAt)}
         </span>
@@ -77,7 +80,9 @@ export const ComplaintCard = ({
 
       {/* <!-- Footer --> */}
       <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
-        <span>{complaint.location ? "📍" + complaint.location : ""}</span>
+        <span className="max-w-9/12">
+          {complaint.location ? "📍" + complaint.location : ""}
+        </span>
         <span>{formatCreatedAtLabel(complaint.createdAt)}</span>
       </div>
 
@@ -94,7 +99,7 @@ export const ComplaintCard = ({
         <Button
           className="text-blue-600 text-sm font-medium hover:underline p-0 m-0 mr-2"
           variant={"link"}
-          onClick={() => handleOpenExistingChat(complaint.messages)}
+          onClick={() => handleOpenExistingChat(complaint)}
         >
           View Details
         </Button>

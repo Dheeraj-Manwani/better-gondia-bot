@@ -1,18 +1,17 @@
 "use client";
 
-import { useChatSection } from "@/store/chat-section";
 import { useMessages } from "@/store/messages";
 import { Complaint, Section, User, ChatMessage } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
-import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
-import { Skeleton } from "./ui/skeleton";
 import { ComplaintCard } from "./ComplaintCard";
 import { BookAlert, Plus } from "lucide-react";
 import { useBot } from "@/store/bot";
 import { ComplaintScreenSkeleton } from "./Skeletons";
+import { useRefetch } from "@/store/refetch";
+import { toast } from "sonner";
 
 export const AllChats = ({
   user,
@@ -23,12 +22,16 @@ export const AllChats = ({
   handleSectionChange: (sec: Section) => void;
   handleOpenNewChat: () => void;
 }) => {
-  const chatSection = useChatSection((state) => state.chatSection);
-  const { messages, setMessages, resetToInitial } = useMessages();
+  const setMessages = useMessages((state) => state.setMessages);
   const setBotState = useBot((state) => state.setBotState);
+  const { refetch, setRefetch } = useRefetch();
   const [complaints, setComplaints] = useState<Complaint[]>();
 
-  const { data: chatMessages, isLoading } = useQuery<{
+  const {
+    data: chatMessages,
+    isLoading,
+    refetch: refetchData,
+  } = useQuery<{
     data: { complaints: Complaint[] };
   }>({
     queryKey: [`/api/complaints?userId=${user.id}`],
@@ -43,18 +46,30 @@ export const AllChats = ({
     }
   }, [chatMessages]);
 
+  useEffect(() => {
+    if (refetch) {
+      const id = toast.loading("Fetching data again ......... ");
+      setRefetch(false);
+
+      refetchData()
+        .then((res) => toast.success("Loaded successfully .. ", { id }))
+        .catch((err) => toast.error("Error occured", { id }));
+    }
+  }, [refetch]);
+
   const handleNavigateToChat = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
     handleSectionChange("chat");
   };
 
-  const handleOpenExistingChat = (cardMessages: string) => {
+  const handleOpenExistingChat = (comp: Complaint) => {
     try {
+      const cardMessages = comp.messages;
       handleSectionChange("chat");
       const mess: ChatMessage[] = JSON.parse(cardMessages);
       setMessages(mess);
-      setBotState({ step: "existing", complaintData: {} });
+      setBotState({ step: "existing", complaintData: comp });
     } catch (e) {
       console.log("Error occured", e);
     }
@@ -77,18 +92,6 @@ export const AllChats = ({
     }
   };
 
-  const formatTimeAgo = (date: string) => {
-    const now = new Date();
-    const complaintDate = new Date(date);
-    const diffInDays = Math.floor(
-      (now.getTime() - complaintDate.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    if (diffInDays === 0) return "Today";
-    if (diffInDays === 1) return "1 day ago";
-    return `${diffInDays} days ago`;
-  };
-
   if (isLoading) {
     return <ComplaintScreenSkeleton />;
   }
@@ -97,8 +100,8 @@ export const AllChats = ({
     <div className="max-w-md mx-auto text-gray-700  min-h-screen flex flex-col bg-[#E5DDD5]  rounded-lg">
       {/* Header */}
       <div className="bg-whatsapp-dark text-gray-700 p-3.5 flex items-center  sticky top-0 z-10  justify-between">
-        <h1 className="font-semibold text-lg flex gap-1.5 justify-center align-middle">
-          <BookAlert className="mt-1" /> <span>My Complaints</span>
+        <h1 className="font-semibold text-md flex gap-1.5 justify-center align-middle">
+          <BookAlert className="mt-0.5" /> <span>My Complaints</span>
         </h1>
         <Button onClick={handleOpenNewChat}>
           <Plus /> New Complaint
@@ -134,7 +137,6 @@ export const AllChats = ({
                 key={complaint.id}
                 handleOpenExistingChat={handleOpenExistingChat}
               />
-              <ComplaintScreenSkeleton />
             </>
           ))}
           <ScrollBar orientation="vertical" color="black" />
@@ -143,6 +145,7 @@ export const AllChats = ({
 
       {/* <ScrollArea className="h-40">
         <ScrollBar />
+        <div className="bg-red-500 h-5">aasss</div>
         <div className="bg-red-500 h-5">aasss</div>
         <div className="bg-red-500 h-5">aasss</div>
         <div className="bg-red-500 h-5">aasss</div>
