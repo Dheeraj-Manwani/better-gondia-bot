@@ -97,7 +97,7 @@ export const AllChats = ({
   }
 
   return (
-    <div className="max-w-md mx-auto text-gray-700  min-h-screen flex flex-col bg-[#E5DDD5]  rounded-lg">
+    <div className="max-w-md mx-auto text-gray-700  min-h-[85vh] flex flex-col bg-[#E5DDD5]  rounded-lg p-1.5">
       {/* Header */}
       <div className="bg-whatsapp-dark text-gray-700 p-3.5 flex items-center  sticky top-0 z-10  justify-between">
         <h1 className="font-semibold text-md flex gap-1.5 justify-center align-middle">

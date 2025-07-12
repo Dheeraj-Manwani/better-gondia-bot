@@ -56,19 +56,19 @@ export default function ProfileScreen({
       return response.json();
     },
     onSuccess: (res) => {
-      toast.success("Profile creation successfull!", {
-        description: "Welcome to Better Gondia Mitra!",
-        // action: {
-        //   label: <X className="bg-transparent fill-white text-white" />,
-        //   onClick: (id) => {
-        //     toast.dismiss();
-        //   },
-        //   actionButtonStyle: {
-        //     backgroundColor: "transparent",
-        //     color: "transparent",
-        //   },
-        // },
-      });
+      // toast.success("Profile creation successfull!", {
+      //   description: "Welcome to Better Gondia Mitra!",
+      //   // action: {
+      //   //   label: <X className="bg-transparent fill-white text-white" />,
+      //   //   onClick: (id) => {
+      //   //     toast.dismiss();
+      //   //   },
+      //   //   actionButtonStyle: {
+      //   //     backgroundColor: "transparent",
+      //   //     color: "transparent",
+      //   //   },
+      //   // },
+      // });
 
       console.log("Data recieved on success:", res);
       const savedUser = res.data;

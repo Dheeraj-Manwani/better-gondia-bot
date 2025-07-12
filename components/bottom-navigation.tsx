@@ -46,13 +46,13 @@ export const BottomNavigation = ({
               variant="ghost"
               className={`flex flex-col items-center px-3 my-2 ${
                 isActive
-                  ? "text-whatsapp-green"
-                  : "text-gray-500 hover:text-whatsapp-green"
+                  ? "text-black font-extrabold"
+                  : "text-gray-600 hover:text-black"
               } transition-colors`}
               onClick={() => handleSectionChange(item.id)}
             >
-              <IconComponent className="w-5 h-5" />
-              <span className={`text-xs ${isActive ? "font-medium" : ""}`}>
+              <IconComponent className="w-10 h-10" />
+              <span className={`text-xs ${isActive ? "font-semibold" : ""}`}>
                 {item.label}
               </span>
             </Button>

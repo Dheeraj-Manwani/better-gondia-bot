@@ -4,7 +4,7 @@ import { Skeleton } from "./ui/skeleton";
 
 export const ComplaintScreenSkeleton = () => {
   return (
-    <div className="max-w-md mx-auto  shadow-xl min-h-screen flex flex-col">
+    <div className="max-w-md mx-auto  shadow-xl min-h-[85vh] flex flex-col">
       <div className="bg-whatsapp-dark text-gray-700 p-3.5 flex items-center  sticky top-0 z-10 mb-2 justify-between pt-5 pb-0">
         <h1 className="font-semibold text-lg flex gap-1.5 justify-center align-middle">
           <Skeleton className="h-8 w-36" />

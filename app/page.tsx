@@ -150,7 +150,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#E5DDD5]">
+    <div className="flex flex-col h-[100dvh] bg-[#E5DDD5]">
       <TopHeader />
 
       {/* Content Area */}

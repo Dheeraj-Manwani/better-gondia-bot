@@ -22,7 +22,7 @@ export default function LanguageSelection({
   onLanguageSelect,
 }: LanguageSelectionProps) {
   return (
-    <div className="min-h-screen flex items-center justify-center whatsapp-bg">
+    <div className="h-[100vh] flex items-center justify-center whatsapp-bg">
       <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
         <div className="text-center mb-8">
           {/* <motion.div

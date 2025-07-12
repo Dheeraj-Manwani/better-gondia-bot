@@ -14,7 +14,6 @@ import {
   CheckCheck,
   Mic,
   MicOff,
-  ArrowLeft,
 } from "lucide-react";
 import { useBot } from "@/store/bot";
 import { useMessages } from "@/store/messages";
@@ -851,11 +850,11 @@ Would you like to submit this complaint?
       }}
     >
       {/* {botState.step == "existing" && ( */}
-      <div className="bg-white w-full p-2">
+      {/* <div className="bg-white w-full p-2">
         <Button onClick={(e) => handleSectionChange("my-issues")}>
           <ArrowLeft /> My Complaints
         </Button>
-      </div>
+      </div> */}
       {/* )} */}
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto px-1 py-4 space-y-4">
