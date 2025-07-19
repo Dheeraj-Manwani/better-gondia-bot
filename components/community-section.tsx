@@ -1,22 +1,23 @@
 import React, { useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+// import { Button } from "@/components/ui/button";
+// import { Badge } from "@/components/ui/badge";
 // import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { User, Complaint } from "@/types";
-import { ThumbsUp, Flag, ArrowLeft, Users } from "lucide-react";
-import {
-  formatTimeAgo,
-  generateComplaintIdFromDate,
-  getCategoryIcon,
-} from "@/lib/utils";
+import { User, Complaint, Visibility } from "@/types";
+import { Users } from "lucide-react";
+// import {
+//   formatTimeAgo,
+//   generateComplaintIdFromDate,
+//   getCategoryIcon,
+// } from "@/lib/utils";
 import { CommunityComplaintCard } from "./CommunityComplaintCard";
 import { useSession } from "next-auth/react";
 import { appSession } from "@/lib/auth";
 import { Spinner } from "./ui/spinner";
 import { useLoaderStore } from "@/store/loader";
 import { toast } from "sonner";
+import { dummyData } from "@/lib/data";
 
 interface CommunitySectionProps {
   user: User;
@@ -30,7 +31,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
   // const { toast } = useToast();
   // const queryClient = useQueryClient();
   const session = useSession() as unknown as appSession;
-  const setLoading = useLoaderStore((state) => state.setLoading);
+  const showLoader = useLoaderStore((state) => state.showLoader);
 
   const { data: complaints, isLoading } = useQuery<{
     data: { complaints: Complaint[] };
@@ -38,27 +39,32 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
     queryKey: ["/api/complaints"],
   });
 
-  const toggleMedia = useMutation({
+  const toggleVisibility = useMutation({
     mutationFn: async ({
       complaintId,
-      isApproved,
+      value,
+      type,
     }: {
       complaintId: number;
-      isApproved: boolean;
+      value: boolean;
+      type: Visibility;
     }) => {
-      const id = toast.loading("Submitting Complaint...");
+      const id = toast.loading("Changing Visibility...");
 
-      const response = await fetch("/api/approve-media", {
+      const response = await fetch("/api/visibility", {
         method: "PATCH",
-        body: JSON.stringify({ complaintId, isMediaApproved: isApproved }),
+        body: JSON.stringify({ complaintId, value, type }),
         credentials: "include",
       });
-      if (!response.ok) throw new Error("Failed to create complaint");
-      toast.success("Complaint Submitted Successfully !!", { id });
+      if (!response.ok) {
+        toast.error("Something went wrong !!", { id });
+        throw new Error("Failed to create complaint");
+      }
+      toast.success("Done !!", { id });
       return response.json();
     },
     onSuccess: (response: { complaintId: string }) => {
-      setLoading(false);
+      // showLoader(false);
     },
     onError: (error: Error) => {},
   });
@@ -82,9 +88,13 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
     coSignMutation.mutate(complaintId);
   };
 
-  const handleMediaApprove = (complaintId: number, isApproved: boolean) => {
-    setLoading(true);
-    toggleMedia.mutate({ complaintId, isApproved });
+  const handleToggleVisibility = (
+    complaintId: number,
+    value: boolean,
+    type: Visibility
+  ) => {
+    // showLoader(true);
+    toggleVisibility.mutate({ complaintId, value, type });
   };
 
   // const getStatusColor = (status: string) => {
@@ -103,7 +113,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
   // };
 
   if (isLoading) {
-    return <Spinner />;
+    return <Spinner blur />;
   }
 
   console.log("complaints ===== ", complaints);
@@ -111,7 +121,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
   return (
     <div className="h-full flex flex-col">
       {/* Community Header */}
-      <div className="bg-white p-4 border-b border-gray-200">
+      <div className="bg-white px-4 py-2.5 border-b border-gray-200">
         <h2 className="font-semibold ">Gondia Public Wall</h2>
         <p className="text-sm ">
           See what others are reporting • Co-sign to support
@@ -121,13 +131,14 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
       {/* Community Feed */}
       <div className="flex-1 overflow-y-auto">
         <div className="space-y-4 p-4">
+          {/* {dummyData.data.complaints.map((complaint) => ( */}
           {complaints?.data?.complaints?.map((complaint) => (
             <CommunityComplaintCard
               key={complaint.id}
               complaint={complaint}
               handleCoSign={handleCoSign}
               isLoading={coSignMutation.isPending}
-              handleMediaApprove={handleMediaApprove}
+              handleToggleVisibility={handleToggleVisibility}
               role={session?.data?.user?.role ?? "USER"}
             />
           ))}

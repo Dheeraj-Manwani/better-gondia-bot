@@ -18,7 +18,7 @@ import { EllipsisVertical, LogOut, Mail } from "lucide-react";
 import { signIn, useSession } from "next-auth/react";
 
 import { appSession } from "@/lib/auth";
-import { cn } from "@/lib/utils";
+import { cn, resetApp } from "@/lib/clientUtils";
 
 export function HeaderDropdown() {
   const session = useSession() as unknown as appSession;
@@ -28,7 +28,7 @@ export function HeaderDropdown() {
   };
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger asChild className="cursor-pointer">
         <EllipsisVertical />
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -106,10 +106,7 @@ export function HeaderDropdown() {
         <DropdownMenuItem
           className="hover:bg-[#E5DDD5] flex justify-between"
           onClick={() => {
-            localStorage.removeItem("language");
-            localStorage.removeItem("authStep");
-            localStorage.removeItem("userData");
-            window.location.reload();
+            resetApp();
           }}
         >
           <span>Log out</span>

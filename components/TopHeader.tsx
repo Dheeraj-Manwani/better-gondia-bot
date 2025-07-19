@@ -1,12 +1,16 @@
-// import { BadgeCheck, Ellipsis, EllipsisVertical } from "lucide-react";
+"use client";
+
 import Image from "next/image";
 import logo from "@/public/logo.svg";
 // import { Button } from "./ui/button";
 // import { DropdownMenuContent, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { HeaderDropdown } from "./HeaderDropdown";
 import { VerifiedCheck } from "./ui/blue-check";
+import { CircleQuestionMark } from "lucide-react";
+import { useModal } from "@/store/modal";
 
 export const TopHeader = () => {
+  const setIsOpen = useModal((state) => state.setIsOpen);
   return (
     <div className="bg-[#075E54] text-white p-3 flex items-center justify-between shadow-lg z-20">
       <div className="flex items-center space-x-3">
@@ -25,6 +29,10 @@ export const TopHeader = () => {
       </div>
 
       <div className="flex items-center space-x-4">
+        <CircleQuestionMark
+          cursor={"pointer"}
+          onClick={() => setIsOpen(true, "FAQ")}
+        />
         <HeaderDropdown />
       </div>
     </div>

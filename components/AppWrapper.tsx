@@ -8,10 +8,11 @@ import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "next-auth/react";
 import { useLoaderStore } from "@/store/loader";
 import { Spinner } from "./ui/spinner";
-import { GenericModal } from "./GenericModal";
+import { GenericModal } from "./modal/GenericModal";
 
 export const AppWrapper = ({ children }: { children: React.ReactNode }) => {
   const isLoading = useLoaderStore((state) => state.isLoading);
+  const loaderText = useLoaderStore((state) => state.loaderText);
   return (
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
@@ -20,9 +21,7 @@ export const AppWrapper = ({ children }: { children: React.ReactNode }) => {
           <TooltipProvider>
             <GenericModal />
             {children}
-            {isLoading && (
-              <Spinner className="absolute" text="Loading..." blur />
-            )}
+            {isLoading && <Spinner text={loaderText} blur />}
           </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>

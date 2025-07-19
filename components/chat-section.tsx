@@ -22,9 +22,15 @@ import { ChatBubble } from "./chat-bubble";
 import { BotLogo } from "./BotLogo";
 import { Alert } from "@/components/message-alrert";
 import { useUserData } from "@/store/userData";
-import { generateComplaintIdFromDate, getBotMessage } from "@/lib/utils";
+import {
+  generateComplaintIdFromDate,
+  getBotMessage,
+  resetApp,
+} from "@/lib/clientUtils";
 import { useRefetch } from "@/store/refetch";
 import { Textarea } from "./ui/textarea";
+import { clientMessages } from "@/lib/client-messages";
+import { useModal } from "@/store/modal";
 
 // Web Speech API type declarations
 interface SpeechRecognitionEvent {
@@ -68,6 +74,7 @@ export default function ChatSection({
   const userData = useUserData((state) => state.userData);
   const { messages, addMessage, addMessages, setMessages, resetToInitial } =
     useMessages();
+  const openModal = useModal((state) => state.setIsOpen);
   const { botState, setBotState } = useBot();
   const [isRecording, setIsRecording] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -94,9 +101,18 @@ export default function ChatSection({
         body: data,
         credentials: "include",
       });
-      if (!response.ok) throw new Error("Failed to create complaint");
+
+      const res: { error?: string; complaintId: string } =
+        await response.json();
+      if (res.error) {
+        toast.error(clientMessages(res.error), { id });
+        if (res.error == "USER_NOT_FOUND") {
+          openModal(true, "Reload", resetApp);
+        }
+        throw new Error(res.error);
+      }
       toast.success("Complaint Submitted Successfully !!", { id });
-      return response.json();
+      return res;
     },
     onSuccess: (response: { complaintId: string }) => {
       setBotState({ step: "done", complaintData: botState.complaintData });
@@ -126,11 +142,6 @@ export default function ChatSection({
     },
     onError: (error: Error) => {
       console.error("Complaint submission error:", error);
-      // toast({
-      //   title: "Submission Failed",
-      //   description: "Failed to submit complaint. Please try again.",
-      //   variant: "destructive",
-      // });
     },
   });
 
@@ -217,6 +228,9 @@ export default function ChatSection({
 
     // @ts-ignore
     recognition.onerror = (event) => {
+      toast.error(
+        "The speech is not recognizable. Please enter the description manually."
+      );
       console.error("Speech recognition error", event.error);
     };
   };
@@ -251,6 +265,16 @@ export default function ChatSection({
 
     if (botState.step === "description") {
       // User provided detailed description
+      if (!messageInput || messageInput.length < 20) {
+        toast.error("The description is very short.");
+        return;
+      }
+      if (messageInput.length > 500) {
+        toast.error(
+          "The description is very long. Please keep it under 500 characters"
+        );
+        return;
+      }
       setBotState({
         step: "location",
         complaintData: { ...botState.complaintData, description: messageInput },
@@ -751,12 +775,16 @@ Would you like to submit this complaint?
                 size="sm"
                 variant="outline"
                 className="flex-1 bg-gray-100 text-gray-700"
+                disabled={createComplaintMutation.isPending}
                 onClick={() => {
                   setBotState({
                     step: "category",
-                    complaintData: { title: botState.complaintData.title },
+                    complaintData: {
+                      title: botState.complaintData.title,
+                      description: botState.complaintData.title,
+                    },
                   });
-                  resetToInitial();
+                  // resetToInitial();
                   addBotMessage(
                     "Let's edit your complaint. Please select the category again:"
                   );
@@ -850,7 +878,6 @@ Would you like to submit this complaint?
             </p>
           </div>
         </div> */}
-
         {messages.map((message, index) => (
           <div key={`${message.id}-${index}`}>
             {message.messageType === "bot" ? (
@@ -966,7 +993,7 @@ Would you like to submit this complaint?
 
             {botState.step === "description" && (
               <>
-                <div className="flex items-center justify-center">
+                <div className="flex items-center justify-center m-1">
                   <div className="text-xs whatsapp-gray mr-3">or</div>
                   <Button
                     className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-200 ${

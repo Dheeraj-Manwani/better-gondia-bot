@@ -4,7 +4,7 @@ import {
   generateComplaintIdFromDate,
   getCategoryIcon,
   getStatusColor,
-} from "@/lib/utils";
+} from "@/lib/clientUtils";
 import { Complaint } from "@/types";
 import { Button } from "./ui/button";
 import clsx from "clsx";

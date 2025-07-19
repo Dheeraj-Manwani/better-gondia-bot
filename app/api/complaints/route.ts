@@ -1,7 +1,10 @@
 // app/api/complaints/route.ts
-import { generateComplaintIdFromDate, getBotMessage } from "@/lib/utils";
+import { authConfig } from "@/lib/auth";
+import { generateComplaintIdFromDate, getBotMessage } from "@/lib/clientUtils";
 import prisma from "@/prisma/db";
-import { ChatMessage } from "@/types";
+import { ChatMessage, SessionUser } from "@/types";
+import { Prisma } from "@prisma/client/index-browser";
+import { getServerSession } from "next-auth";
 import { NextRequest } from "next/server";
 
 // Helper to parse FormData arrays
@@ -40,9 +43,15 @@ export async function GET(req: NextRequest) {
 
     console.log("user id number ", userIdNumber);
 
+    // @ts-expect-error to be taken care of
+    const session = await getServerSession(authConfig);
+    const user = session?.user as SessionUser;
+
     const complaints = await prisma.complaint.findMany({
       where: {
         ...(userIdNumber !== -1 && { userId: userIdNumber }),
+        ...((!user || user.role == "USER") &&
+          userIdNumber == -1 && { isPublic: true }),
       },
       include: {
         user: {
@@ -75,6 +84,7 @@ export async function GET(req: NextRequest) {
       videoUrls: complaint.videoUrls,
 
       isMediaApproved: complaint.isMediaApproved,
+      isPublic: complaint.isPublic,
       coSignCount: complaint.coSignCount,
 
       createdAt: complaint.createdAt.toISOString(),
@@ -177,13 +187,25 @@ export async function POST(req: NextRequest) {
       complaintId: data.id,
       success: true,
     });
-  } catch (error) {
-    return Response.json(
-      {
-        error: "Failed to create complaint",
-        details: (error as Error).message,
-      },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    if (
+      // error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2003" // Foreign key violation
+    ) {
+      console.error("Foreign key constraint failed:", error.meta?.field_name);
+      return Response.json({
+        error: "USER_NOT_FOUND",
+        success: false,
+      });
+      // Handle missing user
+    } else {
+      console.error("Transaction failed:", error);
+      return Response.json({
+        error: "SERVER_ERROR",
+        success: false,
+      });
+
+      // Handle other kinds of errors
+    }
   }
 }

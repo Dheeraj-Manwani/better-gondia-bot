@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { useUserData } from "@/store/userData";
 import { useAuthStep } from "@/store/authStep";
 import { setCookie } from "cookies-next";
+import { useSections } from "@/store/section";
+import { useLoaderStore } from "@/store/loader";
 
 interface ProfileScreenProps {
   mobile: string;
@@ -42,9 +44,11 @@ export default function ProfileScreen({
   });
   const setUserData = useUserData((state) => state.setUserData);
   const setAuthStep = useAuthStep((state) => state.setAuthStep);
+  const setSection = useSections((state) => state.setSection);
+  const showLoader = useLoaderStore((state) => state.showLoader);
 
   // const { toast } = useToast();
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
   const completeProfileMutation = useMutation({
     mutationFn: async (data: ProfileFormData) => {
@@ -70,7 +74,7 @@ export default function ProfileScreen({
       //   //   },
       //   // },
       // });
-
+      setSection("chat");
       console.log("Data recieved on success:", res);
       const savedUser = res.data;
       const newUser = { ...savedUser } as User;

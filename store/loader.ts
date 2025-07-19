@@ -2,17 +2,24 @@ import { create } from "zustand";
 
 type LoaderStore = {
   isLoading: boolean;
-  setLoading: (val: boolean) => void;
-  showLoaderFor: (ms: number) => Promise<void>;
+  loaderText?: string;
+  showLoader: (text: string | boolean) => void;
+  showLoaderFor: (ms: number, text?: string) => Promise<void>;
 };
 
 export const useLoaderStore = create<LoaderStore>((set) => ({
   isLoading: false,
-  setLoading: (val: boolean) => set({ isLoading: val }),
-  showLoaderFor: async (ms: number) => {
-    set({ isLoading: true });
-    new Promise((resolve) => setTimeout(resolve, ms)).finally(() =>
-      set({ isLoading: false })
-    );
+  loaderText: undefined,
+  showLoader: (text) => {
+    if (typeof text == "boolean") {
+      set({ isLoading: text, loaderText: undefined });
+    } else {
+      set({ isLoading: true, loaderText: text });
+    }
+  },
+  showLoaderFor: async (ms, text) => {
+    set({ isLoading: true, loaderText: text });
+    await new Promise((resolve) => setTimeout(resolve, ms));
+    set({ isLoading: false, loaderText: undefined });
   },
 }));

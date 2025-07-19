@@ -15,12 +15,12 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   ...props
 }) => {
   return (
-    <div className={`flex items-center space-x-2 ${className}`}>
-      <label className="w-full flex items-center">
+    <div className={`flex items-center ${className}`}>
+      <label className="w-full flex items-center justify-start gap-1">
         {label && (
           <span className="text-sm font-medium text-gray-900 ">{label}</span>
         )}
-        <div className="flex gap-1 p-2">
+        <div className="flex gap-1">
           <input
             type="checkbox"
             checked={checked}

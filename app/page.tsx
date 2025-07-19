@@ -25,10 +25,11 @@ import { useAuthStep } from "@/store/authStep";
 import { useBot } from "@/store/bot";
 import { useMessages } from "@/store/messages";
 import { setCookie } from "cookies-next/client";
+import { useSections } from "@/store/section";
 
 export default function Home() {
   const { authStep, setAuthStep } = useAuthStep();
-  const [currentSection, setCurrentSection] = useState<Section>("my-issues");
+  const { section, setSection } = useSections();
   const [hasUserOpened, setHasUserOpened] = useState<boolean>(false);
   const [pendingMobile, setPendingMobile] = useState<string>("");
   // const [selectedLanguage, setSelectedLanguage] = useState<Language>("english");
@@ -98,7 +99,7 @@ export default function Home() {
   };
 
   const handleSectionChange = (section: Section) => {
-    setCurrentSection(section);
+    setSection(section);
     setHasUserOpened(true);
   };
 
@@ -159,29 +160,26 @@ export default function Home() {
 
       {/* Content Area */}
       <div className="flex-1 overflow-hidden">
-        {currentSection === "my-issues" && (
+        {section === "my-issues" && (
           <AllChats
-            hasUserOpened={hasUserOpened}
             user={userData!}
             handleSectionChange={handleSectionChange}
             handleOpenNewChat={handleOpenNewChat}
           />
         )}
-        {currentSection === "chat" && (
+        {section === "chat" && (
           <ChatSection
             handleSectionChange={handleSectionChange}
             handleOpenNewChat={handleOpenNewChat}
           />
         )}
 
-        {currentSection === "community" && (
-          <CommunitySection user={userData!} />
-        )}
-        {currentSection === "status" && <StatusSection />}
+        {section === "community" && <CommunitySection user={userData!} />}
+        {section === "status" && <StatusSection />}
       </div>
 
       <BottomNavigation
-        currentSection={currentSection}
+        currentSection={section}
         handleSectionChange={handleSectionChange}
       />
     </div>

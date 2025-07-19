@@ -1,14 +1,25 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/clientUtils";
+import React, { useEffect, useState } from "react";
 
 export const Spinner = ({
   className,
-  text,
+  text = "Loading",
   blur = false,
 }: {
   className?: string;
   text?: string;
   blur?: boolean;
 }) => {
+  const [dots, setDots] = useState("");
+
+  useEffect(() => {
+    if (!text) return;
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? "" : prev + "."));
+    }, 500);
+    return () => clearInterval(interval);
+  }, [text]);
+
   return (
     // <div
     //   className={cn(
@@ -28,7 +39,15 @@ export const Spinner = ({
         className
       )}
     >
-      <span className="loader absolute"></span>
+      {text && (
+        <>
+          <span className="absolute -translate-y-16 text-white font-medium text-lg ml-6">
+            {text}
+            <span className="inline-block w-5">{dots}</span>
+          </span>
+        </>
+      )}
+      <span className="loader absolute -translate-y-5"></span>
     </div>
   );
 };

@@ -3,6 +3,13 @@ export type Section = "chat" | "my-issues" | "community" | "status";
 export type Language = "english" | "hindi" | "marathi";
 export type Gender = "Male" | "Female" | "Other";
 
+export interface SessionUser {
+  id: string;
+  email?: string;
+  name?: string;
+  role?: "ADMIN" | "SUPERADMIN" | "USER";
+}
+
 export interface User {
   id?: number;
   // authStep: AuthStep;
@@ -35,17 +42,17 @@ export interface Complaint {
   title: string;
   description: string;
   category: string;
-  location?: string;
-  latitude?: string;
-  longitude?: string;
+  location?: string | null;
+  latitude?: string | null;
+  longitude?: string | null;
   status: string;
 
   imageUrls?: string[];
   videoUrls?: string[];
 
   isMediaApproved: boolean;
+  isPublic: boolean;
   coSignCount: number;
-  reportCount: number;
 
   createdAt: string;
   updatedAt: string;
@@ -78,9 +85,9 @@ export interface ComplaintFormData {
   title: string;
   description: string;
   category: string;
-  location?: string;
-  latitude?: string;
-  longitude?: string;
+  location?: string | null;
+  latitude?: string | null;
+  longitude?: string | null;
   imageUrls?: string[];
   videoUrls?: string[];
 }
@@ -101,3 +108,5 @@ export interface ProfileFormData {
   // firstName: string;
   // lastName: string;
 }
+
+export type Visibility = "MEDIA" | "COMPLAINT";

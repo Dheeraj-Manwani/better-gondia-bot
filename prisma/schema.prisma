@@ -61,6 +61,7 @@ model Complaint {
   videoUrls String[] @default([])
 
   isMediaApproved Boolean @default(false)
+  isPublic        Boolean @default(false)
   coSignCount     Int     @default(0)
   reportCount     Int     @default(0)
 

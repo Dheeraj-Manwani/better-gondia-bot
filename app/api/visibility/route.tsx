@@ -2,14 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/prisma/db";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth";
+import { SessionUser, Visibility } from "@/types";
 // import { auth } from "@/app/api/auth/[...nextauth]/route";
-
-interface SessionUser {
-  id: string;
-  email?: string;
-  name?: string;
-  role?: "ADMIN" | "SUPERADMIN" | "USER";
-}
 
 export async function PATCH(req: NextRequest) {
   try {
@@ -25,18 +19,27 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { complaintId, isMediaApproved } = await req.json();
+    const {
+      complaintId,
+      value,
+      type,
+    }: { complaintId: string; value: boolean; type: Visibility } =
+      await req.json();
 
     if (
       typeof complaintId !== "number" ||
-      typeof isMediaApproved !== "boolean"
+      typeof value !== "boolean" ||
+      typeof type !== "string"
     ) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
     const updated = await prisma.complaint.update({
       where: { id: complaintId },
-      data: { isMediaApproved },
+      data: {
+        ...(type == "MEDIA" && { isMediaApproved: value }),
+        ...(type == "MEDIA" && { isMediaApproved: value }),
+      },
     });
 
     return NextResponse.json({ success: true, complaint: updated });

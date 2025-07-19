@@ -1,42 +1,54 @@
 import { Flag, ThumbsUp, Trash2 } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Complaint } from "@/types";
+import { Complaint, Visibility } from "@/types";
 import {
   formatTimeAgo,
   generateComplaintIdFromDate,
   getCategoryIcon,
   getStatusColor,
   isAdmin,
-} from "@/lib/utils";
+} from "@/lib/clientUtils";
 import { Role } from "@prisma/client/index-browser";
 import { useEffect, useState } from "react";
 import { Checkbox } from "./Checkbox";
 import { useModal } from "@/store/modal";
+import { GenericModal } from "./modal/GenericModal";
 
 export const CommunityComplaintCard = ({
   complaint,
   handleCoSign,
   isLoading,
-  handleMediaApprove,
+  handleToggleVisibility,
   role,
 }: {
   complaint: Complaint;
   handleCoSign: (id: number) => void;
   isLoading: boolean;
-  handleMediaApprove: (id: number, isApproved: boolean) => void;
+  handleToggleVisibility: (
+    id: number,
+    isApproved: boolean,
+    type: Visibility
+  ) => void;
   role: Role;
 }) => {
-  const [isChecked, setIsChecked] = useState(false);
-  const setIsOpen = useModal((state) => state.setIsOpen);
+  const [isComplaintVisible, setIsComplaintVisible] = useState(false);
+  const [isMediaVisible, setIsMediaVisible] = useState(false);
+  // const setIsOpen = useModal((state) => state.setIsOpen);
 
-  const handleCheckbox = () => {
-    handleMediaApprove(complaint.id, !isChecked);
-    setIsChecked(!isChecked);
+  const handleComplaintCheckbox = () => {
+    handleToggleVisibility(complaint.id, !isComplaintVisible, "COMPLAINT");
+    setIsComplaintVisible(!isComplaintVisible);
+  };
+
+  const handleMediaCheckbox = () => {
+    handleToggleVisibility(complaint.id, !isMediaVisible, "MEDIA");
+    setIsMediaVisible(!isMediaVisible);
   };
 
   useEffect(() => {
-    setIsChecked(complaint.isMediaApproved);
+    setIsComplaintVisible(complaint.isPublic);
+    setIsMediaVisible(complaint.isMediaApproved);
   }, []);
 
   const getCategoryColor = (category: string) => {
@@ -48,6 +60,8 @@ export const CommunityComplaintCard = ({
     };
     return colors[category] || "bg-gray-100 text-gray-800";
   };
+
+  // const { isOpen: modalOpen, setIsOpen: setModalOpen } = useModal();
   return (
     <div
       key={complaint.id}
@@ -169,17 +183,26 @@ export const CommunityComplaintCard = ({
           <div className="tracking-wide ">Admin Controls</div>
           <div className="w-full flex justify-between">
             <Checkbox
-              checked={isChecked}
-              onChange={handleCheckbox}
-              label="Media Visibility"
+              key={1}
+              checked={isComplaintVisible}
+              onChange={handleComplaintCheckbox}
+              label="Complaint Visibility"
+              className="w-1/2"
             />
-            <Button
+            <Checkbox
+              key={2}
+              checked={isMediaVisible}
+              onChange={handleMediaCheckbox}
+              label="Media Visibility"
+              className="w-1/2"
+            />
+            {/* <Button
               variant={"destructive"}
               className="w-2/6"
               onClick={() => setIsOpen(true)}
             >
               Delete <Trash2 />
-            </Button>
+            </Button> */}
           </div>
         </div>
       )}

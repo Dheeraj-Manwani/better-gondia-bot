@@ -86,3 +86,10 @@ export const getStatusColor = (status: string) => {
 export const isAdmin = (role: Role): boolean => {
   return role == "ADMIN" || role == "SUPERADMIN";
 };
+
+export const resetApp = () => {
+  localStorage.removeItem("language");
+  localStorage.removeItem("authStep");
+  localStorage.removeItem("userData");
+  window.location.reload();
+};
