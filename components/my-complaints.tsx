@@ -12,12 +12,15 @@ import { useBot } from "@/store/bot";
 import { ComplaintScreenSkeleton } from "./Skeletons";
 import { useRefetch } from "@/store/refetch";
 import { toast } from "sonner";
+import { Spinner } from "./ui/spinner";
 
 export const AllChats = ({
+  hasUserOpened,
   user,
   handleSectionChange,
   handleOpenNewChat,
 }: {
+  hasUserOpened: boolean;
   user: User;
   handleSectionChange: (sec: Section) => void;
   handleOpenNewChat: () => void;
@@ -41,6 +44,7 @@ export const AllChats = ({
     if (chatMessages) {
       const com: Complaint[] = chatMessages.data.complaints;
       setComplaints(com);
+      if (com.length == 0 && !hasUserOpened) handleSectionChange("chat");
       // const messages = complaints.map((comp) => JSON.parse(comp.message));
       // setMessages(messages);
     }
@@ -93,11 +97,11 @@ export const AllChats = ({
   };
 
   if (isLoading) {
-    return <ComplaintScreenSkeleton />;
+    return <Spinner blur />;
   }
 
   return (
-    <div className="max-w-11/12 mx-auto text-gray-700  min-h-[85vh] flex flex-col bg-[#E5DDD5]  rounded-lg ">
+    <div className="max-w-11/12 mx-auto text-gray-700  min-h-[85dvh] flex flex-col bg-[#E5DDD5]  rounded-lg ">
       {/* Header */}
       <div className="bg-whatsapp-dark text-gray-700 p-3.5 flex items-center  sticky top-0 z-10  justify-between">
         <h1 className="font-semibold text-md flex gap-1.5 justify-center align-middle">
@@ -129,15 +133,13 @@ export const AllChats = ({
           </Button>
         </div>
       ) : (
-        <ScrollArea className="  h-[70vh]">
+        <ScrollArea className="h-[70dvh]">
           {complaints?.map((complaint: Complaint) => (
-            <>
-              <ComplaintCard
-                complaint={complaint}
-                key={complaint.id}
-                handleOpenExistingChat={handleOpenExistingChat}
-              />
-            </>
+            <ComplaintCard
+              complaint={complaint}
+              key={complaint.id}
+              handleOpenExistingChat={handleOpenExistingChat}
+            />
           ))}
           <ScrollBar orientation="vertical" color="black" />
         </ScrollArea>

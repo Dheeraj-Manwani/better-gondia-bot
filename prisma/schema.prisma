@@ -13,20 +13,33 @@ enum Gender {
   Other
 }
 
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+enum AuthType {
+  DETAILS
+  GOOGLE
+}
+
 model User {
-  id      Int     @id @default(autoincrement())
-  name    String
-  age     Int
-  gender  Gender
-  mobile  String  @unique
-  email   String? @unique
-  address String
-  isAdmin Boolean @default(false)
+  id       Int      @id @default(autoincrement())
+  name     String
+  age      Int
+  gender   Gender
+  role     Role     @default(USER)
+  mobile   String   @unique
+  email    String?  @unique
+  address  String
+  authType AuthType @default(DETAILS)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  complaints Complaint[]
+  complaints   Complaint[]
+  Interactions Interaction[]
 
   @@index([mobile])
   @@index([email])
@@ -47,12 +60,34 @@ model Complaint {
   imageUrls String[] @default([])
   videoUrls String[] @default([])
 
-  isPublic Boolean @default(true)
+  isMediaApproved Boolean @default(false)
+  coSignCount     Int     @default(0)
+  reportCount     Int     @default(0)
 
   messages String @default("[]")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  interactions Interaction[]
 
   @@index([userId])
+}
+
+model Interaction {
+  id        String          @id @default(uuid())
+  type      InteractionType
+  createdAt DateTime        @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  complaintId Int
+  complaint   Complaint @relation(fields: [complaintId], references: [id])
+
+  @@unique([userId, complaintId, type])
+}
+
+enum InteractionType {
+  CO_SIGN
+  REPORT
 }

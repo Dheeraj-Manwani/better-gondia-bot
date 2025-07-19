@@ -27,7 +27,7 @@ export const Background: React.FC<React.PropsWithChildren<{}>> = ({
 }) => (
   <div
     style={{
-      minHeight: "100vh",
+      minHeight: "100dvh",
       backgroundColor: "#F5EFE7", // base paper tint
       backgroundImage: `url("data:image/svg+xml,${encoded}")`,
       backgroundSize: "380px 380px", // adjust to taste

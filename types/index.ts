@@ -39,16 +39,16 @@ export interface Complaint {
   latitude?: string;
   longitude?: string;
   status: string;
-  department?: string;
-  priority: string;
-  imageUrl?: string;
-  videoUrl?: string;
-  isPublic: boolean;
-  isResolved: boolean;
-  resolvedAt?: string;
+
+  imageUrls?: string[];
+  videoUrls?: string[];
+
+  isMediaApproved: boolean;
+  coSignCount: number;
+  reportCount: number;
+
   createdAt: string;
   updatedAt: string;
-  coSignCount?: number;
   messages: string;
 }
 

@@ -1,4 +1,5 @@
 import { ChatMessage } from "@/types";
+import { Role } from "@prisma/client/index-browser";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -34,6 +35,19 @@ export function formatCreatedAtLabel(createdAt: string | Date): string {
   return `🕒 ${formattedDate}`;
 }
 
+export const formatTimeAgo = (dateString: string) => {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffInHours = Math.floor(
+    (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+  );
+
+  if (diffInHours < 1) return "Just now";
+  if (diffInHours < 24) return `${diffInHours} hours ago`;
+  const days = Math.floor(diffInHours / 24);
+  return `${days} ${days === 1 ? "day" : "days"} ago`;
+};
+
 export const getBotMessage = (content: string): ChatMessage => {
   return {
     id: Date.now(),
@@ -52,4 +66,23 @@ export const getCategoryIcon = (category: string) => {
     sanitation: "🗑️",
   };
   return icons[category] || "📝";
+};
+
+export const getStatusColor = (status: string) => {
+  switch (status) {
+    case "pending":
+      return "bg-yellow-100 text-yellow-800";
+    case "in_progress":
+      return "bg-blue-100 text-blue-800";
+    case "resolved":
+      return "bg-green-100 text-green-800";
+    case "closed":
+      return "bg-gray-100 text-gray-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+export const isAdmin = (role: Role): boolean => {
+  return role == "ADMIN" || role == "SUPERADMIN";
 };

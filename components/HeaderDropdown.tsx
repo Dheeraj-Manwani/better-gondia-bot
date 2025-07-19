@@ -1,4 +1,5 @@
-// import { Button } from "@/components/ui/button";
+"use client";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,16 +14,31 @@ import {
   // DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EllipsisVertical, LogOut } from "lucide-react";
+import { EllipsisVertical, LogOut, Mail } from "lucide-react";
+import { signIn, useSession } from "next-auth/react";
+
+import { appSession } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 export function HeaderDropdown() {
+  const session = useSession() as unknown as appSession;
+
+  const handleEmailLogin = () => {
+    signIn("google");
+  };
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <EllipsisVertical />
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-36 bg-white border-none" align="end">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+      <DropdownMenuContent
+        className={cn(
+          " bg-white border-none",
+          session.status !== "authenticated" && "w-36"
+        )}
+        align="end"
+      >
+        {/* <DropdownMenuLabel>My Account</DropdownMenuLabel> */}
         {/* <DropdownMenuGroup>
           <DropdownMenuItem>
             Profile
@@ -64,7 +80,29 @@ export function HeaderDropdown() {
         <DropdownMenuItem>GitHub</DropdownMenuItem>
         <DropdownMenuItem>Support</DropdownMenuItem>
         <DropdownMenuItem disabled>API</DropdownMenuItem> */}
-        <DropdownMenuSeparator />
+        {/* <DropdownMenuSeparator /> */}
+        {session.status === "authenticated" && (
+          <>
+            <DropdownMenuLabel className="font-semibold">
+              {session.data.user?.email}
+            </DropdownMenuLabel>
+            {session.data.user?.role !== "USER" && (
+              <DropdownMenuLabel className="text-[12px] text-right p-0 m-0 font-semibold">
+                ({session.data.user?.role})
+              </DropdownMenuLabel>
+            )}
+            <DropdownMenuSeparator className="border border-gray-200" />
+          </>
+        )}
+        {session.status !== "authenticated" && (
+          <DropdownMenuItem
+            className="hover:bg-[#E5DDD5] flex justify-between"
+            onClick={handleEmailLogin}
+          >
+            <span>Gmail Login</span>
+            <Mail />
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem
           className="hover:bg-[#E5DDD5] flex justify-between"
           onClick={() => {

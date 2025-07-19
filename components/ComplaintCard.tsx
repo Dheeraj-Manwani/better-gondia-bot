@@ -1,8 +1,9 @@
 import {
   cn,
-  formatCreatedAtLabel,
+  formatTimeAgo,
   generateComplaintIdFromDate,
   getCategoryIcon,
+  getStatusColor,
 } from "@/lib/utils";
 import { Complaint } from "@/types";
 import { Button } from "./ui/button";
@@ -15,21 +16,6 @@ export const ComplaintCard = ({
   complaint: Complaint;
   handleOpenExistingChat: (mess: Complaint) => void;
 }) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "in_progress":
-        return "bg-blue-100 text-blue-800";
-      case "resolved":
-        return "bg-green-100 text-green-800";
-      case "closed":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "pending":
@@ -45,7 +31,7 @@ export const ComplaintCard = ({
     }
   };
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-200 w-full max-w-md flex flex-col gap-2 mb-2">
+    <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-200 w-full max-w-md flex flex-col gap-2 mb-2.5">
       {/* <!-- Header --> */}
       <div className="flex items-center justify-between text-sm text-gray-500">
         <span className="font-medium text-gray-800">
@@ -57,7 +43,7 @@ export const ComplaintCard = ({
       </div>
 
       {/* <!-- Description --> */}
-      <p className="text-gray-700 text-sm line-clamp-2">
+      <p className="text-gray-700 text-sm line-clamp-2 break-words break-all overflow-x-auto max-w-full">
         {/* Garbage is not being collected regularly in our colony near ABC Road.
         It&apos;s smelling bad. */}
         {complaint.description}
@@ -80,10 +66,10 @@ export const ComplaintCard = ({
 
       {/* <!-- Footer --> */}
       <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
-        <span className="max-w-9/12">
+        <span className="max-w-9/12 break-words break-all overflow-x-auto ">
           {complaint.location ? "📍" + complaint.location : ""}
         </span>
-        <span>{formatCreatedAtLabel(complaint.createdAt)}</span>
+        <span>{formatTimeAgo(complaint.createdAt)}</span>
       </div>
 
       {/* <!-- Status and Button --> */}

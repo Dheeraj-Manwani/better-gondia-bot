@@ -24,10 +24,12 @@ import { useUserData } from "@/store/userData";
 import { useAuthStep } from "@/store/authStep";
 import { useBot } from "@/store/bot";
 import { useMessages } from "@/store/messages";
+import { setCookie } from "cookies-next/client";
 
 export default function Home() {
   const { authStep, setAuthStep } = useAuthStep();
-  const [currentSection, setCurrentSection] = useState<Section>("chat");
+  const [currentSection, setCurrentSection] = useState<Section>("my-issues");
+  const [hasUserOpened, setHasUserOpened] = useState<boolean>(false);
   const [pendingMobile, setPendingMobile] = useState<string>("");
   // const [selectedLanguage, setSelectedLanguage] = useState<Language>("english");
   // const [userData, setUserData] = useState<User>(initUserData);
@@ -59,6 +61,7 @@ export default function Home() {
       setUserData(parsedCurrentUser);
       setLanguage(currLang as Language);
       setAuthStep(currentAuthStep! as AuthStep);
+      setCookie("userId", parsedCurrentUser.id);
     } else {
       // setUserData(initUserData);
       setLanguage("english");
@@ -96,6 +99,7 @@ export default function Home() {
 
   const handleSectionChange = (section: Section) => {
     setCurrentSection(section);
+    setHasUserOpened(true);
   };
 
   const handleOpenNewChat = () => {
@@ -157,6 +161,7 @@ export default function Home() {
       <div className="flex-1 overflow-hidden">
         {currentSection === "my-issues" && (
           <AllChats
+            hasUserOpened={hasUserOpened}
             user={userData!}
             handleSectionChange={handleSectionChange}
             handleOpenNewChat={handleOpenNewChat}

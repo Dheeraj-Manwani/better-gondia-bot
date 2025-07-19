@@ -24,6 +24,7 @@ import { Alert } from "@/components/message-alrert";
 import { useUserData } from "@/store/userData";
 import { generateComplaintIdFromDate, getBotMessage } from "@/lib/utils";
 import { useRefetch } from "@/store/refetch";
+import { Textarea } from "./ui/textarea";
 
 // Web Speech API type declarations
 interface SpeechRecognitionEvent {
@@ -75,6 +76,7 @@ export default function ChatSection({
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const showTypingIndicator = (time: number) => {
     setIsTyping(true);
@@ -114,6 +116,8 @@ export default function ChatSection({
       setTimeout(() => {
         addBotMessage(`Call to action (to be framed in requirement).`, 500);
       }, 2500);
+
+      setRefetch(true);
 
       // toast({
       //   title: "Complaint Submitted",
@@ -269,7 +273,8 @@ export default function ChatSection({
 
     addMessage(userMessage);
 
-    setMessageInput("");
+    // setMessageInput("");
+    handleInputChange("");
   };
 
   const handleCategorySelect = (category: string) => {
@@ -299,6 +304,15 @@ export default function ChatSection({
     addBotMessage(
       "Perfect! Now please describe your complaint in detail. Explain what exactly is the problem, when you noticed it, and how it's affecting you or your community."
     );
+  };
+
+  const handleInputChange = (text: string) => {
+    setMessageInput(text);
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto"; // Reset height
+      textarea.style.height = `${text ? textarea.scrollHeight : 0}px`; // Set to scroll height
+    }
   };
 
   const handleLocationAction = (action: string) => {
@@ -897,7 +911,7 @@ Would you like to submit this complaint?
                   variant={"default"}
                   onClick={() => {
                     handleSectionChange("my-issues");
-                    setRefetch(true);
+                    // setRefetch(true);
                   }}
                 >
                   View My Complaints
@@ -922,18 +936,18 @@ Would you like to submit this complaint?
             <div className="bg-[#F0F0F0] p-2 border-t border-gray-300">
               <form
                 onSubmit={(e) => handleSendMessage(e)}
-                className="flex items-end space-x-2"
+                className="flex space-x-2 justify-center items-center"
               >
                 <div className="flex-1 relative">
-                  <Input
+                  <Textarea
+                    ref={textareaRef}
                     value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
+                    onChange={(e) => handleInputChange(e.target.value)}
                     placeholder={"Describe your complaint in detail..."}
-                    className="w-full py-3 px-4 bg-white rounded-[20px] border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#25D366] text-gray-900 text-[15px] min-h-[44px] max-h-[120px] resize-none"
+                    className="w-full py-2 px-3 bg-white rounded-[20px] border border-gray-300  text-gray-900 text-[15px] min-h-[44px] max-h-[250px] break-words break-all overflow-x-auto max-w-full "
                     style={{
                       fontFamily: "system-ui, -apple-system, sans-serif",
                     }}
-                    // onKeyDown={(e) => e.key === "Enter" && handleSendMessage(e)}
                     disabled={botState.step == "category"}
                   />
                 </div>

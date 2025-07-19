@@ -18,6 +18,7 @@ import { ProfileFormData, User } from "@/types";
 import { toast } from "sonner";
 import { useUserData } from "@/store/userData";
 import { useAuthStep } from "@/store/authStep";
+import { setCookie } from "cookies-next";
 
 interface ProfileScreenProps {
   mobile: string;
@@ -75,6 +76,7 @@ export default function ProfileScreen({
       const newUser = { ...savedUser } as User;
       localStorage.setItem("userData", JSON.stringify(newUser));
       setUserData(newUser);
+      setCookie("userId", newUser.id);
 
       setAuthStep("complete");
       localStorage.setItem("authStep", "complete");
@@ -105,12 +107,32 @@ export default function ProfileScreen({
       !formData.age ||
       !formData.gender
     ) {
-      // toast({
-      //   title: "Required Fields",
-      //   description: "Please fill in all required fields",
-      //   variant: "destructive",
-      // });
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    // Name validation: more than 5 characters
+    if (formData.name.trim().length <= 5) {
+      toast.error("Name must be more than 5 characters");
+      return;
+    }
+
+    // Age validation: between 16 and 110
+    const ageNum = Number(formData.age);
+    if (isNaN(ageNum) || ageNum < 16 || ageNum > 110) {
+      toast.error("Age must be between 16 and 110");
+      return;
+    }
+
+    // Mobile validation: 10 digits, only numbers
+    if (!/^\d{10}$/.test(formData.mobile)) {
+      toast.error("Please enter a valid 10-digit mobile number");
+      return;
+    }
+
+    // Address validation: more than 10 characters
+    if (formData.address.trim().length <= 10) {
+      toast.error("Address must be more than 10 characters");
       return;
     }
 

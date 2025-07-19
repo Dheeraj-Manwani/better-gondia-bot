@@ -34,7 +34,7 @@ export const BottomNavigation = ({
   handleSectionChange: (sec: Section) => void;
 }) => {
   return (
-    <div className="bg-white border-t border-gray-200 px-4 py-2">
+    <div className="bg-white border-t border-gray-200 px-4 py-2 z-20">
       <div className="flex justify-around">
         {navigationItems.map((item) => {
           const IconComponent = item.icon;

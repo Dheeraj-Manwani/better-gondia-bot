@@ -22,7 +22,7 @@ export default function LanguageSelection({
   onLanguageSelect,
 }: LanguageSelectionProps) {
   return (
-    <div className="h-[100vh] flex items-center justify-center whatsapp-bg">
+    <div className="h-[100dvh] flex items-center justify-center whatsapp-bg">
       <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
         <div className="text-center mb-8">
           {/* <motion.div
@@ -84,24 +84,29 @@ export default function LanguageSelection({
 
         <div className="space-y-3">
           <Button
-            className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+            size="sm"
+            variant="outline"
+            className="w-full bg-green-50 border-green-400 text-green-700 hover:bg-green-100"
             onClick={() => onLanguageSelect("english")}
           >
-            🇬🇧 English
+            English
           </Button>
 
           <Button
-            className="w-full h-12 text-lg bg-orange-600 hover:bg-orange-700 text-white rounded-lg"
+            variant="outline"
+            className="w-full bg-green-50 border-green-400 text-green-700 hover:bg-green-100"
             onClick={() => onLanguageSelect("hindi")}
           >
-            🇮🇳 हिंदी
+            हिंदी
           </Button>
 
           <Button
-            className="w-full h-12 text-lg bg-green-600 hover:bg-green-700 text-white rounded-lg"
+            size="sm"
+            variant="outline"
+            className="w-full bg-green-50 border-green-400 text-green-700 hover:bg-green-100"
             onClick={() => onLanguageSelect("marathi")}
           >
-            🚩 मराठी
+            मराठी
           </Button>
         </div>
 

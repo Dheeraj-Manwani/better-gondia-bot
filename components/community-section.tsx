@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,23 +6,61 @@ import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
 import { User, Complaint } from "@/types";
 import { ThumbsUp, Flag, ArrowLeft, Users } from "lucide-react";
-import { generateComplaintIdFromDate, getCategoryIcon } from "@/lib/utils";
+import {
+  formatTimeAgo,
+  generateComplaintIdFromDate,
+  getCategoryIcon,
+} from "@/lib/utils";
+import { CommunityComplaintCard } from "./CommunityComplaintCard";
+import { useSession } from "next-auth/react";
+import { appSession } from "@/lib/auth";
+import { Spinner } from "./ui/spinner";
+import { useLoaderStore } from "@/store/loader";
+import { toast } from "sonner";
 
 interface CommunitySectionProps {
   user: User;
 }
 
 export default function CommunitySection({ user }: CommunitySectionProps) {
-  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(
-    null
-  );
+  // const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(
+  //   null
+  // );
+
   // const { toast } = useToast();
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
+  const session = useSession() as unknown as appSession;
+  const setLoading = useLoaderStore((state) => state.setLoading);
 
   const { data: complaints, isLoading } = useQuery<{
     data: { complaints: Complaint[] };
   }>({
     queryKey: ["/api/complaints"],
+  });
+
+  const toggleMedia = useMutation({
+    mutationFn: async ({
+      complaintId,
+      isApproved,
+    }: {
+      complaintId: number;
+      isApproved: boolean;
+    }) => {
+      const id = toast.loading("Submitting Complaint...");
+
+      const response = await fetch("/api/approve-media", {
+        method: "PATCH",
+        body: JSON.stringify({ complaintId, isMediaApproved: isApproved }),
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to create complaint");
+      toast.success("Complaint Submitted Successfully !!", { id });
+      return response.json();
+    },
+    onSuccess: (response: { complaintId: string }) => {
+      setLoading(false);
+    },
+    onError: (error: Error) => {},
   });
 
   const coSignMutation = useMutation({
@@ -35,72 +73,40 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
       return response.json();
     },
     onSuccess: () => {
-      // toast({
-      //   title: "Co-signed Successfully",
-      //   description: "Thank you for supporting this complaint!",
-      // });
-      queryClient.invalidateQueries({ queryKey: ["/api/complaints/public"] });
+      // queryClient.invalidateQueries({ queryKey: ["/api/complaints/public"] });
     },
-    onError: (error: Error) => {
-      // toast({
-      //   title: "Failed to Co-sign",
-      //   description: error.message,
-      //   variant: "destructive",
-      // });
-    },
+    onError: (error: Error) => {},
   });
 
   const handleCoSign = (complaintId: number) => {
     coSignMutation.mutate(complaintId);
   };
 
-  const getCategoryColor = (category: string) => {
-    const colors: Record<string, string> = {
-      roads: "bg-blue-100 text-blue-800",
-      water: "bg-blue-100 text-blue-800",
-      electricity: "bg-yellow-100 text-yellow-800",
-      sanitation: "bg-purple-100 text-purple-800",
-    };
-    return colors[category] || "bg-gray-100 text-gray-800";
+  const handleMediaApprove = (complaintId: number, isApproved: boolean) => {
+    setLoading(true);
+    toggleMedia.mutate({ complaintId, isApproved });
   };
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      submitted: "bg-blue-100 text-blue-800",
-      forwarded: "bg-yellow-100 text-yellow-800",
-      resolved: "bg-green-100 text-green-800",
-    };
-    return colors[status] || "bg-gray-100 text-gray-800";
-  };
-
-  const formatTimeAgo = (dateString: string) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffInHours = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60)
-    );
-
-    if (diffInHours < 1) return "Just now";
-    if (diffInHours < 24) return `${diffInHours} hours ago`;
-    return `${Math.floor(diffInHours / 24)} days ago`;
-  };
+  // const getStatusColor = (status: string) => {
+  //   const colors: Record<string, string> = {
+  //     submitted: "bg-blue-100 text-blue-800",
+  //     forwarded: "bg-yellow-100 text-yellow-800",
+  //     resolved: "bg-green-100 text-green-800",
+  //   };
+  //   return colors[status] || "bg-gray-100 text-gray-800";
+  // };
 
   // const getInitials = (firstName: string, lastName: string) => {
-  const getInitials = (name: string) => {
-    const names = name.split(" ");
-    return `${names[0].charAt(0)}${names[1].charAt(0)}`.toUpperCase();
-  };
+  // const getInitials = (name: string) => {
+  //   const names = name.split(" ");
+  //   return `${names[0].charAt(0)}${names[1].charAt(0)}`.toUpperCase();
+  // };
 
   if (isLoading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-          <p className="text-gray-500">Loading complaints...</p>
-        </div>
-      </div>
-    );
+    return <Spinner />;
   }
+
+  console.log("complaints ===== ", complaints);
 
   return (
     <div className="h-full flex flex-col">
@@ -116,109 +122,14 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
       <div className="flex-1 overflow-y-auto">
         <div className="space-y-4 p-4">
           {complaints?.data?.complaints?.map((complaint) => (
-            <div
+            <CommunityComplaintCard
               key={complaint.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
-            >
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-semibold text-sm">
-                        {getInitials(user.name)}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm ">
-                        {generateComplaintIdFromDate(
-                          complaint.id,
-                          complaint.createdAt
-                        )}
-                      </p>
-                      <p className="text-xs ">
-                        Ward {Math.floor(Math.random() * 5) + 1} •{" "}
-                        {formatTimeAgo(complaint.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge className={getStatusColor(complaint.status)}>
-                      {complaint.status === "resolved"
-                        ? "RESOLVED"
-                        : complaint.complaintId}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Complaint Image */}
-                {complaint.imageUrl && (
-                  <img
-                    src={complaint.imageUrl}
-                    alt="Complaint"
-                    className="w-full h-48 object-cover rounded-lg mb-3"
-                  />
-                )}
-
-                {/* Complaint Text */}
-                <p className="text-sm  mb-3">{complaint.description}</p>
-
-                {/* Location */}
-                {complaint.location && (
-                  <p className="text-sm  mb-3">📍 {complaint.location}</p>
-                )}
-
-                {/* Resolved Update */}
-                {complaint.isResolved && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
-                    <p className="text-sm text-green-800">
-                      ✅ <strong>Update:</strong> This issue has been resolved
-                      by the concerned department.
-                    </p>
-                    <p className="text-xs text-green-600 mt-1">
-                      Resolved • {formatTimeAgo(complaint.resolvedAt!)}
-                    </p>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    {complaint.isResolved ? (
-                      <span className="flex items-center space-x-2 text-green-600">
-                        <ThumbsUp className="w-4 h-4" />
-                        <span className="text-sm font-medium">
-                          Supported by {complaint.coSignCount} people
-                        </span>
-                      </span>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="flex items-center space-x-2 text-green-600 hover:text-green-700 hover:bg-green-50"
-                        onClick={() => handleCoSign(complaint.id)}
-                        disabled={coSignMutation.isPending}
-                      >
-                        <ThumbsUp className="w-4 h-4" />
-                        <span className="text-sm font-medium">
-                          Co-Sign ({complaint.coSignCount})
-                        </span>
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex items-center space-x-2 text-gray-500 hover:text-red-500 hover:bg-red-50"
-                    >
-                      <Flag className="w-4 h-4" />
-                      <span className="text-sm">Report</span>
-                    </Button>
-                  </div>
-                  <Badge className={getCategoryColor(complaint.category)}>
-                    {getCategoryIcon(complaint.category)} {complaint.category}
-                  </Badge>
-                </div>
-              </div>
-            </div>
+              complaint={complaint}
+              handleCoSign={handleCoSign}
+              isLoading={coSignMutation.isPending}
+              handleMediaApprove={handleMediaApprove}
+              role={session?.data?.user?.role ?? "USER"}
+            />
           ))}
 
           {(!complaints || complaints.data.complaints.length === 0) && (

@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
     // Transform the data to match the frontend Complaint interface
     const transformedComplaints = complaints.map((complaint) => ({
       id: complaint.id,
-      complaintId: complaint.id.toString(), // Using id as complaintId for now
+      complaintId: complaint.id.toString(),
       userId: complaint.userId,
       title: complaint.title,
       description: complaint.description,
@@ -70,19 +70,15 @@ export async function GET(req: NextRequest) {
       latitude: complaint.latitude,
       longitude: complaint.longitude,
       status: complaint.status,
-      department: undefined, // Not in schema yet
-      priority: "medium", // Default priority
-      imageUrls: complaint.imageUrls, // Use first image as main image
-      videoUrls: complaint.videoUrls, // Use first video as main video
-      isPublic: complaint.isPublic,
-      isResolved: complaint.status === "resolved",
-      resolvedAt:
-        complaint.status === "resolved"
-          ? complaint.updatedAt.toISOString()
-          : undefined,
+
+      imageUrls: complaint.imageUrls,
+      videoUrls: complaint.videoUrls,
+
+      isMediaApproved: complaint.isMediaApproved,
+      coSignCount: complaint.coSignCount,
+
       createdAt: complaint.createdAt.toISOString(),
       updatedAt: complaint.updatedAt.toISOString(),
-      coSignCount: 0, // Default value, implement co-sign functionality later
       messages: complaint.messages,
     }));
 
@@ -143,7 +139,7 @@ export async function POST(req: NextRequest) {
       const complaint = await tx.complaint.create({
         data: {
           userId,
-          title: description, // Or use a separate title if you have one
+          title: description,
           description,
           category,
           location,
@@ -151,7 +147,6 @@ export async function POST(req: NextRequest) {
           longitude,
           imageUrls,
           videoUrls,
-          isPublic,
         },
       });
 
