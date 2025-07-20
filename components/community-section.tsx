@@ -1,7 +1,7 @@
 import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { User, Complaint, Visibility } from "@/types";
+import { User, Complaint, Visibility, CoSignVars } from "@/types";
 import { Users } from "lucide-react";
 import { CommunityComplaintCard } from "./CommunityComplaintCard";
 import { useSession } from "next-auth/react";
@@ -63,15 +63,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
   const queryClient = useQueryClient();
 
   const coSignMutation = useMutation({
-    mutationFn: async ({
-      complaintId,
-      userId,
-      shouldApprove,
-    }: {
-      complaintId: number;
-      userId: number;
-      shouldApprove: boolean;
-    }) => {
+    mutationFn: async ({ userId, shouldApprove, complaintId }: CoSignVars) => {
       const response = await apiRequest(
         "POST",
         `/api/complaints/${complaintId}/co-sign`,
@@ -79,49 +71,53 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
       );
       return response.json();
     },
-    // Optimistic update
-    onMutate: async ({ complaintId, shouldApprove }) => {
+
+    onMutate: async ({ shouldApprove, complaintId }) => {
+      // 1. Cancel any outgoing refetches so they don’t overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: ["/api/complaints"] });
 
-      const previousData = queryClient.getQueryData<{
-        data: { complaints: Complaint[] };
-      }>(["/api/complaints"]);
+      // 2. Snapshot the previous value for rollback
+      const prevData = queryClient.getQueryData<Complaint[]>([
+        "/api/complaints",
+      ]);
 
-      queryClient.setQueryData<{ data: { complaints: Complaint[] } }>(
-        ["/api/complaints"],
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            data: {
-              ...old.data,
-              complaints: old.data.complaints.map((complaint) =>
-                complaint.id === complaintId
-                  ? {
-                      ...complaint,
-                      coSignCount: shouldApprove
-                        ? (complaint.coSignCount ?? 0) + 1
-                        : Math.max((complaint.coSignCount ?? 1) - 1, 0),
-                      isCoSigned: shouldApprove,
-                    }
-                  : complaint
-              ),
-            },
-          };
-        }
-      );
+      // 3. Optimistically update
+      queryClient.setQueryData<Complaint[]>(["/api/complaints"], (old) => {
+        const updated = old?.map((c) =>
+          c.id === complaintId
+            ? {
+                ...c,
+                isCoSigned: shouldApprove,
+                coSignCount:
+                  c.coSignCount +
+                  (shouldApprove && !c.isCoSigned
+                    ? 1
+                    : !shouldApprove && c.isCoSigned
+                    ? -1
+                    : 0),
+              }
+            : c
+        );
 
-      return { previousData };
+        console.log("Optimistically Updated state ", updated);
+        console.log("prev state ", prevData);
+        return updated;
+      });
+
+      // 4. Return context for potential rollback
+      return { prevData };
     },
-    onError: (err, variables, context) => {
-      // Rollback
-      if (context?.previousData) {
-        queryClient.setQueryData(["/api/complaints"], context.previousData);
+
+    // 5. Rollback on error
+    onError: (_err, _vars, context) => {
+      if (context?.prevData) {
+        queryClient.setQueryData(["complaints"], context.prevData);
       }
-      toast.error("Failed to co-sign. Please try again.");
     },
+
+    // 6. Optional: silent background refetch to heal any mismatch
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/complaints"] });
+      queryClient.invalidateQueries({ queryKey: ["complaints"] });
     },
   });
 

@@ -53,12 +53,18 @@ export interface Complaint {
   isMediaApproved: boolean;
   isPublic: boolean;
   coSignCount: number;
-  isCoSigned: boolean; // Add this new property
+  isCoSigned: boolean;
 
   createdAt: string;
   updatedAt: string;
   messages: string;
 }
+
+export type CoSignVars = {
+  userId: number;
+  shouldApprove: boolean;
+  complaintId: number;
+};
 
 export interface ChatMessage {
   id: number;
