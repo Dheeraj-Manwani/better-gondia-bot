@@ -36,12 +36,24 @@ interface Token {
 
 export const authConfig = {
   secret: process.env.NEXTAUTH_SECRET || "secr3t",
+
+  session: {
+    strategy: "jwt",
+    maxAge: 365 * 24 * 60 * 60, // 1 year in seconds
+    updateAge: 24 * 60 * 60, // Refresh token every 24 hours if user is active
+  },
+
+  jwt: {
+    maxAge: 365 * 24 * 60 * 60, // 1 year in seconds
+  },
+
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
     }),
   ],
+
   callbacks: {
     // @ts-expect-error to be taken care of
     session: async ({
@@ -61,6 +73,7 @@ export const authConfig = {
       }
       return newSession;
     },
+
     // @ts-expect-error to be taken care of
     jwt: async ({ token }: { token: Token }) => {
       const user = await prisma.user.findFirst({
@@ -76,6 +89,7 @@ export const authConfig = {
       }
       return token;
     },
+
     // @ts-expect-error to be taken care of
     signIn: async ({
       user,
@@ -89,9 +103,7 @@ export const authConfig = {
       try {
         if (account?.provider === "google") {
           const email = user.email;
-          if (!email) {
-            return false;
-          }
+          if (!email) return false;
 
           const userDb = await prisma.user.findFirst({
             where: {
@@ -100,13 +112,10 @@ export const authConfig = {
             },
           });
 
-          if (userDb) {
-            return true;
-          }
+          if (userDb) return true;
 
           const cookieStore = await cookies();
           const userId = Number(cookieStore.get("userId")?.value) ?? -1597;
-
           console.log("cookie and user id ", cookieStore, userId);
 
           await prisma.user.create({

@@ -37,7 +37,7 @@ export async function PATCH(req: NextRequest) {
     const updated = await prisma.complaint.update({
       where: { id: complaintId },
       data: {
-        ...(type == "MEDIA" && { isMediaApproved: value }),
+        ...(type == "COMPLAINT" && { isPublic: value }),
         ...(type == "MEDIA" && { isMediaApproved: value }),
       },
     });

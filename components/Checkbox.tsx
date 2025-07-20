@@ -18,7 +18,9 @@ export const Checkbox: React.FC<CheckboxProps> = ({
     <div className={`flex items-center ${className}`}>
       <label className="w-full flex items-center justify-start gap-1">
         {label && (
-          <span className="text-sm font-medium text-gray-900 ">{label}</span>
+          <span className="text-sm font-medium text-gray-900 max-w-min">
+            {label}
+          </span>
         )}
         <div className="flex gap-1">
           <input

@@ -66,7 +66,7 @@ export default function StatusSection() {
     <>
       <div className="h-full flex flex-col">
         {/* Status Header */}
-        <div className="bg-white p-4 border-b border-gray-200">
+        <div className="bg-white px-4 py-3 border-b border-gray-200">
           <h2 className="font-semibold ">Civic Updates</h2>
           <p className="text-sm whatsapp-gray">
             Photos & videos of resolved complaints

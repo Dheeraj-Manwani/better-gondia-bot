@@ -1,4 +1,4 @@
-import { Flag, ThumbsUp, Trash2 } from "lucide-react";
+import { ThumbsUp } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Complaint, Visibility } from "@/types";
@@ -12,8 +12,6 @@ import {
 import { Role } from "@prisma/client/index-browser";
 import { useEffect, useState } from "react";
 import { Checkbox } from "./Checkbox";
-import { useModal } from "@/store/modal";
-import { GenericModal } from "./modal/GenericModal";
 
 export const CommunityComplaintCard = ({
   complaint,
@@ -143,34 +141,36 @@ export const CommunityComplaintCard = ({
         {/* Action Buttons */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            {/* <span className="flex items-center space-x-2 text-green-600">
-              <ThumbsUp className="w-4 h-4" />
-              <span className="text-sm font-medium">
-                Supported by {complaint.coSignCount} people
-              </span>
-            </span> */}
-
             <Button
-              variant="ghost"
+              variant={complaint.isCoSigned ? "default" : "ghost"}
               size="sm"
-              className="flex items-center space-x-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+              className={`flex items-center space-x-2 ${
+                complaint.isCoSigned
+                  ? "bg-green-600 text-white hover:bg-green-700"
+                  : "text-green-600 hover:text-green-700 hover:bg-green-50"
+              }`}
               onClick={() => handleCoSign(complaint.id)}
               disabled={isLoading}
             >
-              <ThumbsUp className="w-4 h-4" />
+              <ThumbsUp
+                className={`w-4 h-4 ${
+                  complaint.isCoSigned ? "fill-current" : ""
+                }`}
+              />
               <span className="text-sm font-medium">
-                Co-Sign ({complaint.coSignCount})
+                {complaint.isCoSigned ? "Co-Signed" : "Co-Sign"} (
+                {complaint.coSignCount})
               </span>
             </Button>
 
-            <Button
+            {/* <Button
               variant="ghost"
               size="sm"
               className="flex items-center space-x-2 text-gray-500 hover:text-red-500 hover:bg-red-50"
             >
               <Flag className="w-4 h-4" />
               <span className="text-sm">Report</span>
-            </Button>
+            </Button> */}
           </div>
           <Badge className={getCategoryColor(complaint.category)}>
             {getCategoryIcon(complaint.category)} {complaint.category}
@@ -196,13 +196,6 @@ export const CommunityComplaintCard = ({
               label="Media Visibility"
               className="w-1/2"
             />
-            {/* <Button
-              variant={"destructive"}
-              className="w-2/6"
-              onClick={() => setIsOpen(true)}
-            >
-              Delete <Trash2 />
-            </Button> */}
           </div>
         </div>
       )}

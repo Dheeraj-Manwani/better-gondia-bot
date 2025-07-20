@@ -53,6 +53,7 @@ export interface Complaint {
   isMediaApproved: boolean;
   isPublic: boolean;
   coSignCount: number;
+  isCoSigned: boolean; // Add this new property
 
   createdAt: string;
   updatedAt: string;

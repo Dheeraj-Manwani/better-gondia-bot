@@ -36,7 +36,7 @@ export const AllChats = ({
   } = useQuery<{
     data: { complaints: Complaint[] };
   }>({
-    queryKey: [`/api/complaints?userId=${user.id}`],
+    queryKey: [`/api/complaints?userId=${user.id}&&fetch=my`],
   });
 
   useEffect(() => {

@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
+    const fetchOption = searchParams.get("fetch");
     console.log("userId and searchParam ===== ", userId, searchParams);
 
     // if (!userId) {
@@ -49,7 +50,7 @@ export async function GET(req: NextRequest) {
 
     const complaints = await prisma.complaint.findMany({
       where: {
-        ...(userIdNumber !== -1 && { userId: userIdNumber }),
+        ...(fetchOption == "my" && { userId: userIdNumber }),
         ...((!user || user.role == "USER") &&
           userIdNumber == -1 && { isPublic: true }),
       },
@@ -66,6 +67,32 @@ export async function GET(req: NextRequest) {
         createdAt: "desc",
       },
     });
+
+    // Get co-sign status for current user for all complaints
+    userId;
+    let userCoSigns: { complaintId: number }[] = [];
+
+    if (userId && Number(userId) && complaints.length > 0) {
+      userCoSigns = await prisma.interaction.findMany({
+        where: {
+          userId: Number(userId),
+          type: "CO_SIGN",
+          complaintId: {
+            in: complaints.map((c) => c.id),
+          },
+        },
+        select: {
+          complaintId: true,
+        },
+      });
+    }
+
+    // Create a set for faster lookup
+    const userCoSignedComplaintIds = new Set(
+      userCoSigns.map((cs) => cs.complaintId)
+    );
+
+    console.log("userCoSigns ===== ", userCoSigns);
 
     // Transform the data to match the frontend Complaint interface
     const transformedComplaints = complaints.map((complaint) => ({
@@ -86,6 +113,7 @@ export async function GET(req: NextRequest) {
       isMediaApproved: complaint.isMediaApproved,
       isPublic: complaint.isPublic,
       coSignCount: complaint.coSignCount,
+      isCoSigned: userCoSignedComplaintIds.has(complaint.id),
 
       createdAt: complaint.createdAt.toISOString(),
       updatedAt: complaint.updatedAt.toISOString(),

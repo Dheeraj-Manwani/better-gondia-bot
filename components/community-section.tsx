@@ -1,42 +1,35 @@
-import React, { useRef, useState } from "react";
+import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-// import { Button } from "@/components/ui/button";
-// import { Badge } from "@/components/ui/badge";
-// import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { User, Complaint, Visibility } from "@/types";
 import { Users } from "lucide-react";
-// import {
-//   formatTimeAgo,
-//   generateComplaintIdFromDate,
-//   getCategoryIcon,
-// } from "@/lib/utils";
 import { CommunityComplaintCard } from "./CommunityComplaintCard";
 import { useSession } from "next-auth/react";
 import { appSession } from "@/lib/auth";
 import { Spinner } from "./ui/spinner";
 import { useLoaderStore } from "@/store/loader";
 import { toast } from "sonner";
-import { dummyData } from "@/lib/data";
+// import { dummyData } from "@/lib/data";
 
 interface CommunitySectionProps {
   user: User;
 }
 
 export default function CommunitySection({ user }: CommunitySectionProps) {
-  // const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(
-  //   null
-  // );
-
-  // const { toast } = useToast();
-  // const queryClient = useQueryClient();
   const session = useSession() as unknown as appSession;
-  const showLoader = useLoaderStore((state) => state.showLoader);
+  // const showLoader = useLoaderStore((state) => state.showLoader);
 
   const { data: complaints, isLoading } = useQuery<{
     data: { complaints: Complaint[] };
   }>({
-    queryKey: ["/api/complaints"],
+    queryKey: ["/api/complaints", user.id],
+    queryFn: async () => {
+      const response = await apiRequest(
+        "GET",
+        `/api/complaints?userId=${user.id}&&fetch=all`
+      );
+      return response.json();
+    },
   });
 
   const toggleVisibility = useMutation({
@@ -63,29 +56,90 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
       toast.success("Done !!", { id });
       return response.json();
     },
-    onSuccess: (response: { complaintId: string }) => {
-      // showLoader(false);
-    },
+    onSuccess: (response: { complaintId: string }) => {},
     onError: (error: Error) => {},
   });
 
+  const queryClient = useQueryClient();
+
   const coSignMutation = useMutation({
-    mutationFn: async (complaintId: number) => {
+    mutationFn: async ({
+      complaintId,
+      userId,
+      shouldApprove,
+    }: {
+      complaintId: number;
+      userId: number;
+      shouldApprove: boolean;
+    }) => {
       const response = await apiRequest(
         "POST",
         `/api/complaints/${complaintId}/co-sign`,
-        {}
+        { userId, shouldApprove, complaintId }
       );
       return response.json();
     },
-    onSuccess: () => {
-      // queryClient.invalidateQueries({ queryKey: ["/api/complaints/public"] });
+    // Optimistic update
+    onMutate: async ({ complaintId, shouldApprove }) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/complaints"] });
+
+      const previousData = queryClient.getQueryData<{
+        data: { complaints: Complaint[] };
+      }>(["/api/complaints"]);
+
+      queryClient.setQueryData<{ data: { complaints: Complaint[] } }>(
+        ["/api/complaints"],
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              complaints: old.data.complaints.map((complaint) =>
+                complaint.id === complaintId
+                  ? {
+                      ...complaint,
+                      coSignCount: shouldApprove
+                        ? (complaint.coSignCount ?? 0) + 1
+                        : Math.max((complaint.coSignCount ?? 1) - 1, 0),
+                      isCoSigned: shouldApprove,
+                    }
+                  : complaint
+              ),
+            },
+          };
+        }
+      );
+
+      return { previousData };
     },
-    onError: (error: Error) => {},
+    onError: (err, variables, context) => {
+      // Rollback
+      if (context?.previousData) {
+        queryClient.setQueryData(["/api/complaints"], context.previousData);
+      }
+      toast.error("Failed to co-sign. Please try again.");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/complaints"] });
+    },
   });
 
   const handleCoSign = (complaintId: number) => {
-    coSignMutation.mutate(complaintId);
+    const shouldApprove = !complaints?.data?.complaints?.find(
+      (c) => c.id === complaintId
+    )?.isCoSigned;
+
+    if (!user.id) {
+      toast.error("Something went wrong, Please refresh the browser");
+      return;
+    }
+
+    coSignMutation.mutate({
+      complaintId,
+      userId: user.id,
+      shouldApprove,
+    });
   };
 
   const handleToggleVisibility = (

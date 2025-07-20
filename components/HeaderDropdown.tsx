@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EllipsisVertical, LogOut, Mail } from "lucide-react";
-import { signIn, useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 import { appSession } from "@/lib/auth";
 import { cn, resetApp } from "@/lib/clientUtils";
@@ -87,8 +87,12 @@ export function HeaderDropdown() {
               {session.data.user?.email}
             </DropdownMenuLabel>
             {session.data.user?.role !== "USER" && (
-              <DropdownMenuLabel className="text-[12px] text-right p-0 m-0 font-semibold">
-                ({session.data.user?.role})
+              <DropdownMenuLabel className="text-[12px]  p-0 m-0 font-semibold flex gap-1 justify-end">
+                <span>{session.data.user?.role}</span>
+                <LogOut
+                  onClick={() => signOut()}
+                  className="text-red-500 h-5 w-5"
+                />
               </DropdownMenuLabel>
             )}
             <DropdownMenuSeparator className="border border-gray-200" />
