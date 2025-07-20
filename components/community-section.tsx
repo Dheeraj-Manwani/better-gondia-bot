@@ -73,10 +73,10 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
     },
 
     onMutate: async ({ shouldApprove, complaintId }) => {
-      // 1. Cancel any outgoing refetches so they don’t overwrite our optimistic update
+      // 1. Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ["/api/complaints"] });
 
-      // 2. Snapshot the previous value for rollback
+      // 2. Snapshot the previous value
       const prevData = queryClient.getQueryData<Complaint[]>([
         "/api/complaints",
       ]);
@@ -99,26 +99,24 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
             : c
         );
 
-        console.log("Optimistically Updated state ", updated);
-        console.log("prev state ", prevData);
+        console.log("Optimistically Updated state", updated);
+        console.log("Previous state", prevData);
         return updated;
       });
 
-      // 4. Return context for potential rollback
+      // 4. Return rollback context
       return { prevData };
     },
 
     // 5. Rollback on error
     onError: (_err, _vars, context) => {
       if (context?.prevData) {
-        queryClient.setQueryData(["complaints"], context.prevData);
+        queryClient.setQueryData(["/api/complaints"], context.prevData);
       }
     },
 
-    // 6. Optional: silent background refetch to heal any mismatch
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["complaints"] });
-    },
+    // 6. Refetch to sync with server
+    onSettled: () => {},
   });
 
   const handleCoSign = (complaintId: number) => {
