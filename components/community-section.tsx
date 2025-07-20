@@ -72,51 +72,52 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
       return response.json();
     },
 
-    onMutate: async ({ shouldApprove, complaintId }) => {
-      // 1. Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["/api/complaints"] });
+    onMutate: async ({ shouldApprove, complaintId, userId }) => {
+      const queryKey = ["/api/complaints", userId];
 
-      // 2. Snapshot the previous value
-      const prevData = queryClient.getQueryData<Complaint[]>([
-        "/api/complaints",
-      ]);
+      await queryClient.cancelQueries({ queryKey });
 
-      // 3. Optimistically update
-      queryClient.setQueryData<Complaint[]>(["/api/complaints"], (old) => {
-        const updated = old?.map((c) =>
-          c.id === complaintId
-            ? {
-                ...c,
-                isCoSigned: shouldApprove,
-                coSignCount:
-                  c.coSignCount +
-                  (shouldApprove && !c.isCoSigned
-                    ? 1
-                    : !shouldApprove && c.isCoSigned
-                    ? -1
-                    : 0),
-              }
-            : c
-        );
+      const prevData = queryClient.getQueryData<{
+        data: { complaints: Complaint[] };
+      }>(queryKey);
 
-        console.log("Optimistically Updated state", updated);
-        console.log("Previous state", prevData);
-        return updated;
-      });
+      queryClient.setQueryData(
+        queryKey,
+        (old: { data: { complaints: Complaint[] } }) => {
+          if (!old) return old;
 
-      // 4. Return rollback context
-      return { prevData };
+          const updatedComplaints = old.data.complaints.map((c) =>
+            c.id === complaintId
+              ? {
+                  ...c,
+                  isCoSigned: shouldApprove,
+                  coSignCount:
+                    c.coSignCount +
+                    (shouldApprove && !c.isCoSigned
+                      ? 1
+                      : !shouldApprove && c.isCoSigned
+                      ? -1
+                      : 0),
+                }
+              : c
+          );
+
+          return { ...old, data: { complaints: updatedComplaints } };
+        }
+      );
+
+      return { prevData, queryKey };
     },
 
-    // 5. Rollback on error
     onError: (_err, _vars, context) => {
       if (context?.prevData) {
-        queryClient.setQueryData(["/api/complaints"], context.prevData);
+        queryClient.setQueryData(context.queryKey, context.prevData);
       }
     },
 
-    // 6. Refetch to sync with server
-    onSettled: () => {},
+    onSettled: () => {
+      // No refetching, as requested
+    },
   });
 
   const handleCoSign = (complaintId: number) => {
