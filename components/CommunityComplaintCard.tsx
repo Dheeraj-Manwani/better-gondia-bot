@@ -1,4 +1,4 @@
-import { ThumbsUp } from "lucide-react";
+import { Flag, ThumbsUp } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Complaint, Visibility } from "@/types";
@@ -13,13 +13,7 @@ import { Role } from "@prisma/client/index-browser";
 import { useEffect, useState } from "react";
 import { Checkbox } from "./Checkbox";
 
-export const CommunityComplaintCard = ({
-  complaint,
-  handleCoSign,
-  isLoading,
-  handleToggleVisibility,
-  role,
-}: {
+interface CommunityComplaintCardProps {
   complaint: Complaint;
   handleCoSign: (id: number) => void;
   isLoading: boolean;
@@ -28,8 +22,18 @@ export const CommunityComplaintCard = ({
     isApproved: boolean,
     type: Visibility
   ) => void;
+  handleReport: (complaintId: number) => void;
   role: Role;
-}) => {
+}
+
+export const CommunityComplaintCard = ({
+  complaint,
+  handleCoSign,
+  isLoading,
+  handleToggleVisibility,
+  handleReport,
+  role,
+}: CommunityComplaintCardProps) => {
   const [isComplaintVisible, setIsComplaintVisible] = useState(false);
   const [isMediaVisible, setIsMediaVisible] = useState(false);
   // const setIsOpen = useModal((state) => state.setIsOpen);
@@ -163,14 +167,20 @@ export const CommunityComplaintCard = ({
               </span>
             </Button>
 
-            {/* <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center space-x-2 text-gray-500 hover:text-red-500 hover:bg-red-50"
-            >
-              <Flag className="w-4 h-4" />
-              <span className="text-sm">Report</span>
-            </Button> */}
+            {complaint.isReported ? (
+              <span className="text-sm text-gray-500 ml-2">Reported ☑️</span>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex items-center space-x-2 text-gray-500 hover:text-red-500 hover:bg-red-50"
+                onClick={() => handleReport(complaint.id)}
+                disabled={isLoading}
+              >
+                <Flag className="w-4 h-4" />
+                <span className="text-sm">Report</span>
+              </Button>
+            )}
           </div>
           <Badge className={getCategoryColor(complaint.category)}>
             {getCategoryIcon(complaint.category)} {complaint.category}

@@ -54,6 +54,7 @@ export interface Complaint {
   isPublic: boolean;
   coSignCount: number;
   isCoSigned: boolean;
+  isReported: boolean;
 
   createdAt: string;
   updatedAt: string;
@@ -117,3 +118,8 @@ export interface ProfileFormData {
 }
 
 export type Visibility = "MEDIA" | "COMPLAINT";
+
+export interface ReportVars {
+  userId: number;
+  complaintId: number;
+}

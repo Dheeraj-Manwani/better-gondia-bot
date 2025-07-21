@@ -3,6 +3,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { ModalType, useModal } from "@/store/modal";
 import { Reload } from "./Reload";
 import { FAQ } from "./FAQ";
+import { Report } from "./Report";
 
 export function GenericModal() {
   const { isOpen, setIsOpen, modalType } = useModal();
@@ -12,6 +13,8 @@ export function GenericModal() {
         return <Reload />;
       case "FAQ":
         return <FAQ />;
+      case "Report":
+        return <Report />;
     }
   };
   const comp = getModalFromType(modalType ?? "Reload");

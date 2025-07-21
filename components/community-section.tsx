@@ -1,7 +1,7 @@
 import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { User, Complaint, Visibility, CoSignVars } from "@/types";
+import { User, Complaint, Visibility, CoSignVars, ReportVars } from "@/types";
 import { Users } from "lucide-react";
 import { CommunityComplaintCard } from "./CommunityComplaintCard";
 import { useSession } from "next-auth/react";
@@ -9,6 +9,7 @@ import { appSession } from "@/lib/auth";
 import { Spinner } from "./ui/spinner";
 import { useLoaderStore } from "@/store/loader";
 import { toast } from "sonner";
+import { useModal } from "@/store/modal";
 // import { dummyData } from "@/lib/data";
 
 interface CommunitySectionProps {
@@ -17,6 +18,7 @@ interface CommunitySectionProps {
 
 export default function CommunitySection({ user }: CommunitySectionProps) {
   const session = useSession() as unknown as appSession;
+  const setIsOpen = useModal((state) => state.setIsOpen);
   // const showLoader = useLoaderStore((state) => state.showLoader);
 
   const { data: complaints, isLoading } = useQuery<{
@@ -120,6 +122,25 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
     },
   });
 
+  // Report mutation
+  const reportMutation = useMutation({
+    mutationFn: async ({ userId, complaintId }: ReportVars) => {
+      const response = await apiRequest(
+        "POST",
+        `/api/complaints/${complaintId}/report`,
+        { userId }
+      );
+      return response.json();
+    },
+    onSuccess: (_data, { complaintId }) => {
+      toast.success("Complaint reported.");
+      // queryClient.invalidateQueries({ queryKey: ["/api/complaints", user.id] });
+    },
+    onError: () => {
+      toast.error("Failed to report complaint.");
+    },
+  });
+
   const handleCoSign = (complaintId: number) => {
     const shouldApprove = !complaints?.data?.complaints?.find(
       (c) => c.id === complaintId
@@ -144,6 +165,15 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
   ) => {
     // showLoader(true);
     toggleVisibility.mutate({ complaintId, value, type });
+  };
+
+  const handleReport = (complaintId: number) => {
+    if (!user.id) {
+      toast.error("Something went wrong, Please refresh the browser");
+      return;
+    }
+    setIsOpen(true, "Report");
+    // reportMutation.mutate({ userId: user.id, complaintId });
   };
 
   // const getStatusColor = (status: string) => {
@@ -188,6 +218,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
               handleCoSign={handleCoSign}
               isLoading={coSignMutation.isPending}
               handleToggleVisibility={handleToggleVisibility}
+              handleReport={handleReport}
               role={session?.data?.user?.role ?? "USER"}
             />
           ))}

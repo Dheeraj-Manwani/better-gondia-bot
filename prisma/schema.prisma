@@ -53,7 +53,7 @@ model Complaint {
   description String
   status      String  @default("pending")
   category    String
-  location    String? // e.g. address or place name
+  location    String?
   latitude    String?
   longitude   String?
 
@@ -75,9 +75,12 @@ model Complaint {
 }
 
 model Interaction {
-  id        String          @id @default(uuid())
-  type      InteractionType
-  createdAt DateTime        @default(now())
+  id           String          @id @default(uuid())
+  type         InteractionType
+  reportReason ReportReason?
+  text         String?
+
+  createdAt DateTime @default(now())
 
   userId Int
   user   User @relation(fields: [userId], references: [id])
@@ -86,6 +89,15 @@ model Interaction {
   complaint   Complaint @relation(fields: [complaintId], references: [id])
 
   @@unique([userId, complaintId, type])
+}
+
+enum ReportReason {
+  INAPPROPRIATE_CONTENT // Offensive, explicit, or abusive language
+  MISLEADING_OR_FALSE_INFO // Fake or deceptive complaint
+  SPAM_OR_DUPLICATE // Irrelevant, promotional, or repeated content
+  PRIVACY_VIOLATION // Personal data shared without consent
+  HARASSMENT_OR_HATE_SPEECH // Targeted abuse or discriminatory content
+  OTHER
 }
 
 enum InteractionType {

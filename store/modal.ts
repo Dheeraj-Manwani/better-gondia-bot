@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type ModalType = "Reload" | "FAQ";
+export type ModalType = "Reload" | "FAQ" | "Report";
 
 export type ModalStore = {
   isOpen: boolean;

@@ -68,31 +68,34 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Get co-sign status for current user for all complaints
-    userId;
-    let userCoSigns: { complaintId: number }[] = [];
-
-    if (userId && Number(userId) && complaints.length > 0) {
-      userCoSigns = await prisma.interaction.findMany({
+    // Fetch both co-signs and reports in a single query
+    let userInteractions: { complaintId: number; type: string }[] = [];
+    if (userIdNumber && complaints.length > 0) {
+      userInteractions = await prisma.interaction.findMany({
         where: {
-          userId: Number(userId),
-          type: "CO_SIGN",
-          complaintId: {
-            in: complaints.map((c) => c.id),
-          },
+          userId: userIdNumber,
+          complaintId: { in: complaints.map((c) => c.id) },
         },
         select: {
           complaintId: true,
+          type: true,
         },
       });
     }
 
-    // Create a set for faster lookup
+    // Create sets for fast lookup
     const userCoSignedComplaintIds = new Set(
-      userCoSigns.map((cs) => cs.complaintId)
+      userInteractions
+        .filter((i) => i.type === "CO_SIGN")
+        .map((i) => i.complaintId)
+    );
+    const userReportedComplaintIds = new Set(
+      userInteractions
+        .filter((i) => i.type === "REPORT")
+        .map((i) => i.complaintId)
     );
 
-    console.log("userCoSigns ===== ", userCoSigns);
+    console.log("userInteractions ===== ", userInteractions);
 
     // Transform the data to match the frontend Complaint interface
     const transformedComplaints = complaints.map((complaint) => ({
@@ -114,6 +117,7 @@ export async function GET(req: NextRequest) {
       isPublic: complaint.isPublic,
       coSignCount: complaint.coSignCount,
       isCoSigned: userCoSignedComplaintIds.has(complaint.id),
+      isReported: userReportedComplaintIds.has(complaint.id),
 
       createdAt: complaint.createdAt.toISOString(),
       updatedAt: complaint.updatedAt.toISOString(),
