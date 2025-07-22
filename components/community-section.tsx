@@ -74,7 +74,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
 
   const coSignMutation = useMutation({
     mutationFn: async ({ userId, shouldApprove, complaintId }: CoSignVars) => {
-      toast.loading(
+      const id = toast.loading(
         shouldApprove ? "Co - Signing Complaint..." : "Removing Co - Sign"
       );
       const response = await apiRequest(
@@ -83,7 +83,8 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
         { userId, shouldApprove, complaintId }
       );
       toast.success(
-        shouldApprove ? "Co - Sign Successfull!!" : "Removed Successfully!!"
+        shouldApprove ? "Co - Sign Successfull!!" : "Removed Successfully!!",
+        { id }
       );
 
       return response.json();

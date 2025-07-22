@@ -17,7 +17,7 @@ export const AppWrapper = ({ children }: { children: React.ReactNode }) => {
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <Toaster richColors position="top-center" expand />
+          <Toaster richColors position="top-center" expand closeButton />
           <TooltipProvider>
             <GenericModal />
             {children}

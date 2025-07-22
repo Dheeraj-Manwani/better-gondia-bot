@@ -151,7 +151,7 @@ export default function ProfileScreen({
     <div className="fixed inset-0 bg-white z-50">
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="whatsapp-green text-white p-4 flex items-center">
+        <div className="bg-[#075E54] text-white p-4 flex items-center">
           <Button
             variant="ghost"
             size="sm"
@@ -258,7 +258,7 @@ export default function ProfileScreen({
         <div className="p-6 border-t border-gray-200">
           <Button
             onClick={handleSubmit}
-            className="w-full whatsapp-green text-white py-3 rounded-lg font-medium hover:bg-green-600 transition-colors"
+            className="w-full bg-[#075E54] text-white py-3 rounded-lg font-medium hover:bg-[#075E54] transition-colors"
             disabled={completeProfileMutation.isPending}
           >
             {completeProfileMutation.isPending
