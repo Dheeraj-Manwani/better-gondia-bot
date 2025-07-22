@@ -2,24 +2,22 @@ import { create } from "zustand";
 
 export type ModalType = "Reload" | "FAQ" | "Report";
 
+interface ModalData {
+  confirmationFunction?: (...args: string[]) => void;
+  complaintId?: string;
+}
+
 export type ModalStore = {
   isOpen: boolean;
   modalType?: ModalType;
-  confirmationFunction?: (...args: string[]) => void;
-  setIsOpen: (
-    val: boolean,
-    type?: ModalType,
-    confirmationFunction?: (...args: string[]) => void
-  ) => void;
+  data?: ModalData;
+  setIsOpen: (val: boolean, type?: ModalType, data?: ModalData) => void;
 };
 
 export const useModal = create<ModalStore>()((set) => ({
   isOpen: false,
-  setIsOpen: (
-    val: boolean,
-    type?: ModalType,
-    confirmationFunction?: (...args: string[]) => void
-  ) => set({ isOpen: val, modalType: type, confirmationFunction }),
+  setIsOpen: (val: boolean, type?: ModalType, data?: ModalData) =>
+    set({ isOpen: val, modalType: type, data }),
 }));
 
 useModal.subscribe((state) => {

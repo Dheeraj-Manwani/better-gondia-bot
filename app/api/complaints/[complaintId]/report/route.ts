@@ -6,8 +6,8 @@ export async function POST(
   { params }: { params: { complaintId: string } }
 ) {
   try {
-    const { userId } = await req.json();
-    const complaintId = Number(params.complaintId);
+    const { userId, complaintId, reportReason, text } = await req.json();
+    // const complaintId = Number(params.complaintId);
 
     if (!userId || isNaN(complaintId)) {
       return Response.json({ error: "Invalid data" }, { status: 400 });
@@ -33,6 +33,8 @@ export async function POST(
       data: {
         userId,
         complaintId,
+        reportReason,
+        text,
         type: "REPORT",
       },
     });

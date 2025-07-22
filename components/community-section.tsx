@@ -1,7 +1,14 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { User, Complaint, Visibility, CoSignVars, ReportVars } from "@/types";
+import {
+  User,
+  Complaint,
+  Visibility,
+  CoSignVars,
+  ReportVars,
+  ReportReason,
+} from "@/types";
 import { Users } from "lucide-react";
 import { CommunityComplaintCard } from "./CommunityComplaintCard";
 import { useSession } from "next-auth/react";
@@ -10,6 +17,8 @@ import { Spinner } from "./ui/spinner";
 import { useLoaderStore } from "@/store/loader";
 import { toast } from "sonner";
 import { useModal } from "@/store/modal";
+import { generateComplaintIdFromDate } from "@/lib/clientUtils";
+import debounce from "lodash.debounce";
 // import { dummyData } from "@/lib/data";
 
 interface CommunitySectionProps {
@@ -66,11 +75,14 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
 
   const coSignMutation = useMutation({
     mutationFn: async ({ userId, shouldApprove, complaintId }: CoSignVars) => {
+      toast.loading("Co - Signing Complaint...");
       const response = await apiRequest(
         "POST",
         `/api/complaints/${complaintId}/co-sign`,
         { userId, shouldApprove, complaintId }
       );
+      toast.success("Co - Sign Successfull!!");
+
       return response.json();
     },
 
@@ -124,22 +136,64 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
 
   // Report mutation
   const reportMutation = useMutation({
-    mutationFn: async ({ userId, complaintId }: ReportVars) => {
+    mutationFn: async ({
+      userId,
+      complaintId,
+      reportReason,
+      text,
+    }: ReportVars) => {
       const response = await apiRequest(
         "POST",
         `/api/complaints/${complaintId}/report`,
-        { userId }
+        { userId, complaintId, reportReason, text }
       );
       return response.json();
     },
-    onSuccess: (_data, { complaintId }) => {
+    onMutate: async ({ userId, complaintId, reportReason, text }) => {
+      const queryKey = ["/api/complaints", userId];
+
+      await queryClient.cancelQueries({ queryKey });
+
+      const prevData = queryClient.getQueryData<{
+        data: { complaints: Complaint[] };
+      }>(queryKey);
       toast.success("Complaint reported.");
+
+      queryClient.setQueryData(
+        queryKey,
+        (old: { data: { complaints: Complaint[] } }) => {
+          if (!old) return old;
+
+          const updatedComplaints = old.data.complaints.map((c) =>
+            c.id === complaintId
+              ? {
+                  ...c,
+                  isReported: true,
+                }
+              : c
+          );
+
+          return { ...old, data: { complaints: updatedComplaints } };
+        }
+      );
+
+      return { prevData, queryKey };
+    },
+    onSuccess: (_data, { complaintId }) => {
       // queryClient.invalidateQueries({ queryKey: ["/api/complaints", user.id] });
     },
     onError: () => {
-      toast.error("Failed to report complaint.");
+      // toast.error("Failed to report complaint.");
     },
   });
+
+  const debouncedCoSign = useMemo(
+    () =>
+      debounce((vars: CoSignVars) => {
+        coSignMutation.mutate(vars);
+      }, 3000),
+    [coSignMutation]
+  );
 
   const handleCoSign = (complaintId: number) => {
     const shouldApprove = !complaints?.data?.complaints?.find(
@@ -151,7 +205,12 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
       return;
     }
 
-    coSignMutation.mutate({
+    // coSignMutation.mutate({
+    //   complaintId,
+    //   userId: user.id,
+    //   shouldApprove,
+    // });
+    debouncedCoSign({
       complaintId,
       userId: user.id,
       shouldApprove,
@@ -167,13 +226,30 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
     toggleVisibility.mutate({ complaintId, value, type });
   };
 
-  const handleReport = (complaintId: number) => {
+  const handleReport = (complaintId: number, createdAt: string) => {
     if (!user.id) {
       toast.error("Something went wrong, Please refresh the browser");
       return;
     }
-    setIsOpen(true, "Report");
-    // reportMutation.mutate({ userId: user.id, complaintId });
+    setIsOpen(true, "Report", {
+      complaintId: generateComplaintIdFromDate(complaintId, createdAt),
+      confirmationFunction: (reportReason: string, text?: string) => {
+        console.log("Reporting with ::::::: ", {
+          userId: user.id,
+          complaintId,
+          reportReason: reportReason as ReportReason,
+          text,
+        });
+
+        user.id &&
+          reportMutation.mutate({
+            userId: user.id,
+            complaintId,
+            reportReason: reportReason as ReportReason,
+            text,
+          });
+      },
+    });
   };
 
   // const getStatusColor = (status: string) => {

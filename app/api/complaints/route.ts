@@ -48,11 +48,17 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
     const user = session?.user as SessionUser;
 
+    console.log("Where obj :::::: ", {
+      ...(fetchOption == "my" && { userId: userIdNumber }),
+      ...((!user || user.role == "USER") &&
+        fetchOption == "all" && { isPublic: true }),
+    });
+
     const complaints = await prisma.complaint.findMany({
       where: {
         ...(fetchOption == "my" && { userId: userIdNumber }),
         ...((!user || user.role == "USER") &&
-          userIdNumber == -1 && { isPublic: true }),
+          fetchOption == "all" && { isPublic: true }),
       },
       include: {
         user: {

@@ -22,7 +22,7 @@ interface CommunityComplaintCardProps {
     isApproved: boolean,
     type: Visibility
   ) => void;
-  handleReport: (complaintId: number) => void;
+  handleReport: (complaintId: number, createdAt: string) => void;
   role: Role;
 }
 
@@ -174,7 +174,7 @@ export const CommunityComplaintCard = ({
                 variant="ghost"
                 size="sm"
                 className="flex items-center space-x-2 text-gray-500 hover:text-red-500 hover:bg-red-50"
-                onClick={() => handleReport(complaint.id)}
+                onClick={() => handleReport(complaint.id, complaint.createdAt)}
                 disabled={isLoading}
               >
                 <Flag className="w-4 h-4" />

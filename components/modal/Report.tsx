@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
+import { DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import logo from "@/public/logo.svg";
@@ -19,7 +13,8 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
-import { Label } from "../ui/label";
+import { toast } from "sonner";
+import { useModal } from "@/store/modal";
 
 const REPORT_OPTIONS = [
   {
@@ -57,24 +52,43 @@ export const Report = () => {
   const form = useForm<ReportFormValues>({
     defaultValues: { reason: "" },
   });
+  const data = useModal((state) => state.data);
+  const setIsOpen = useModal((state) => state.setIsOpen);
   const reason = form.watch("reason");
 
-  const onSubmit = (data: ReportFormValues) => {
-    console.log("Selected reason:", data.reason);
-    if (data.reason === "OTHER") {
-      console.log("Other reason:", data.otherReason);
+  const onSubmit = (formValues: ReportFormValues) => {
+    console.log("data in state", data);
+    console.log("Selected reason:", formValues.reason);
+    if (formValues.reason === "OTHER") {
+      console.log("Other reason:", formValues.otherReason);
+    }
+
+    data?.confirmationFunction?.(
+      formValues.reason,
+      formValues.otherReason ?? ""
+    );
+    setIsOpen(false);
+  };
+
+  const onError = (errors: any) => {
+    // Display a toast for missing reason
+    if (errors.reason) {
+      toast.error("Please select a reason");
+    } else if (errors.otherReason) {
+      toast.error("Please enter your reason in the text box");
+    } else {
+      toast.error("Please fill in all required fields");
     }
   };
   return (
     <DialogContent className="bg-white">
       <DialogHeader>
         <DialogTitle className="flex gap-1 justify-center items-center font-bold text-center text-gray-800 mb-2">
-          <Image src={logo} height={30} width={30} alt="logo" />{" "}
-          <span> About This Platform</span>
+          <span> Report Complaint {data?.complaintId && data.complaintId}</span>
         </DialogTitle>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={form.handleSubmit(onSubmit, onError)}
             className="space-y-4 mt-2"
           >
             <FormItem>

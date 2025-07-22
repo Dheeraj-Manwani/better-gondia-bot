@@ -119,7 +119,17 @@ export interface ProfileFormData {
 
 export type Visibility = "MEDIA" | "COMPLAINT";
 
+export type ReportReason =
+  | "INAPPROPRIATE_CONTENT"
+  | "MISLEADING_OR_FALSE_INFO"
+  | "SPAM_OR_DUPLICATE"
+  | "PRIVACY_VIOLATION"
+  | "HARASSMENT_OR_HATE_SPEECH"
+  | "OTHER";
+
 export interface ReportVars {
   userId: number;
   complaintId: number;
+  reportReason: ReportReason;
+  text?: string;
 }
