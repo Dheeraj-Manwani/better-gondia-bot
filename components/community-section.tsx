@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import {
@@ -18,7 +18,6 @@ import { Spinner } from "./ui/spinner";
 import { toast } from "sonner";
 import { useModal } from "@/store/modal";
 import { generateComplaintIdFromDate } from "@/lib/clientUtils";
-import debounce from "lodash.debounce";
 // import { dummyData } from "@/lib/data";
 
 interface CommunitySectionProps {
@@ -75,13 +74,17 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
 
   const coSignMutation = useMutation({
     mutationFn: async ({ userId, shouldApprove, complaintId }: CoSignVars) => {
-      toast.loading("Co - Signing Complaint...");
+      toast.loading(
+        shouldApprove ? "Co - Signing Complaint..." : "Removing Co - Sign"
+      );
       const response = await apiRequest(
         "POST",
         `/api/complaints/${complaintId}/co-sign`,
         { userId, shouldApprove, complaintId }
       );
-      toast.success("Co - Sign Successfull!!");
+      toast.success(
+        shouldApprove ? "Co - Sign Successfull!!" : "Removed Successfully!!"
+      );
 
       return response.json();
     },
@@ -187,14 +190,6 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
     },
   });
 
-  const debouncedCoSign = useMemo(
-    () =>
-      debounce((vars: CoSignVars) => {
-        coSignMutation.mutate(vars);
-      }, 3000),
-    [coSignMutation]
-  );
-
   const handleCoSign = (complaintId: number) => {
     const shouldApprove = !complaints?.data?.complaints?.find(
       (c) => c.id === complaintId
@@ -205,12 +200,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
       return;
     }
 
-    // coSignMutation.mutate({
-    //   complaintId,
-    //   userId: user.id,
-    //   shouldApprove,
-    // });
-    debouncedCoSign({
+    coSignMutation.mutate({
       complaintId,
       userId: user.id,
       shouldApprove,
