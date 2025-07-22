@@ -3,6 +3,7 @@ import prisma from "@/prisma/db";
 import { NextAuthOptions, Session } from "next-auth";
 import { Role } from "@prisma/client/index.js";
 import { cookies } from "next/headers";
+import { v4 as uuid } from "uuid";
 
 export interface appSession extends Session {
   status: "loading" | "authenticated" | "unauthenticated";
@@ -122,7 +123,7 @@ export const authConfig = {
             data: {
               email: email,
               name: profile?.name ?? "Unknown",
-              mobile: "0",
+              mobile: uuid(),
               address: "",
               age: 0,
               gender: "Other",
