@@ -14,7 +14,7 @@ import { CommunityComplaintCard } from "./CommunityComplaintCard";
 import { useSession } from "next-auth/react";
 import { appSession } from "@/lib/auth";
 import { Spinner } from "./ui/spinner";
-import { useLoaderStore } from "@/store/loader";
+// import { useLoaderStore } from "@/store/loader";
 import { toast } from "sonner";
 import { useModal } from "@/store/modal";
 import { generateComplaintIdFromDate } from "@/lib/clientUtils";
@@ -67,8 +67,8 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
       toast.success("Done !!", { id });
       return response.json();
     },
-    onSuccess: (response: { complaintId: string }) => {},
-    onError: (error: Error) => {},
+    // onSuccess: (response: { complaintId: string }) => {},
+    // onError: (error: Error) => {},
   });
 
   const queryClient = useQueryClient();

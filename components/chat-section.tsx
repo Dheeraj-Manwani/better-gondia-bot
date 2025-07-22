@@ -107,7 +107,7 @@ export default function ChatSection({
       if (res.error) {
         toast.error(clientMessages(res.error), { id });
         if (res.error == "USER_NOT_FOUND") {
-          openModal(true, "Reload", resetApp);
+          openModal(true, "Reload", { confirmationFunction: resetApp });
         }
         throw new Error(res.error);
       }

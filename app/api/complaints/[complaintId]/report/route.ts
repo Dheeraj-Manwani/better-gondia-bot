@@ -1,10 +1,7 @@
 import prisma from "@/prisma/db";
 import { NextRequest } from "next/server";
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { complaintId: string } }
-) {
+export async function POST(req: NextRequest) {
   try {
     const { userId, complaintId, reportReason, text } = await req.json();
     // const complaintId = Number(params.complaintId);
