@@ -1,10 +1,13 @@
 "use client";
 
-export const clientMessages = (key: string) => {
+import { Language } from "@/types";
+import { translate } from "./translator";
+
+export const clientMessages = (key: string, language: Language) => {
   switch (key) {
     case "USER_NOT_FOUND":
-      return "Session expired, please enter your info again.";
+      return translate("session_expired", language);
     case "SERVER_ERROR":
-      return "Something went wrong";
+      return translate("something_went_wrong", language);
   }
 };

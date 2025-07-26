@@ -15,6 +15,8 @@ import {
 import { Input } from "../ui/input";
 import { toast } from "sonner";
 import { useModal } from "@/store/modal";
+import { translate } from "@/lib/translator";
+import { useLanguage } from "@/store/language";
 
 const REPORT_OPTIONS = [
   {
@@ -54,6 +56,7 @@ export const Report = () => {
   });
   const data = useModal((state) => state.data);
   const setIsOpen = useModal((state) => state.setIsOpen);
+  const language = useLanguage((state) => state.language);
   const reason = form.watch("reason");
 
   const onSubmit = (formValues: ReportFormValues) => {
@@ -77,7 +80,7 @@ export const Report = () => {
     } else if (errors.otherReason) {
       toast.error("Please enter your reason in the text box");
     } else {
-      toast.error("Please fill in all required fields");
+      toast.error(translate("please_fill_all_fields", language));
     }
   };
   return (

@@ -25,12 +25,15 @@ import { useUserData } from "@/store/userData";
 import {
   generateComplaintIdFromDate,
   getBotMessage,
+  getCategoryIcon,
   resetApp,
 } from "@/lib/clientUtils";
 import { useRefetch } from "@/store/refetch";
 import { Textarea } from "./ui/textarea";
 import { clientMessages } from "@/lib/client-messages";
 import { useModal } from "@/store/modal";
+import { generateComplaintPreview, translate } from "@/lib/translator";
+import { useLanguage } from "@/store/language";
 
 // Web Speech API type declarations
 interface SpeechRecognitionEvent {
@@ -72,8 +75,8 @@ export default function ChatSection({
   const [messageInput, setMessageInput] = useState("");
   const setRefetch = useRefetch((state) => state.setRefetch);
   const userData = useUserData((state) => state.userData);
-  const { messages, addMessage, addMessages, setMessages, resetToInitial } =
-    useMessages();
+  const { messages, addMessage } = useMessages();
+  const language = useLanguage((state) => state.language);
   const openModal = useModal((state) => state.setIsOpen);
   const { botState, setBotState } = useBot();
   const [isRecording, setIsRecording] = useState(false);
@@ -94,7 +97,7 @@ export default function ChatSection({
 
   const createComplaintMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const id = toast.loading("Submitting Complaint...");
+      const id = toast.loading(translate("submitting_complaint", language));
 
       const response = await fetch("/api/complaints", {
         method: "POST",
@@ -105,13 +108,15 @@ export default function ChatSection({
       const res: { error?: string; complaintId: string } =
         await response.json();
       if (res.error) {
-        toast.error(clientMessages(res.error), { id });
+        toast.error(clientMessages(res.error, language), { id });
         if (res.error == "USER_NOT_FOUND") {
           openModal(true, "Reload", { confirmationFunction: resetApp });
         }
         throw new Error(res.error);
       }
-      toast.success("Complaint Submitted Successfully !!", { id });
+      toast.success(translate("complaint_submitted_successfully", language), {
+        id,
+      });
       return res;
     },
     onSuccess: (response: { complaintId: string }) => {
@@ -122,9 +127,14 @@ export default function ChatSection({
       // Add success message to chat
       setTimeout(() => {
         addBotMessage(
-          `✅ Complaint submitted successfully! Your complaint ID is ${generateComplaintIdFromDate(
-            Number(response.complaintId)
-          )}. We'll keep you updated on the progress.`,
+          // `✅ Complaint submitted successfully! Your complaint ID is ${generateComplaintIdFromDate(
+          //   Number(response.complaintId)
+          // )}. We'll keep you updated on the progress.`,
+          translate("complaint_submitted_success", language, {
+            complaintId: generateComplaintIdFromDate(
+              Number(response.complaintId)
+            ),
+          }),
           500
         );
       }, 1000);
@@ -152,25 +162,12 @@ export default function ChatSection({
   useEffect(() => {
     // Add welcome message if no messages exist
     if (messages.length === 1) {
-      // const welcomeMessage: ChatMessage = {
-      //   id: 0,
-      //   content:
-      //     "Hi! I'm here to help you file complaints about civic issues in Gondia. Just describe the problem in your own words.",
-      //   messageType: "bot",
-      //   isRead: false,
-      //   createdAt: new Date().toISOString(),
-      // };
-      // setMessages([welcomeMessage]);
-
-      addBotMessage(
-        // "Thanks for reporting! Please select the category for your complaint:"
-        "Please select the category for your complaint:"
-      );
+      addBotMessage(translate("select_complaint_category", language));
     }
   }, [messages.length]);
 
   let botMessageTimeout: ReturnType<typeof setTimeout> | null = null;
-  const addBotMessage = (content: string, delay = 1500) => {
+  const addBotMessage = (content: string | React.ReactNode, delay = 1500) => {
     // Cancel any previously scheduled message
     if (botMessageTimeout) {
       clearTimeout(botMessageTimeout);
@@ -180,6 +177,7 @@ export default function ChatSection({
     showTypingIndicator(delay);
 
     botMessageTimeout = setTimeout(() => {
+      // @ts-ignore
       const botMessage = getBotMessage(content);
       addMessage(botMessage);
       botMessageTimeout = null; // Clear after execution
@@ -228,9 +226,7 @@ export default function ChatSection({
 
     // @ts-ignore
     recognition.onerror = (event) => {
-      toast.error(
-        "The speech is not recognizable. Please enter the description manually."
-      );
+      toast.error(translate("speech_not_recognized", language));
       console.error("Speech recognition error", event.error);
     };
   };
@@ -266,13 +262,11 @@ export default function ChatSection({
     if (botState.step === "description") {
       // User provided detailed description
       if (!messageInput || messageInput.length < 20) {
-        toast.error("The description is very short.");
+        toast.error(translate("description_too_short", language));
         return;
       }
       if (messageInput.length > 500) {
-        toast.error(
-          "The description is very long. Please keep it under 500 characters"
-        );
+        toast.error(translate("description_too_long", language));
         return;
       }
       setBotState({
@@ -280,9 +274,7 @@ export default function ChatSection({
         complaintData: { ...botState.complaintData, description: messageInput },
       });
 
-      addBotMessage(
-        "Thank you for the detailed description! Now, can you provide the location? You can share your current location, type the address manually, or skip this step."
-      );
+      addBotMessage(translate("ask_location", language));
     } else if (botState.step === "location") {
       // User provided location manually
       setBotState({
@@ -290,9 +282,7 @@ export default function ChatSection({
         complaintData: { ...botState.complaintData, location: messageInput },
       });
 
-      addBotMessage(
-        "Great! Would you like to add a photo or video (under 100mb) to help illustrate the issue? You can also skip this step. (Photos are recommended)"
-      );
+      addBotMessage(translate("ask_media_upload", language));
     }
 
     addMessage(userMessage);
@@ -301,18 +291,20 @@ export default function ChatSection({
     handleInputChange("");
   };
 
-  const handleCategorySelect = (category: string) => {
-    const categoryMap: Record<string, string> = {
-      roads: "🛣️ Roads & Traffic",
-      water: "💧 Water Supply",
-      electricity: "⚡ Electricity",
-      sanitation: "🗑️ Sanitation",
-    };
+  const handleCategorySelect = (
+    category: "roads" | "water" | "electricity" | "sanitation"
+  ) => {
+    // const categoryMap: Record<string, string> = {
+    //   roads: "Roads",
+    //   water: "Water",
+    //   electricity: "Electricity",
+    //   sanitation: "Sanitation",
+    // };
 
     const userMessage: ChatMessage = {
       id: Date.now(),
       userId: userData.id || 0,
-      content: categoryMap[category],
+      content: getCategoryIcon(category) + " " + translate(category, language),
       messageType: "user",
       isRead: false,
       createdAt: new Date().toISOString(),
@@ -325,9 +317,7 @@ export default function ChatSection({
 
     addMessage(userMessage);
 
-    addBotMessage(
-      "Perfect! Now please describe your complaint in detail. Explain what exactly is the problem, when you noticed it, and how it's affecting you or your community."
-    );
+    addBotMessage(translate("ask_description", language));
   };
 
   const handleInputChange = (text: string) => {
@@ -342,13 +332,11 @@ export default function ChatSection({
   const handleLocationAction = (action: string) => {
     if (action === "current") {
       if (!navigator.geolocation) {
-        addBotMessage(
-          "Geolocation is not supported in your browser. Please type your address."
-        );
+        addBotMessage(translate("geolocation_not_supported", language));
         return;
       }
 
-      addBotMessage("Fetching your current location…");
+      addBotMessage(translate("fetching_location", language));
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -362,19 +350,15 @@ export default function ChatSection({
               location: "Current Location",
             },
           });
-          addBotMessage(
-            "Location captured! Would you like to add a photo or video?"
-          );
+          addBotMessage(translate("location_captured_add_media", language));
         },
         (error) => {
           if (error.code === error.PERMISSION_DENIED) {
             addBotMessage(
-              "Permission denied. Please type your address manually."
+              translate("permission_denied_type_address", language)
             );
           } else {
-            addBotMessage(
-              "Unable to retrieve location. Please type your address manually."
-            );
+            addBotMessage(translate("unable_to_retrieve_location", language));
           }
         },
         {
@@ -384,12 +368,10 @@ export default function ChatSection({
         }
       );
     } else if (action === "manual") {
-      addBotMessage("Please type the address or location of the issue:");
+      addBotMessage(translate("please_type_address", language));
     } else if (action === "skip") {
       setBotState({ ...botState, step: "media" });
-      addBotMessage(
-        "Location skipped. Would you like to add a photo or video?"
-      );
+      addBotMessage(translate("location_skipped_add_media", language));
     }
   };
 
@@ -401,7 +383,7 @@ export default function ChatSection({
 
     // Client-side validation: max 4 files
     if (files.length > 4) {
-      toast.error("Maximum 4 attachments allowed.");
+      toast.error(translate("max_attachments", language));
       event.target.value = ""; // reset input
       return;
     }
@@ -411,7 +393,7 @@ export default function ChatSection({
       const file = files[i];
       if (file.type.startsWith("video/")) {
         if (file.size > 100 * 1024 * 1024) {
-          toast.error(`Video file '${file.name}' exceeds 100MB limit.`);
+          toast.error(translate("video_too_large", language));
           event.target.value = ""; // reset input
           return;
         }
@@ -428,7 +410,7 @@ export default function ChatSection({
     }
 
     try {
-      const id = toast.loading("Uploading Files");
+      const id = toast.loading(translate("uploading_files", language));
       const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
@@ -436,10 +418,10 @@ export default function ChatSection({
       });
 
       if (!response.ok) {
-        toast.error("Upload Failed", { id });
+        toast.error(translate("upload_failed", language), { id });
         throw new Error("Upload failed");
       }
-      toast.success("Upload successful", { id });
+      toast.success(translate("upload_successful", language), { id });
       const data = await response.json();
 
       console.log("res data ========= ", data);
@@ -500,19 +482,27 @@ export default function ChatSection({
   const showComplaintPreview = () => {
     const imageCount = botState.complaintData.imageUrls?.length || 0;
     const videoCount = botState.complaintData.videoUrls?.length || 0;
-    const mediaInfo =
-      imageCount > 0 || videoCount > 0
-        ? `\n- Media: ${imageCount} photo(s), ${videoCount} video(s)`
-        : "";
+    //     const mediaInfo =
+    //       imageCount > 0 || videoCount > 0
+    //         ? `\n- Media: ${imageCount} photo(s), ${videoCount} video(s)`
+    //         : "";
 
-    const preview = `**Complaint Preview:**
-- Issue: ${botState.complaintData.description}
-- Category: ${botState.complaintData.category}
-- Location: ${botState.complaintData.location || "Not specified"}
-- Your Details: ${userData.name} • +91 ${userData.mobile}${mediaInfo}
+    //     const preview = `**Complaint Preview:**
+    // - Issue: ${botState.complaintData.description}
+    // - Category: ${botState.complaintData.category}
+    // - Location: ${botState.complaintData.location || "Not specified"}
+    // - Your Details: ${userData.name} • +91 ${userData.mobile}${mediaInfo}
 
-Would you like to submit this complaint?
-    `;
+    // Would you like to submit this complaint?
+    //     `;
+
+    const preview = generateComplaintPreview(
+      language,
+      botState,
+      userData,
+      imageCount,
+      videoCount
+    );
 
     setTimeout(() => {
       addBotMessage(preview);
@@ -577,7 +567,8 @@ Would you like to submit this complaint?
   const renderBotMessage = (message: ChatMessage) => {
     if (
       botState.step === "category" &&
-      message.content.includes("select the category")
+      (message.content.includes("select the category") ||
+        message.content.includes("श्रेणी"))
     ) {
       return (
         <div className="chat-bubble-received p-3 max-w-sm shadow-sm border border-gray-200">
@@ -591,7 +582,7 @@ Would you like to submit this complaint?
               className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
               onClick={() => handleCategorySelect("roads")}
             >
-              🛣️ Roads
+              🛣️ {translate("roads", language)}
             </Button>
             <Button
               size="sm"
@@ -599,7 +590,7 @@ Would you like to submit this complaint?
               className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
               onClick={() => handleCategorySelect("water")}
             >
-              💧 Water
+              💧 {translate("water", language)}
             </Button>
             <Button
               size="sm"
@@ -607,7 +598,7 @@ Would you like to submit this complaint?
               className="bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100"
               onClick={() => handleCategorySelect("electricity")}
             >
-              ⚡ Electric
+              ⚡ {translate("electricity", language)}
             </Button>
             <Button
               size="sm"
@@ -615,7 +606,7 @@ Would you like to submit this complaint?
               className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
               onClick={() => handleCategorySelect("sanitation")}
             >
-              🗑️ Sanitation
+              🗑️ {translate("sanitation", language)}
             </Button>
           </div>
           <div className="flex items-center text-xs whatsapp-gray mt-2">
@@ -639,7 +630,8 @@ Would you like to submit this complaint?
 
     if (
       botState.step === "location" &&
-      message.content.includes("provide the location")
+      (message.content.includes("provide the location") ||
+        message.content.includes("स्थान"))
     ) {
       return (
         <div className="chat-bubble-received p-3 max-w-sm shadow-sm  border border-gray-200">
@@ -654,7 +646,7 @@ Would you like to submit this complaint?
               onClick={() => handleLocationAction("current")}
             >
               <MapPin className="w-4 h-4 mr-2" />
-              Share Current Location
+              {translate("share_current_location", language)}
             </Button>
             <Button
               size="sm"
@@ -662,7 +654,7 @@ Would you like to submit this complaint?
               className="w-full bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
               onClick={() => handleLocationAction("manual")}
             >
-              Type Address Manually
+              {translate("type_address_manually", language)}
             </Button>
             <Button
               size="sm"
@@ -670,7 +662,7 @@ Would you like to submit this complaint?
               className="w-full bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
               onClick={() => handleLocationAction("skip")}
             >
-              Skip (Optional)
+              {translate("skip_optional", language)}
             </Button>
           </div>
           <div className="flex items-center text-xs whatsapp-gray mt-2">
@@ -709,7 +701,7 @@ Would you like to submit this complaint?
               onClick={() => fileInputRef.current?.click()}
             >
               <Camera className="w-4 h-4 mr-2" />
-              Add Photos/Videos
+              {translate("add_photos_videos", language)}
             </Button>
             <Button
               size="sm"
@@ -723,7 +715,7 @@ Would you like to submit this complaint?
                 showComplaintPreview();
               }}
             >
-              Skip & Preview
+              {translate("skip_and_preview", language)}
             </Button>
           </div>
           <input
@@ -764,7 +756,9 @@ Would you like to submit this complaint?
           {((botState.complaintData.imageUrls?.length || 0) > 0 ||
             (botState.complaintData.videoUrls?.length || 0) > 0) && (
             <div className="mb-3">
-              <div className="text-xs text-gray-500 mb-2">Uploaded files:</div>
+              <div className="text-xs text-gray-500 mb-2">
+                {translate("uploaded_files", language)}
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 {botState.complaintData.imageUrls?.map((url, index) => (
                   <div key={`img-${index}`} className="relative">
@@ -805,11 +799,11 @@ Would you like to submit this complaint?
                   });
                   // resetToInitial();
                   addBotMessage(
-                    "Let's edit your complaint. Please select the category again:"
+                    translate("edit_complaint_select_category", language)
                   );
                 }}
               >
-                Edit
+                {translate("edit", language)}
               </Button>
               <Button
                 size="sm"
@@ -817,7 +811,9 @@ Would you like to submit this complaint?
                 onClick={handleComplaintSubmit}
                 disabled={createComplaintMutation.isPending}
               >
-                {createComplaintMutation.isPending ? "Submitting..." : "Submit"}
+                {createComplaintMutation.isPending
+                  ? translate("submitting", language)
+                  : translate("submit", language)}
               </Button>
             </div>
           )}

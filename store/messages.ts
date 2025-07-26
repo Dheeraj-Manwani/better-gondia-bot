@@ -1,6 +1,7 @@
 "use client";
 
-import { ChatMessage } from "@/types";
+import { translate } from "@/lib/translator";
+import { ChatMessage, Language } from "@/types";
 import { create } from "zustand";
 
 interface UseMessages {
@@ -16,8 +17,10 @@ interface UseMessages {
 
 const initMessage: ChatMessage = {
   id: 0,
-  content:
-    "Hi! I'm here to help you file complaints about civic issues in Gondia. Just describe the problem in your own words.",
+  content: translate(
+    "intro_message",
+    (localStorage.getItem("language") as Language) ?? "english"
+  ),
   messageType: "bot",
   isRead: false,
   createdAt: new Date().toISOString(),

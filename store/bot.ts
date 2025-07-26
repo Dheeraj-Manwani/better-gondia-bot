@@ -4,7 +4,7 @@ import { ComplaintFormData } from "@/types";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
-interface BotState {
+export interface BotState {
   step:
     | "idle"
     | "category"

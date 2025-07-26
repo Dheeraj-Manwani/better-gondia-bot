@@ -77,23 +77,6 @@ export const AllChats = ({
     }
   };
 
-  const getCategoryEmoji = (category: string) => {
-    switch (category) {
-      case "infrastructure":
-        return "🏗️";
-      case "sanitation":
-        return "🚮";
-      case "traffic":
-        return "🚦";
-      case "water":
-        return "💧";
-      case "electricity":
-        return "⚡";
-      default:
-        return "📋";
-    }
-  };
-
   if (isLoading) {
     return <Spinner blur />;
   }

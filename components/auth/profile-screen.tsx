@@ -21,6 +21,8 @@ import { useAuthStep } from "@/store/authStep";
 import { setCookie } from "cookies-next";
 import { useSections } from "@/store/section";
 import { useLoaderStore } from "@/store/loader";
+import { translate } from "@/lib/translator";
+import { useLanguage } from "@/store/language";
 
 interface ProfileScreenProps {
   mobile: string;
@@ -45,7 +47,7 @@ export default function ProfileScreen({
   const setUserData = useUserData((state) => state.setUserData);
   const setAuthStep = useAuthStep((state) => state.setAuthStep);
   const setSection = useSections((state) => state.setSection);
-  const showLoader = useLoaderStore((state) => state.showLoader);
+  const language = useLanguage((state) => state.language);
 
   // const { toast } = useToast();
   // const queryClient = useQueryClient();
@@ -111,32 +113,32 @@ export default function ProfileScreen({
       !formData.age ||
       !formData.gender
     ) {
-      toast.error("Please fill in all required fields");
+      toast.error(translate("please_fill_all_fields", language));
       return;
     }
 
     // Name validation: more than 5 characters
     if (formData.name.trim().length <= 5) {
-      toast.error("Name must be more than 5 characters");
+      toast.error(translate("name_min_length", language));
       return;
     }
 
     // Age validation: between 16 and 110
     const ageNum = Number(formData.age);
     if (isNaN(ageNum) || ageNum < 16 || ageNum > 110) {
-      toast.error("Age must be between 16 and 110");
+      toast.error(translate("age_range", language));
       return;
     }
 
     // Mobile validation: 10 digits, only numbers
     if (!/^\d{10}$/.test(formData.mobile)) {
-      toast.error("Please enter a valid 10-digit mobile number");
+      toast.error(translate("invalid_mobile", language));
       return;
     }
 
     // Address validation: more than 10 characters
     if (formData.address.trim().length <= 10) {
-      toast.error("Address must be more than 10 characters");
+      toast.error(translate("address_min_length", language));
       return;
     }
 
@@ -161,7 +163,9 @@ export default function ProfileScreen({
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-xl font-semibold">Complete Profile</h1>
+            <h1 className="text-xl font-semibold">
+              {translate("complete_profile", language)}
+            </h1>
           </div>
         )}
 
@@ -169,7 +173,9 @@ export default function ProfileScreen({
         <div className="flex-1 overflow-y-auto px-6 py-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label className="block text-sm font-medium  mb-2">Name *</Label>
+              <Label className="block text-sm font-medium  mb-2">
+                {translate("name", language)} *
+              </Label>
               <Input
                 type="text"
                 className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:border-none "
@@ -182,7 +188,9 @@ export default function ProfileScreen({
 
             <div className="flex gap-2 w-full justify-between">
               <div className="w-full">
-                <Label className="block text-sm font-medium  mb-2">Age *</Label>
+                <Label className="block text-sm font-medium  mb-2">
+                  {translate("age", language)} *
+                </Label>
                 <Input
                   type="number"
                   className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:border-none "
@@ -195,7 +203,7 @@ export default function ProfileScreen({
 
               <div className="w-full">
                 <Label className="block text-sm font-medium  mb-2">
-                  Gender *
+                  {translate("gender", language)} *
                 </Label>
                 <Select
                   value={formData.gender}
@@ -205,9 +213,15 @@ export default function ProfileScreen({
                     <SelectValue placeholder="Select your gender" />
                   </SelectTrigger>
                   <SelectContent className="bg-white shadow-2xl">
-                    <SelectItem value="Male">Male</SelectItem>
-                    <SelectItem value="Female">Female</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
+                    <SelectItem value="Male">
+                      {translate("male", language)}
+                    </SelectItem>
+                    <SelectItem value="Female">
+                      {translate("female", language)}
+                    </SelectItem>
+                    <SelectItem value="Other">
+                      {translate("other", language)}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -215,7 +229,7 @@ export default function ProfileScreen({
 
             <div>
               <Label className="block text-sm font-medium  mb-2">
-                Phone Number *
+                {translate("phone_number", language)} *
               </Label>
               <Input
                 type="text"
@@ -243,7 +257,7 @@ export default function ProfileScreen({
 
             <div>
               <Label className="block text-sm font-medium  mb-2">
-                Address *
+                {translate("address", language)} *
               </Label>
               <Textarea
                 className="w-full border border-gray-300 rounded-lg px-3 py-3  h-20 resize-none"
@@ -264,8 +278,8 @@ export default function ProfileScreen({
             disabled={completeProfileMutation.isPending}
           >
             {completeProfileMutation.isPending
-              ? "Creating Profile..."
-              : "Complete Setup"}
+              ? translate("creating_profile", language)
+              : translate("complete_setup", language)}
           </Button>
         </div>
       </div>

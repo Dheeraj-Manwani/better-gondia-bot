@@ -195,11 +195,12 @@ export const CommunityComplaintCard = ({
               onClick={() =>
                 window.open(
                   `https://api.whatsapp.com/send?text=${encodeURIComponent(
-                    complaint.title +
-                      " \n" +
-                      "Have a look at this complaint in Gondia Khabar Mitra. \n" +
-                      // window.location.href +
-                      "better-gondia-bot.vercel.app/" +
+                    `Check out the complaint ${generateComplaintIdFromDate(
+                      complaint.id,
+                      complaint.createdAt
+                    )} in Gondia Khabar Mitra. \n` +
+                      process.env.NEXT_PUBLIC_BASE_URL +
+                      "/" +
                       complaint.id
                   )}`,
                   "_blank"
