@@ -1,10 +1,7 @@
 import prisma from "@/prisma/db";
 import { NextRequest } from "next/server";
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { complaintId: string } }
-) {
+export async function GET(req: NextRequest, { params }: any) {
   const complaintId = Number((await params).complaintId);
   if (!complaintId || isNaN(complaintId)) {
     return Response.json({ error: "Invalid complaint ID" }, { status: 400 });

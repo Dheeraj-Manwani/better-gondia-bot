@@ -2,12 +2,14 @@ import { SharedComplaint } from "@/components/SharedComplaint";
 import { Metadata } from "next";
 import { getComplaintById } from "../actions/complaint";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { complaintId: string };
-}): Promise<Metadata> {
-  const awaitedParams = await params;
+// interface PageProps {
+//   params: {
+//     complaintId: string;
+//   };
+// }
+
+export async function generateMetadata({ params }: any): Promise<Metadata> {
+  const awaitedParams = params;
   const res = await getComplaintById(Number(awaitedParams.complaintId));
 
   if (!res) {
@@ -39,7 +41,7 @@ export async function generateMetadata({
       title: complaint ? `Complaint #${complaint.id}` : "Complaint Detail",
       description: complaint?.description ?? "See details of this complaint.",
       images: imageUrl ? [imageUrl] : [],
-      url: `${baseUrl}/${params.complaintId}`,
+      url: `${baseUrl}/${awaitedParams.complaintId}`,
     },
     twitter: {
       card: imageUrl ? "summary_large_image" : "summary",
@@ -50,11 +52,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function ComplaintDetailPage({
-  params,
-}: {
-  params: { complaintId: string };
-}) {
+export default async function ComplaintDetailPage({ params }: any) {
   const awaitedParams = await params;
   return <SharedComplaint complaintId={awaitedParams.complaintId} />;
 }
