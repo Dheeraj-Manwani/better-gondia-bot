@@ -18,6 +18,7 @@ import { Spinner } from "./ui/spinner";
 import { toast } from "sonner";
 import { useModal } from "@/store/modal";
 import { generateComplaintIdFromDate } from "@/lib/clientUtils";
+import { useCompId } from "@/store/compId";
 // import { dummyData } from "@/lib/data";
 
 interface CommunitySectionProps {
@@ -27,6 +28,7 @@ interface CommunitySectionProps {
 export default function CommunitySection({ user }: CommunitySectionProps) {
   const session = useSession() as unknown as appSession;
   const setIsOpen = useModal((state) => state.setIsOpen);
+  const compId = useCompId((state) => state.compId);
   // const showLoader = useLoaderStore((state) => state.showLoader);
 
   const { data: complaints, isLoading } = useQuery<{
@@ -36,7 +38,9 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
     queryFn: async () => {
       const response = await apiRequest(
         "GET",
-        `/api/complaints?userId=${user.id}&&fetch=all`
+        `/api/complaints?userId=${user.id}&&fetch=all${
+          compId ? `&&compId=${compId}` : ""
+        }`
       );
       return response.json();
     },
@@ -287,6 +291,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
               handleToggleVisibility={handleToggleVisibility}
               handleReport={handleReport}
               role={session?.data?.user?.role ?? "USER"}
+              isShared
             />
           ))}
 

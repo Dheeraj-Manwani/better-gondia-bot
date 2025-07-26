@@ -25,7 +25,7 @@ import { useLoaderStore } from "@/store/loader";
 interface ProfileScreenProps {
   mobile: string;
   onNext: () => void;
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 export default function ProfileScreen({
@@ -151,17 +151,19 @@ export default function ProfileScreen({
     <div className="fixed inset-0 bg-white z-50">
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="bg-[#075E54] text-white p-4 flex items-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onBack}
-            className="mr-4 text-white hover:bg-white hover:bg-opacity-10"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl font-semibold">Complete Profile</h1>
-        </div>
+        {onBack && (
+          <div className="bg-[#075E54] text-white p-4 flex items-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onBack}
+              className="mr-4 text-white hover:bg-white hover:bg-opacity-10"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-xl font-semibold">Complete Profile</h1>
+          </div>
+        )}
 
         {/* Profile Form */}
         <div className="flex-1 overflow-y-auto px-6 py-6">

@@ -3,7 +3,6 @@ import { authConfig } from "@/lib/auth";
 import { generateComplaintIdFromDate, getBotMessage } from "@/lib/clientUtils";
 import prisma from "@/prisma/db";
 import { ChatMessage, SessionUser } from "@/types";
-import { Prisma } from "@prisma/client/index-browser";
 import { getServerSession } from "next-auth";
 import { NextRequest } from "next/server";
 
@@ -24,6 +23,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
     const fetchOption = searchParams.get("fetch");
+    const compId = searchParams.get("compId");
     console.log("userId and searchParam ===== ", userId, searchParams);
 
     // if (!userId) {
@@ -54,25 +54,57 @@ export async function GET(req: NextRequest) {
         fetchOption == "all" && { isPublic: true }),
     });
 
-    const complaints = await prisma.complaint.findMany({
-      where: {
-        ...(fetchOption == "my" && { userId: userIdNumber }),
-        ...((!user || user.role == "USER") &&
-          fetchOption == "all" && { isPublic: true }),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            mobile: true,
+    let complaints = [];
+    if (compId) {
+      // Fetch the complaint with compId first
+      const compIdNum = parseInt(compId);
+      const compComplaint = await prisma.complaint.findFirst({
+        where: {
+          id: compIdNum,
+          ...(fetchOption == "my" && { userId: userIdNumber }),
+          ...((!user || user.role == "USER") &&
+            fetchOption == "all" && { isPublic: true }),
+        },
+        include: {
+          user: {
+            select: { id: true, name: true, mobile: true },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+      });
+      // Fetch the rest, excluding compId
+      const restComplaints = await prisma.complaint.findMany({
+        where: {
+          ...(fetchOption == "my" && { userId: userIdNumber }),
+          ...((!user || user.role == "USER") &&
+            fetchOption == "all" && { isPublic: true }),
+          id: { not: compIdNum },
+        },
+        include: {
+          user: {
+            select: { id: true, name: true, mobile: true },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      complaints = [
+        ...(compComplaint ? [compComplaint] : []),
+        ...restComplaints,
+      ];
+    } else {
+      complaints = await prisma.complaint.findMany({
+        where: {
+          ...(fetchOption == "my" && { userId: userIdNumber }),
+          ...((!user || user.role == "USER") &&
+            fetchOption == "all" && { isPublic: true }),
+        },
+        include: {
+          user: {
+            select: { id: true, name: true, mobile: true },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    }
 
     // Fetch both co-signs and reports in a single query
     let userInteractions: { complaintId: number; type: string }[] = [];

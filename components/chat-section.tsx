@@ -291,7 +291,7 @@ export default function ChatSection({
       });
 
       addBotMessage(
-        "Great! Would you like to add a photo or video to help illustrate the issue? You can also skip this step."
+        "Great! Would you like to add a photo or video (under 100mb) to help illustrate the issue? You can also skip this step. (Photos are recommended)"
       );
     }
 
@@ -398,6 +398,25 @@ export default function ChatSection({
   ) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
+
+    // Client-side validation: max 4 files
+    if (files.length > 4) {
+      toast.error("Maximum 4 attachments allowed.");
+      event.target.value = ""; // reset input
+      return;
+    }
+
+    // Client-side validation: video file size
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.type.startsWith("video/")) {
+        if (file.size > 100 * 1024 * 1024) {
+          toast.error(`Video file '${file.name}' exceeds 100MB limit.`);
+          event.target.value = ""; // reset input
+          return;
+        }
+      }
+    }
 
     const formData = new FormData();
     const imageUrls: string[] = [];

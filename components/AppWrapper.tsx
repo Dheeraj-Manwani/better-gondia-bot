@@ -9,6 +9,7 @@ import { SessionProvider } from "next-auth/react";
 import { useLoaderStore } from "@/store/loader";
 import { Spinner } from "./ui/spinner";
 import { GenericModal } from "./modal/GenericModal";
+import NextTopLoader from "nextjs-toploader";
 
 export const AppWrapper = ({ children }: { children: React.ReactNode }) => {
   const isLoading = useLoaderStore((state) => state.isLoading);
@@ -17,6 +18,8 @@ export const AppWrapper = ({ children }: { children: React.ReactNode }) => {
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
+          <NextTopLoader color="#155dfc" showSpinner={false} />
+
           <Toaster richColors position="top-center" expand closeButton />
           <TooltipProvider>
             <GenericModal />

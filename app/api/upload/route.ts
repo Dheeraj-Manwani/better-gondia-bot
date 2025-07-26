@@ -8,6 +8,30 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const files = formData.getAll("files") as File[];
 
+    // Restrict number of attachments
+    if (files.length > 4) {
+      return NextResponse.json(
+        { error: "Maximum 4 attachments allowed." },
+        { status: 400 }
+      );
+    }
+
+    // Restrict video file size to 100MB
+    for (const file of files) {
+      // Check if file is a video (by MIME type)
+      if (file.type.startsWith("video/")) {
+        // 100MB = 100 * 1024 * 1024 bytes
+        if (file.size > 100 * 1024 * 1024) {
+          return NextResponse.json(
+            {
+              error: `Video files must be less than 100MB. '${file.name}' is too large.`,
+            },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     if (!files || files.length === 0) {
       return NextResponse.json({ error: "No files provided" }, { status: 400 });
     }

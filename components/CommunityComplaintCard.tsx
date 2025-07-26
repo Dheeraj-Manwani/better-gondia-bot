@@ -1,4 +1,4 @@
-import { Flag, ThumbsUp } from "lucide-react";
+import { Flag, Share2, ThumbsUp } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Complaint, Visibility } from "@/types";
@@ -24,6 +24,7 @@ interface CommunityComplaintCardProps {
   ) => void;
   handleReport: (complaintId: number, createdAt: string) => void;
   role: Role;
+  isShared: boolean;
 }
 
 export const CommunityComplaintCard = ({
@@ -33,6 +34,7 @@ export const CommunityComplaintCard = ({
   handleToggleVisibility,
   handleReport,
   role,
+  isShared,
 }: CommunityComplaintCardProps) => {
   const [isComplaintVisible, setIsComplaintVisible] = useState(false);
   const [isMediaVisible, setIsMediaVisible] = useState(false);
@@ -143,15 +145,15 @@ export const CommunityComplaintCard = ({
       )} */}
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col  items-center justify-between">
+          <div className="flex items-center justify-between w-full">
             <Button
               variant={complaint.isCoSigned ? "default" : "ghost"}
               size="sm"
-              className={`flex items-center space-x-2 ${
+              className={`flex items-center space-x-0.5 ${
                 complaint.isCoSigned
                   ? "bg-green-600 text-white hover:bg-green-700"
-                  : "text-green-600 hover:text-green-700 hover:bg-green-50"
+                  : "text-green-600 hover:text-green-700 bg-green-100"
               }`}
               onClick={() => handleCoSign(complaint.id)}
               disabled={isLoading}
@@ -173,7 +175,7 @@ export const CommunityComplaintCard = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex items-center space-x-2 text-gray-500 hover:text-red-500 hover:bg-red-50"
+                className="flex items-center space-x-0.5 text-gray-500 hover:text-red-500 hover:bg-red-50"
                 onClick={() => handleReport(complaint.id, complaint.createdAt)}
                 disabled={isLoading}
               >
@@ -181,10 +183,19 @@ export const CommunityComplaintCard = ({
                 <span className="text-sm">Report</span>
               </Button>
             )}
+            <Badge className={getCategoryColor(complaint.category)}>
+              {getCategoryIcon(complaint.category)} {complaint.category}
+            </Badge>
           </div>
-          <Badge className={getCategoryColor(complaint.category)}>
-            {getCategoryIcon(complaint.category)} {complaint.category}
-          </Badge>
+          {isShared && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mt-3 bg-green-50 border-green-400 text-green-700 hover:bg-green-100"
+            >
+              Share on WhatsApp <Share2 />
+            </Button>
+          )}
         </div>
       </div>
 

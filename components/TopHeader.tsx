@@ -9,7 +9,7 @@ import { VerifiedCheck } from "./ui/blue-check";
 import { CircleQuestionMark } from "lucide-react";
 import { useModal } from "@/store/modal";
 
-export const TopHeader = () => {
+export const TopHeader = ({ isView = false }: { isView?: boolean }) => {
   const setIsOpen = useModal((state) => state.setIsOpen);
   return (
     <div className="bg-[#075E54] text-white p-3 flex items-center justify-between shadow-lg z-20">
@@ -33,7 +33,7 @@ export const TopHeader = () => {
           cursor={"pointer"}
           onClick={() => setIsOpen(true, "FAQ")}
         />
-        <HeaderDropdown />
+        {!isView && <HeaderDropdown />}
       </div>
     </div>
   );

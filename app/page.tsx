@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import LanguageSelection from "@/components/language-selection";
 import LoginScreen from "@/components/auth/login-screen";
 import OTPScreen from "@/components/auth/otp-screen";
@@ -9,11 +8,7 @@ import ProfileScreen from "@/components/auth/profile-screen";
 import ChatSection from "@/components/chat-section";
 import CommunitySection from "@/components/community-section";
 import StatusSection from "@/components/status-section";
-import { MessageCircle, Users, Circle, Check, BadgeCheck } from "lucide-react";
-import { AuthStep, Language, Section, User, UserData } from "@/types";
-import Image from "next/image";
-import logo from "@/public/logo.svg";
-import { v4 as uuid } from "uuid";
+import { AuthStep, Language, Section, User } from "@/types";
 import { initUserData } from "@/lib/data";
 import { useLanguage } from "@/store/language";
 import { useTheme } from "next-themes";
