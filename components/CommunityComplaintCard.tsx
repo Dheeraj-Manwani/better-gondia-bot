@@ -192,6 +192,19 @@ export const CommunityComplaintCard = ({
               variant="outline"
               size="sm"
               className="w-full mt-3 bg-green-50 border-green-400 text-green-700 hover:bg-green-100"
+              onClick={() =>
+                window.open(
+                  `https://api.whatsapp.com/send?text=${encodeURIComponent(
+                    complaint.title +
+                      " \n" +
+                      "Have a look at this complaint in Gondia Khabar Mitra. \n" +
+                      // window.location.href +
+                      "better-gondia-bot.vercel.app/" +
+                      complaint.id
+                  )}`,
+                  "_blank"
+                )
+              }
             >
               Share on WhatsApp <Share2 />
             </Button>
