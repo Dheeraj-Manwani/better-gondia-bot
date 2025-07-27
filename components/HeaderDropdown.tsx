@@ -112,13 +112,15 @@ export function HeaderDropdown() {
             <Mail />
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem
-          className="hover:bg-[#E5DDD5] flex justify-between"
-          onClick={() => setIsOpen(true, "ReportBug")}
-        >
-          <span>Report a Bug</span>
-          <Bug />
-        </DropdownMenuItem>
+        {session.status === "authenticated" && (
+          <DropdownMenuItem
+            className="hover:bg-[#E5DDD5] flex justify-between"
+            onClick={() => setIsOpen(true, "ReportBug")}
+          >
+            <span>Report a Bug</span>
+            <Bug />
+          </DropdownMenuItem>
+        )}
 
         <DropdownMenuItem
           className="hover:bg-[#E5DDD5] flex justify-between"

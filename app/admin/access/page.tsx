@@ -7,6 +7,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "nextjs-toploader/app";
 import { AdminDropdown } from "@/components/admin/AdminDropdown";
+import { appSession } from "@/lib/auth";
 
 interface User {
   id: number;
@@ -17,29 +18,32 @@ interface User {
 }
 
 export default function AdminAccessPage() {
-  const { data: session, status } = useSession();
+  const session = useSession() as unknown as appSession;
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (status === "loading") return;
-    // Type assertion to ensure role is accessible
-    const userRole = (session?.user as { role?: string })?.role;
-    if (!session || userRole !== "SUPERADMIN") {
+    if (session.status === "loading") return;
+    const userRole = session.data?.user?.role;
+    if (
+      session.status !== "authenticated" ||
+      !userRole ||
+      userRole !== "SUPERADMIN"
+    ) {
       router.replace("/");
     }
-  }, [session, status, router]);
+  }, [session.status, router]);
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (session.status !== "authenticated") return;
     setLoading(true);
     // const id = toast.loading("Loading users...");
     fetch("/api/auth/user")
       .then((res) => res.json())
       .then((data) => {
-        setUsers(data.users || []);
+        setUsers(data?.users || []);
         setLoading(false);
         // toast.success("Users loaded", { id });
       })
@@ -47,7 +51,7 @@ export default function AdminAccessPage() {
         // toast.error("Failed to fetch users", { id });
         setLoading(false);
       });
-  }, [status]);
+  }, [session.status]);
 
   const handleRoleChange = async (
     id: number,

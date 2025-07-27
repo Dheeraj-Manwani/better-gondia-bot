@@ -14,6 +14,8 @@ import { useRefetch } from "@/store/refetch";
 import { toast } from "sonner";
 import { Spinner } from "./ui/spinner";
 import { dummyData } from "@/lib/data";
+import { translate } from "@/lib/translator";
+import { useLanguage } from "@/store/language";
 
 export const AllChats = ({
   user,
@@ -26,6 +28,7 @@ export const AllChats = ({
 }) => {
   const setMessages = useMessages((state) => state.setMessages);
   const setBotState = useBot((state) => state.setBotState);
+  const language = useLanguage((state) => state.language);
   const { refetch, setRefetch } = useRefetch();
   const [complaints, setComplaints] = useState<Complaint[]>();
 
@@ -86,7 +89,8 @@ export const AllChats = ({
       {/* Header */}
       <div className="bg-white text-gray-700 px-4 py-2.5 flex items-center  sticky top-0 z-10  justify-between">
         <div className="font-semibold text-md flex gap-1.5 justify-center align-middle">
-          <BookAlert className="mt-0.5" /> <span>My Complaints</span>
+          <BookAlert className="mt-0.5" />{" "}
+          <span>{translate("my_complaints", language)}</span>
         </div>
 
         {complaints && complaints.length !== 0 && (
@@ -94,29 +98,27 @@ export const AllChats = ({
             className="bg-[#075E54] hover:bg-[#0f5a51]  text-white  transition-colors shadow-md "
             onClick={handleOpenNewChat}
           >
-            <Plus /> New Complaint
+            <Plus /> {translate("new_complaint", language)}
           </Button>
         )}
       </div>
       <div className="max-w-11/12 mx-auto text-gray-700  min-h-[85dvh] flex flex-col bg-[#E5DDD5]  rounded-lg mt-3">
         {/* Complaints List */}
-
         {complaints && complaints.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-16">
             <div className="text-7xl mb-4 animate-bounce">📋</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No complaints yet
+              {translate("no_complaints_yet", language)}
             </h3>
             <p className="text-gray-500 mb-6 text-center max-w-xs">
-              Submit your first complaint to get started and help improve your
-              community!
+              {translate("submit_first_complaint", language)}
             </p>
 
             <Button
               className="bg-[#075E54] hover:bg-[#0f5a51]  transition-colors shadow-md text-white"
               onClick={handleNavigateToChat}
             >
-              <Plus /> New Complaint
+              <Plus /> {translate("new_complaint", language)}
             </Button>
           </div>
         ) : (
@@ -131,37 +133,6 @@ export const AllChats = ({
             <ScrollBar orientation="vertical" color="black" />
           </ScrollArea>
         )}
-
-        {/* <ScrollArea className="h-40">
-        <ScrollBar />
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-        <div className="bg-red-500 h-5">aasss</div>
-      </ScrollArea> */}
       </div>
     </>
   );

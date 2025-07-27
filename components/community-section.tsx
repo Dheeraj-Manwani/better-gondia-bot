@@ -19,6 +19,9 @@ import { toast } from "sonner";
 import { useModal } from "@/store/modal";
 import { generateComplaintIdFromDate } from "@/lib/clientUtils";
 import { useCompId } from "@/store/compId";
+import { Button } from "./ui/button";
+import { translate } from "@/lib/translator";
+import { useLanguage } from "@/store/language";
 // import { dummyData } from "@/lib/data";
 
 interface CommunitySectionProps {
@@ -29,7 +32,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
   const session = useSession() as unknown as appSession;
   const setIsOpen = useModal((state) => state.setIsOpen);
   const compId = useCompId((state) => state.compId);
-  // const showLoader = useLoaderStore((state) => state.showLoader);
+  const language = useLanguage((state) => state.language);
 
   const { data: complaints, isLoading } = useQuery<{
     data: { complaints: Complaint[] };
@@ -272,9 +275,11 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
     <div className="h-full flex flex-col">
       {/* Community Header */}
       <div className="bg-white px-4 py-2.5 border-b border-gray-200">
-        <h2 className="font-semibold ">Gondia Public Wall</h2>
+        <h2 className="font-semibold ">
+          {translate("gondia_public_wall", language)}
+        </h2>
         <p className="text-sm ">
-          See what others are reporting • Co-sign to support
+          {translate("see_what_others_are_reporting", language)}
         </p>
       </div>
 
@@ -301,14 +306,17 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
                 <Users className="w-8 h-8 text-gray-400" />
               </div>
               <h3 className="font-medium text-gray-900 mb-2">
-                No Public Complaints
+                {translate("no_public_complaints", language)}
               </h3>
               <p className="text-gray-500 text-sm">
-                Be the first to share a complaint with the community!
+                {translate("be_first_to_share", language)}
               </p>
             </div>
           )}
         </div>
+        <Button className="w-9/12 m-auto my-5 bg-[#075E54] text-white hover:bg-[#075E54]">
+          {translate("load_more", language)}
+        </Button>
       </div>
     </div>
   );

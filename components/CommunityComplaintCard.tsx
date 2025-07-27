@@ -12,6 +12,8 @@ import {
 import { Role } from "@prisma/client/index-browser";
 import { useEffect, useState } from "react";
 import { Checkbox } from "./Checkbox";
+import { translate } from "@/lib/translator";
+import { useLanguage } from "@/store/language";
 
 interface CommunityComplaintCardProps {
   complaint: Complaint;
@@ -38,6 +40,7 @@ export const CommunityComplaintCard = ({
 }: CommunityComplaintCardProps) => {
   const [isComplaintVisible, setIsComplaintVisible] = useState(false);
   const [isMediaVisible, setIsMediaVisible] = useState(false);
+  const language = useLanguage((state) => state.language);
   // const setIsOpen = useModal((state) => state.setIsOpen);
 
   const handleComplaintCheckbox = () => {
@@ -164,13 +167,17 @@ export const CommunityComplaintCard = ({
                 }`}
               />
               <span className="text-sm font-medium">
-                {complaint.isCoSigned ? "Co-Signed" : "Co-Sign"} (
-                {complaint.coSignCount})
+                {complaint.isCoSigned
+                  ? translate("co_sign", language)
+                  : translate("co_signed", language)}{" "}
+                ({complaint.coSignCount})
               </span>
             </Button>
 
             {complaint.isReported ? (
-              <span className="text-sm text-gray-500 ml-2">Reported ☑️</span>
+              <span className="text-sm text-gray-500 ml-2">
+                {translate("reported", language)} ☑️
+              </span>
             ) : (
               <Button
                 variant="ghost"
@@ -180,11 +187,12 @@ export const CommunityComplaintCard = ({
                 disabled={isLoading}
               >
                 <Flag className="w-4 h-4" />
-                <span className="text-sm">Report</span>
+                <span className="text-sm">{translate("report", language)}</span>
               </Button>
             )}
             <Badge className={getCategoryColor(complaint.category)}>
-              {getCategoryIcon(complaint.category)} {complaint.category}
+              {getCategoryIcon(complaint.category)}{" "}
+              {translate(complaint.category as any, language)}
             </Badge>
           </div>
           {isShared && (
@@ -207,7 +215,7 @@ export const CommunityComplaintCard = ({
                 )
               }
             >
-              Share on WhatsApp <Share2 />
+              {translate("share_on_whatsapp", language)} <Share2 />
             </Button>
           )}
         </div>

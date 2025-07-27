@@ -68,9 +68,10 @@ model Complaint {
 
   messages String @default("[]")
 
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  interactions Interaction[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  interactions  Interaction[]
+  statusUpdates StatusUpdate[]
 
   @@index([userId])
 }
@@ -113,4 +114,18 @@ model Bug {
 
   reporterId Int
   reporter   User @relation(fields: [reporterId], references: [id])
+}
+
+model StatusUpdate {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String?
+  imageUrl    String?
+  videoUrl    String?
+  complaintId Int?
+  complaint   Complaint? @relation(fields: [complaintId], references: [id])
+  isActive    Boolean    @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }

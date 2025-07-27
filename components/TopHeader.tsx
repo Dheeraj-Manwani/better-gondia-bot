@@ -8,9 +8,12 @@ import { HeaderDropdown } from "./HeaderDropdown";
 import { VerifiedCheck } from "./ui/blue-check";
 import { CircleQuestionMark } from "lucide-react";
 import { useModal } from "@/store/modal";
+import { translate } from "@/lib/translator";
+import { useLanguage } from "@/store/language";
 
 export const TopHeader = ({ isView = false }: { isView?: boolean }) => {
   const setIsOpen = useModal((state) => state.setIsOpen);
+  const language = useLanguage((state) => state.language);
   return (
     <div className="bg-[#075E54] text-white p-3 flex items-center justify-between shadow-lg z-20">
       <div className="flex items-center space-x-3">
@@ -21,10 +24,13 @@ export const TopHeader = ({ isView = false }: { isView?: boolean }) => {
         </div>
         <div>
           <h1 className="font-medium text-[17px] flex gap-0.5 justify-center align-middle">
-            <span>Better Gondia Mitra</span> <VerifiedCheck />
+            <span>{translate("better_gondia_mitra", language)}</span>{" "}
+            <VerifiedCheck />
           </h1>
 
-          <p className="text-xs text-white/80">Making Gondia Better</p>
+          <p className="text-xs text-white/80">
+            {translate("making_gondia_better", language)}
+          </p>
         </div>
       </div>
 

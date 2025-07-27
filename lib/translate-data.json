@@ -298,5 +298,90 @@
     "english": "Enter your name",
     "hindi": "अपना नाम दर्ज करें",
     "marathi": "तुमचे नाव टाका"
+  },
+  "my_complaints": {
+    "english": "My Complaints",
+    "hindi": "मेरी शिकायतें",
+    "marathi": "माझ्या तक्रारी"
+  },
+  "new_complaint": {
+    "english": "New Complaint",
+    "hindi": "नई शिकायत",
+    "marathi": "नवीन तक्रार"
+  },
+  "no_complaints_yet": {
+    "english": "No complaints yet",
+    "hindi": "अभी तक कोई शिकायत नहीं",
+    "marathi": "अजून कोणतीही तक्रार नाही"
+  },
+  "submit_first_complaint": {
+    "english": "Submit your first complaint to get started and help improve your community!",
+    "hindi": "शुरुआत करने और अपने समुदाय को बेहतर बनाने में मदद करने के लिए अपनी पहली शिकायत दर्ज करें!",
+    "marathi": "सुरुवात करण्यासाठी आणि आपल्या समुदायाच्या सुधारणा करण्यासाठी तुमची पहिली तक्रार नोंदवा!"
+  },
+  "something_went_wrong_refresh": {
+    "english": "Something went wrong, Please refresh the browser",
+    "hindi": "कुछ गलत हो गया, कृपया ब्राउज़र को रिफ्रेश करें",
+    "marathi": "काहीतरी चुकले, कृपया ब्राउझर रीफ्रेश करा"
+  },
+  "gondia_public_wall": {
+    "english": "Gondia Public Wall",
+    "hindi": "गोंदिया सार्वजनिक दीवार",
+    "marathi": "गोंदिया सार्वजनिक भिंत"
+  },
+  "see_what_others_are_reporting": {
+    "english": "See what others are reporting • Co-sign to support",
+    "hindi": "देखें अन्य लोग क्या रिपोर्ट कर रहे हैं • समर्थन के लिए सह-हस्ताक्षर करें",
+    "marathi": "इतर काय रिपोर्ट करत आहेत ते पहा • समर्थनासाठी सह-हस्ताक्षर करा"
+  },
+  "no_public_complaints": {
+    "english": "No Public Complaints",
+    "hindi": "कोई सार्वजनिक शिकायत नहीं",
+    "marathi": "सार्वजनिक तक्रारी नाहीत"
+  },
+  "be_first_to_share": {
+    "english": "Be the first to share a complaint with the community!",
+    "hindi": "समुदाय के साथ शिकायत साझा करने वाले पहले व्यक्ति बनें!",
+    "marathi": "समुदायासोबत तक्रार शेअर करणारे पहिले व्यक्ती बना!"
+  },
+  "co_sign": {
+    "english": "Co-Sign",
+    "hindi": "सह-हस्ताक्षर",
+    "marathi": "सह-स्वाक्षरी"
+  },
+  "co_signed": {
+    "english": "Co-Signed",
+    "hindi": "सह-हस्ताक्षरित",
+    "marathi": "सह-स्वाक्षरी केले"
+  },
+  "report": {
+    "english": "Report",
+    "hindi": "रिपोर्ट करें",
+    "marathi": "तक्रार नोंदवा"
+  },
+  "reported": {
+    "english": "Reported",
+    "hindi": "रिपोर्ट की गई",
+    "marathi": "तक्रार नोंदवलेली"
+  },
+  "share_on_whatsapp": {
+    "english": "Share on WhatsApp",
+    "hindi": "व्हाट्सएप पर साझा करें",
+    "marathi": "व्हाट्सअ‍ॅपवर शेअर करा"
+  },
+  "load_more": {
+    "english": "Load More",
+    "hindi": "और लोड करें",
+    "marathi": "अजून लोड करा"
+  },
+  "better_gondia_mitra": {
+    "english": "Better Gondia Mitra",
+    "hindi": "बेहतर गोंदिया मित्र",
+    "marathi": "बेहतर गोंदिया मित्र"
+  },
+  "making_gondia_better": {
+    "english": "Making Gondia Better",
+    "hindi": "गोंदिया को बेहतर बना रहे हैं",
+    "marathi": "गोंदियाला अधिक चांगले बनवत आहोत"
   }
 }

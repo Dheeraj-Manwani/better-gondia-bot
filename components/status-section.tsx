@@ -3,15 +3,46 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { StatusUpdate } from "@/types";
 import { X, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { Spinner } from "./ui/spinner";
+import { useSession } from "next-auth/react";
+import { isAdmin } from "@/lib/clientUtils";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { appSession } from "@/lib/auth";
 
 export default function StatusSection() {
   const [selectedStatus, setSelectedStatus] = useState<StatusUpdate | null>(
     null
   );
   const [currentIndex, setCurrentIndex] = useState(0);
+  const session = useSession() as unknown as appSession;
+  const queryClient = useQueryClient();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    imageUrl: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
 
   const { data: statusUpdates, isLoading } = useQuery<StatusUpdate[]>({
     queryKey: ["/api/status/updates"],
+  });
+
+  const addStatusMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await fetch("/api/status/updates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to add status");
+      return res.json();
+    },
+    onSuccess: () => {
+      setShowAddModal(false);
+      setForm({ title: "", description: "", imageUrl: "" });
+      queryClient.invalidateQueries({ queryKey: ["/api/status/updates"] });
+    },
   });
 
   const formatTimeAgo = (dateString: string) => {
@@ -53,12 +84,13 @@ export default function StatusSection() {
 
   if (isLoading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-          <p className="text-gray-500">Loading status updates...</p>
-        </div>
-      </div>
+      <Spinner text="Loading status updates" blur />
+      // <div className="h-full flex items-center justify-center">
+      //   <div className="text-center">
+      //     <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+      //     <p className="text-gray-500">Loading status updates...</p>
+      //   </div>
+      // </div>
     );
   }
 
@@ -66,11 +98,18 @@ export default function StatusSection() {
     <>
       <div className="h-full flex flex-col">
         {/* Status Header */}
-        <div className="bg-white px-4 py-3 border-b border-gray-200">
-          <h2 className="font-semibold ">Civic Updates</h2>
-          <p className="text-sm whatsapp-gray">
-            Photos & videos of resolved complaints
-          </p>
+        <div className="bg-white px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+          <div>
+            <h2 className="font-semibold ">Civic Updates</h2>
+            <p className="text-sm whatsapp-gray">
+              Photos & videos of resolved complaints
+            </p>
+          </div>
+          {isAdmin(session.data?.user?.role) && (
+            <Button size="sm" onClick={() => setShowAddModal(true)}>
+              <Plus className="w-4 h-4 mr-1" /> Add Status
+            </Button>
+          )}
         </div>
 
         {/* Status Content */}
@@ -247,6 +286,63 @@ export default function StatusSection() {
                 {selectedStatus.description || selectedStatus.title}
               </p>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Add Status Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="font-semibold mb-4">Add Status Update</h3>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setSubmitting(true);
+                addStatusMutation.mutate(form, {
+                  onSettled: () => setSubmitting(false),
+                });
+              }}
+              className="space-y-3"
+            >
+              <input
+                className="w-full border rounded px-3 py-2"
+                placeholder="Title"
+                value={form.title}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, title: e.target.value }))
+                }
+                required
+              />
+              <textarea
+                className="w-full border rounded px-3 py-2"
+                placeholder="Description"
+                value={form.description}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, description: e.target.value }))
+                }
+              />
+              <input
+                className="w-full border rounded px-3 py-2"
+                placeholder="Image URL"
+                value={form.imageUrl}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, imageUrl: e.target.value }))
+                }
+              />
+              <div className="flex gap-2 justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAddModal(false)}
+                  disabled={submitting}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={submitting || !form.title}>
+                  {submitting ? "Adding..." : "Add"}
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}

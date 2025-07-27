@@ -35,7 +35,14 @@ export function AdminDropdown() {
   const session = useSession() as unknown as appSession;
   const router = useRouter();
 
-  return isAdmin(session.data.user?.role) ? (
+  if (
+    session.status !== "authenticated" ||
+    !session.data?.user?.role ||
+    !isAdmin(session.data.user.role)
+  ) {
+    return null;
+  }
+  return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild className="cursor-pointer">
         <EllipsisVertical />
@@ -62,16 +69,16 @@ export function AdminDropdown() {
           <span>Home</span>
           <Home />
         </DropdownMenuItem>
-        <DropdownMenuItem
-          className="hover:bg-[#E5DDD5] flex justify-between"
-          onClick={() => setIsOpen(true, "ReportBug")}
-        >
-          <span>Report a Bug</span>
-          <Bug />
-        </DropdownMenuItem>
+        {session.status === "authenticated" && (
+          <DropdownMenuItem
+            className="hover:bg-[#E5DDD5] flex justify-between"
+            onClick={() => setIsOpen(true, "ReportBug")}
+          >
+            <span>Report a Bug</span>
+            <Bug />
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
-  ) : (
-    ""
   );
 }

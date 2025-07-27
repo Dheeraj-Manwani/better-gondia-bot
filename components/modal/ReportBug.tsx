@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   DialogContent,
   DialogHeader,
@@ -11,16 +11,47 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
+import { Textarea } from "../ui/textarea";
+import { useModal } from "@/store/modal";
 
 export const ReportBug = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [description, setDescription] = useState("");
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const setIsOpen = useModal((state) => state.setIsOpen);
+
+  const handleInputChange = (text: string) => {
+    setDescription(text);
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto"; // Reset height
+      textarea.style.height = `${text ? textarea.scrollHeight : 0}px`; // Set to scroll height
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !description.trim()) {
       toast.error("Please provide a title and description.");
+      return;
+    }
+
+    if (title.length < 6) {
+      toast.error("Title is very short.");
+      return;
+    }
+
+    if (title.length > 100) {
+      toast.error("Title is very long.");
+      return;
+    }
+    if (description.length < 15) {
+      toast.error("Description is very short.");
+      return;
+    }
+    if (description.length > 1000) {
+      toast.error("Please describe the issue under 1000 characters.");
       return;
     }
     setLoading(true);
@@ -43,6 +74,7 @@ export const ReportBug = ({ onSuccess }: { onSuccess?: () => void }) => {
     } catch (e) {
       toast.error("Failed to report bug", { id: toastId });
     } finally {
+      setIsOpen(false);
       setLoading(false);
     }
   };
@@ -65,9 +97,8 @@ export const ReportBug = ({ onSuccess }: { onSuccess?: () => void }) => {
             className="border rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:outline-none"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Short summary (e.g. Crash on login)"
+            placeholder="Short title (e.g. Crash on login)"
             maxLength={100}
-            required
             disabled={loading}
           />
         </div>
@@ -75,20 +106,26 @@ export const ReportBug = ({ onSuccess }: { onSuccess?: () => void }) => {
           <label htmlFor="bug-description" className="text-sm font-medium">
             Bug Description
           </label>
-          <textarea
-            id="bug-description"
-            className="border rounded px-3 py-2 text-sm min-h-[80px] focus:ring-2 focus:ring-blue-400 focus:outline-none resize-y"
+          <Textarea
+            ref={textareaRef}
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
             placeholder="Describe the bug in detail..."
-            maxLength={1000}
-            required
-            disabled={loading}
+            id="bug-description"
+            className="border rounded px-3 py-2 text-sm min-h-[80px] focus:ring-2 focus:ring-blue-400 focus:outline-none resize-y max-h-[250px] break-words break-all overflow-x-auto max-w-full"
+            style={{
+              fontFamily: "system-ui, -apple-system, sans-serif",
+            }}
           />
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="outline" disabled={loading}>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={loading}
+              onClick={() => setIsOpen(false)}
+            >
               Cancel
             </Button>
           </DialogClose>
