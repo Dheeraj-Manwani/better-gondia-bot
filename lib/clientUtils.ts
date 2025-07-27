@@ -59,7 +59,7 @@ export const getBotMessage = (content: string): ChatMessage => {
 };
 
 export const getCategoryIcon = (
-  category: "roads" | "water" | "electricity" | "sanitation"
+  category: "roads" | "water" | "electricity" | "sanitation" | string
 ) => {
   const icons: Record<string, string> = {
     roads: "🛣️",

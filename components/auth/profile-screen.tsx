@@ -179,7 +179,7 @@ export default function ProfileScreen({
               <Input
                 type="text"
                 className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:border-none "
-                placeholder="Enter your name"
+                placeholder={translate("enter_name", language)}
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 required
@@ -194,7 +194,7 @@ export default function ProfileScreen({
                 <Input
                   type="number"
                   className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:border-none "
-                  placeholder="Enter your age"
+                  placeholder={translate("enter_age", language)}
                   value={formData.age}
                   onChange={(e) => handleInputChange("age", e.target.value)}
                   required
@@ -210,7 +210,9 @@ export default function ProfileScreen({
                   onValueChange={(value) => handleInputChange("gender", value)}
                 >
                   <SelectTrigger className="w-full border border-gray-300 rounded-lg px-3 py-3 ">
-                    <SelectValue placeholder="Select your gender" />
+                    <SelectValue
+                      placeholder={translate("select_gender", language)}
+                    />
                   </SelectTrigger>
                   <SelectContent className="bg-white shadow-2xl">
                     <SelectItem value="Male">
@@ -234,7 +236,7 @@ export default function ProfileScreen({
               <Input
                 type="text"
                 className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:border-none "
-                placeholder="Enter your phone number"
+                placeholder={translate("enter_phone_number", language)}
                 value={formData.mobile}
                 onChange={(e) => handleInputChange("mobile", e.target.value)}
                 required
@@ -261,7 +263,7 @@ export default function ProfileScreen({
               </Label>
               <Textarea
                 className="w-full border border-gray-300 rounded-lg px-3 py-3  h-20 resize-none"
-                placeholder="Enter your complete address"
+                placeholder={translate("enter_complete_address", language)}
                 value={formData.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
                 required

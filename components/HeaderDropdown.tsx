@@ -3,6 +3,7 @@
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   // DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -19,9 +20,11 @@ import { signIn, signOut, useSession } from "next-auth/react";
 
 import { appSession } from "@/lib/auth";
 import { cn, resetApp } from "@/lib/clientUtils";
+import { useRouter } from "nextjs-toploader/app";
 
 export function HeaderDropdown() {
   const session = useSession() as unknown as appSession;
+  const router = useRouter();
 
   const handleEmailLogin = () => {
     signIn("google");
@@ -84,15 +87,15 @@ export function HeaderDropdown() {
         {session.status === "authenticated" && (
           <>
             <DropdownMenuLabel className="font-semibold">
-              {session.data.user?.email}
+              {session.data.user?.email}{" "}
+              <LogOut
+                onClick={() => signOut()}
+                className="text-red-500 h-5 w-5"
+              />
             </DropdownMenuLabel>
             {session.data.user?.role !== "USER" && (
               <DropdownMenuLabel className="text-[12px]  p-0 m-0 font-semibold flex gap-1 justify-end">
                 <span>{session.data.user?.role}</span>
-                <LogOut
-                  onClick={() => signOut()}
-                  className="text-red-500 h-5 w-5"
-                />
               </DropdownMenuLabel>
             )}
             <DropdownMenuSeparator className="border border-gray-200" />
@@ -116,6 +119,18 @@ export function HeaderDropdown() {
           <span>Log out</span>
           <LogOut />
         </DropdownMenuItem>
+        <DropdownMenuGroup className="bg-red-200 border border-red-500 text-red-500">
+          <DropdownMenuLabel className="text-red-600">
+            Admin Options
+          </DropdownMenuLabel>
+          <DropdownMenuItem
+            className="flex justify-between"
+            onClick={() => router.push("/admin/access")}
+          >
+            <span>Admins</span>
+            <LogOut />
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
