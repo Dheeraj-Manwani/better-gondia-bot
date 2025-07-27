@@ -10,7 +10,7 @@ import { generateComplaintIdFromDate } from "@/lib/clientUtils";
 // }
 
 export async function generateMetadata({ params }: any): Promise<Metadata> {
-  const awaitedParams = params;
+  const awaitedParams = await params;
   const complaint = await getComplaintById(Number(awaitedParams.complaintId));
 
   if (!complaint) {

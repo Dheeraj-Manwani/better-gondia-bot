@@ -85,7 +85,7 @@ export const getStatusColor = (status: string) => {
   }
 };
 
-export const isAdmin = (role: Role): boolean => {
+export const isAdmin = (role?: Role): boolean => {
   return role == "ADMIN" || role == "SUPERADMIN";
 };
 

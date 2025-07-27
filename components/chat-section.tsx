@@ -990,7 +990,6 @@ export default function ChatSection({
                     style={{
                       fontFamily: "system-ui, -apple-system, sans-serif",
                     }}
-                    disabled={botState.step == "category"}
                   />
                 </div>
 

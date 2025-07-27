@@ -15,14 +15,16 @@ import {
   // DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EllipsisVertical, LogOut, Mail } from "lucide-react";
+import { Bug, ChartPie, EllipsisVertical, LogOut, Mail } from "lucide-react";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 import { appSession } from "@/lib/auth";
-import { cn, resetApp } from "@/lib/clientUtils";
+import { cn, isAdmin, resetApp } from "@/lib/clientUtils";
 import { useRouter } from "nextjs-toploader/app";
+import { useModal } from "@/store/modal";
 
 export function HeaderDropdown() {
+  const setIsOpen = useModal((state) => state.setIsOpen);
   const session = useSession() as unknown as appSession;
   const router = useRouter();
 
@@ -86,15 +88,15 @@ export function HeaderDropdown() {
         {/* <DropdownMenuSeparator /> */}
         {session.status === "authenticated" && (
           <>
-            <DropdownMenuLabel className="font-semibold">
-              {session.data.user?.email}{" "}
+            <DropdownMenuLabel className="font-semibold flex justify-between gap-2">
+              <span>{session.data.user?.email}</span>
               <LogOut
                 onClick={() => signOut()}
                 className="text-red-500 h-5 w-5"
               />
             </DropdownMenuLabel>
-            {session.data.user?.role !== "USER" && (
-              <DropdownMenuLabel className="text-[12px]  p-0 m-0 font-semibold flex gap-1 justify-end">
+            {isAdmin(session.data.user?.role) && (
+              <DropdownMenuLabel className="text-[10px]  p-0 m-0 font-semibold flex gap-1 justify-end">
                 <span>{session.data.user?.role}</span>
               </DropdownMenuLabel>
             )}
@@ -112,6 +114,14 @@ export function HeaderDropdown() {
         )}
         <DropdownMenuItem
           className="hover:bg-[#E5DDD5] flex justify-between"
+          onClick={() => setIsOpen(true, "ReportBug")}
+        >
+          <span>Report a Bug</span>
+          <Bug />
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          className="hover:bg-[#E5DDD5] flex justify-between"
           onClick={() => {
             resetApp();
           }}
@@ -119,18 +129,25 @@ export function HeaderDropdown() {
           <span>Log out</span>
           <LogOut />
         </DropdownMenuItem>
-        <DropdownMenuGroup className="bg-red-200 border border-red-500 text-red-500">
-          <DropdownMenuLabel className="text-red-600">
-            Admin Options
-          </DropdownMenuLabel>
-          <DropdownMenuItem
-            className="flex justify-between"
-            onClick={() => router.push("/admin/access")}
-          >
-            <span>Admins</span>
-            <LogOut />
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
+        {session.status === "authenticated" &&
+          session.data.user?.role == "SUPERADMIN" && (
+            <>
+              <DropdownMenuSeparator className="border border-gray-200" />
+
+              <DropdownMenuGroup className="bg-red-50  text-red-500">
+                {/* <DropdownMenuLabel className="text-red-600">
+                  Admin Options
+                </DropdownMenuLabel> */}
+                <DropdownMenuItem
+                  className="flex justify-between hover:bg-red-200"
+                  onClick={() => router.push("/admin/access")}
+                >
+                  <span>Admin Access</span>
+                  <ChartPie />
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </>
+          )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

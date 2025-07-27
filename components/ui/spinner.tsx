@@ -41,7 +41,12 @@ export const Spinner = ({
     >
       {text && (
         <>
-          <span className="absolute -translate-y-16 text-white font-medium text-lg ml-6">
+          <span
+            className={cn(
+              "absolute -translate-y-16 text-white font-medium text-lg ml-6",
+              className
+            )}
+          >
             {text}
             <span className="inline-block w-5">{dots}</span>
           </span>
