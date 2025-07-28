@@ -75,7 +75,7 @@ export default function ChatSection({
   const [messageInput, setMessageInput] = useState("");
   const setRefetch = useRefetch((state) => state.setRefetch);
   const userData = useUserData((state) => state.userData);
-  const { messages, addMessage } = useMessages();
+  const { messages, addMessage, resetToInitial } = useMessages();
   const language = useLanguage((state) => state.language);
   const openModal = useModal((state) => state.setIsOpen);
   const { botState, setBotState } = useBot();
@@ -120,7 +120,6 @@ export default function ChatSection({
       return res;
     },
     onSuccess: (response: { complaintId: string }) => {
-      setBotState({ step: "done", complaintData: botState.complaintData });
       // queryClient.invalidateQueries({ queryKey: ["/api/complaints/my"] });
       // queryClient.invalidateQueries({ queryKey: ["/api/complaints/public"] });
 
@@ -144,6 +143,10 @@ export default function ChatSection({
       }, 2500);
 
       setRefetch(true);
+
+      setTimeout(() => {
+        setBotState({ step: "done", complaintData: botState.complaintData });
+      }, 3500);
 
       // toast({
       //   title: "Complaint Submitted",
@@ -211,6 +214,8 @@ export default function ChatSection({
 
   // Voice recording functions
   const startRecording = async () => {
+    setIsRecording(true);
+
     // @ts-ignore
     const recognition = new (window.SpeechRecognition ||
       // @ts-ignore
@@ -232,6 +237,8 @@ export default function ChatSection({
   };
 
   const stopRecording = () => {
+    setIsRecording(false);
+
     if (mediaRecorder && isRecording) {
       mediaRecorder.stop();
       mediaRecorder.stream.getTracks().forEach((track) => track.stop());
@@ -561,6 +568,8 @@ export default function ChatSection({
       });
     }
 
+    formData.append("language", language);
+
     createComplaintMutation.mutate(formData);
   };
 
@@ -568,7 +577,8 @@ export default function ChatSection({
     if (
       botState.step === "category" &&
       (message.content.includes("select the category") ||
-        message.content.includes("श्रेणी"))
+        message.content.includes("श्रेणी चुनें") ||
+        message.content.includes("श्रेणी निवडा"))
     ) {
       return (
         <div className="chat-bubble-received p-3 max-w-sm shadow-sm border border-gray-200">
@@ -631,7 +641,9 @@ export default function ChatSection({
     if (
       botState.step === "location" &&
       (message.content.includes("provide the location") ||
-        message.content.includes("स्थान"))
+        (message.content.includes("स्थान") &&
+          message.content.includes("चरण")) ||
+        message.content.includes("स्थान देऊ"))
     ) {
       return (
         <div className="chat-bubble-received p-3 max-w-sm shadow-sm  border border-gray-200">
@@ -686,7 +698,9 @@ export default function ChatSection({
 
     if (
       botState.step === "media" &&
-      message.content.includes("photo or video")
+      (message.content.includes("photo or video") ||
+        message.content.includes("फोटो या वीडियो") ||
+        message.content.includes("फोटो किंवा व्हिडिओ"))
     ) {
       return (
         <div className="chat-bubble-received p-3 max-w-sm shadow-sm border border-gray-200">
@@ -745,7 +759,10 @@ export default function ChatSection({
       );
     }
 
-    if (message.content.includes("Complaint Preview")) {
+    if (
+      message.content.includes("Complaint Preview") ||
+      message.content.includes("पूर्वावलोकन")
+    ) {
       return (
         <div className="chat-bubble-received p-3 max-w-sm shadow-sm border border-gray-200">
           <div className="text-sm bg-white chat-bubble-left whitespace-pre-line mb-3">
@@ -925,8 +942,7 @@ export default function ChatSection({
           // <></>
           <div className=" mb-1 flex flex-col gap-3">
             <Alert type="warning" className="w-11/12 m-auto">
-              This chat has ended, please start a fresh chat to submit another
-              complaint.
+              {translate("chat_ended_start_new", language)}
             </Alert>
 
             <div className="flex justify-around items-center w-11/12 m-auto">
@@ -937,13 +953,16 @@ export default function ChatSection({
                     variant={"default"}
                     onClick={() => handleSectionChange("my-issues")}
                   >
-                    Close
+                    {translate("close", language)}
                   </Button>
                   <Button
                     className="bg-[#5cd388] w-5/12  hover:bg-[#25D366]"
-                    onClick={handleOpenNewChat}
+                    onClick={() => {
+                      handleOpenNewChat();
+                      resetToInitial();
+                    }}
                   >
-                    New Complaint
+                    {translate("new_complaint", language)}
                   </Button>
                 </>
               )}
@@ -956,7 +975,7 @@ export default function ChatSection({
                     // setRefetch(true);
                   }}
                 >
-                  View My Complaints
+                  {translate("view_my_complaints", language)}
                 </Button>
               )}
             </div>
@@ -993,19 +1012,36 @@ export default function ChatSection({
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  className="bg-[#25D366] text-white p-2 h-10 w-10 rounded-full hover:bg-[#128C7E] transition-colors shadow-md"
-                  disabled={!messageInput.trim() || botState.step == "category"}
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
+                {botState.step === "description" && messageInput.trim() ? (
+                  <Button
+                    type="submit"
+                    className="bg-[#25D366] text-white p-2 h-10 w-10 rounded-full hover:bg-[#128C7E] transition-colors shadow-md"
+                    disabled={!messageInput.trim()}
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-200 ${
+                      isRecording
+                        ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
+                        : "bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200"
+                    }`}
+                    onClick={isRecording ? stopRecording : startRecording}
+                  >
+                    {isRecording ? (
+                      <MicOff className="h-4 w-4" />
+                    ) : (
+                      <Mic className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
               </form>
             </div>
 
             {/* Voice Message Option */}
 
-            {botState.step === "description" && (
+            {/* {botState.step === "description" && (
               <>
                 <div className="flex items-center justify-center m-1">
                   <div className="text-xs whatsapp-gray mr-3">or</div>
@@ -1039,7 +1075,7 @@ export default function ChatSection({
                   </div>
                 )}
               </>
-            )}
+            )} */}
           </div>
         ) : (
           <></>

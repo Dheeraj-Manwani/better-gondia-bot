@@ -1,8 +1,8 @@
 {
   "complaint_submitted_success": {
-    "english": "✅ Complaint submitted successfully! Your complaint ID is {{complaintId}}. We'll keep you updated on the progress.",
-    "hindi": "✅ शिकायत सफलतापूर्वक दर्ज हो गई है! आपकी शिकायत ID {{complaintId}} है। हम आपको प्रगति की जानकारी देते रहेंगे।",
-    "marathi": "✅ तक्रार यशस्वीरित्या नोंदवली गेली आहे! तुमची तक्रार आयडी {{complaintId}} आहे. आम्ही तुम्हाला प्रगतीची माहिती देत राहू."
+    "english": "✅ Complaint submitted successfully! Your complaint ID is complaintId. We'll keep you updated on the progress.",
+    "hindi": "✅ शिकायत सफलतापूर्वक दर्ज हो गई है! आपकी शिकायत ID complaintId है। हम आपको प्रगति की जानकारी देते रहेंगे।",
+    "marathi": "✅ तक्रार यशस्वीरित्या नोंदवली गेली आहे! तुमची तक्रार आयडी complaintId आहे. आम्ही तुम्हाला प्रगतीची माहिती देत राहू."
   },
   "select_complaint_category": {
     "english": "Please select the category for your complaint:",
@@ -86,7 +86,7 @@
   },
   "edit_complaint_select_category": {
     "english": "Let's edit your complaint. Please select the category again:",
-    "hindi": "चलिए आपकी शिकायत को संपादित करते हैं। कृपया श्रेणी दोबारा चुनें:",
+    "hindi": "चलिए आपकी शिकायत को संपादित करते हैं। कृपया श्रेणी चुनें:",
     "marathi": "चला तुमची तक्रार संपादित करूया. कृपया पुन्हा श्रेणी निवडा:"
   },
   "share_current_location": {
@@ -383,5 +383,20 @@
     "english": "Making Gondia Better",
     "hindi": "गोंदिया को बेहतर बना रहे हैं",
     "marathi": "गोंदियाला अधिक चांगले बनवत आहोत"
+  },
+  "chat_ended_start_new": {
+    "english": "This chat has ended, please start a fresh chat to submit another complaint.",
+    "hindi": "यह चैट समाप्त हो गई है, कृपया एक नई चैट शुरू करें ताकि आप एक और शिकायत दर्ज कर सकें।",
+    "marathi": "ही चॅट संपली आहे, कृपया दुसरी तक्रार नोंदवण्यासाठी नवीन चॅट सुरू करा."
+  },
+  "view_my_complaints": {
+    "english": "View My Complaints",
+    "hindi": "मेरी शिकायतें देखें",
+    "marathi": "माझ्या तक्रारी पहा"
+  },
+  "close": {
+    "english": "Close",
+    "hindi": "बंद करें",
+    "marathi": "बंद करा"
   }
 }

@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { isAdmin } from "@/lib/clientUtils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { appSession } from "@/lib/auth";
+import { storeFileInS3 } from "@/app/actions/s3"; // <-- Import upload function
 
 export default function StatusSection() {
   const [selectedStatus, setSelectedStatus] = useState<StatusUpdate | null>(
@@ -21,6 +22,7 @@ export default function StatusSection() {
     title: "",
     description: "",
     imageUrl: "",
+    file: null as File | null,
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -40,7 +42,7 @@ export default function StatusSection() {
     },
     onSuccess: () => {
       setShowAddModal(false);
-      setForm({ title: "", description: "", imageUrl: "" });
+      setForm({ title: "", description: "", imageUrl: "", file: null });
       queryClient.invalidateQueries({ queryKey: ["/api/status/updates"] });
     },
   });
@@ -82,6 +84,22 @@ export default function StatusSection() {
     }
   };
 
+  // Handle file upload and set imageUrl
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setForm((f) => ({ ...f, file }));
+      // Upload to S3 and get URL
+      try {
+        const url = await storeFileInS3(file);
+        if (!url) throw new Error("Failed to upload image");
+        setForm((f) => ({ ...f, imageUrl: url }));
+      } catch (err) {
+        alert("Image upload failed");
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <Spinner text="Loading status updates" blur />
@@ -100,16 +118,16 @@ export default function StatusSection() {
         {/* Status Header */}
         <div className="bg-white px-4 py-3 border-b border-gray-200 flex items-center justify-between">
           <div>
-            <h2 className="font-semibold ">Civic Updates</h2>
+            <h2 className="font-semibold ">Status</h2>
             <p className="text-sm whatsapp-gray">
-              Photos & videos of resolved complaints
+              Stay updated with the updates
             </p>
           </div>
-          {isAdmin(session.data?.user?.role) && (
+          {/* {isAdmin(session.data?.user?.role) && (
             <Button size="sm" onClick={() => setShowAddModal(true)}>
               <Plus className="w-4 h-4 mr-1" /> Add Status
             </Button>
-          )}
+          )} */}
         </div>
 
         {/* Status Content */}
@@ -117,14 +135,19 @@ export default function StatusSection() {
           {/* Status Stories */}
           <div className="grid grid-cols-4 gap-4 mb-6">
             {/* My Status */}
-            <div className="flex flex-col items-center">
-              <div className="status-ring-viewed w-16 h-16 mb-2">
-                <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
-                  <Plus className="w-6 h-6 text-gray-500" />
+            {isAdmin(session.data?.user?.role) && (
+              <Button
+                className="flex flex-col items-center"
+                onClick={() => setShowAddModal(true)}
+              >
+                <div className="status-ring-viewed w-16 h-16 mb-2">
+                  <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
+                    <Plus className="w-6 h-6 text-gray-500" />
+                  </div>
                 </div>
-              </div>
-              <p className="text-xs  text-center">My Status</p>
-            </div>
+                <p className="text-xs  text-center">My Status</p>
+              </Button>
+            )}
 
             {/* Admin Status Updates */}
             {statusUpdates?.slice(0, 3).map((status, index) => (
@@ -292,20 +315,33 @@ export default function StatusSection() {
       {/* Add Status Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="font-semibold mb-4">Add Status Update</h3>
+          <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md relative">
+            <button
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+              onClick={() => setShowAddModal(false)}
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <h3 className="font-semibold mb-6 text-lg text-center">
+              Add Status Update
+            </h3>
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
                 setSubmitting(true);
-                addStatusMutation.mutate(form, {
-                  onSettled: () => setSubmitting(false),
-                });
+                addStatusMutation.mutate(
+                  {
+                    title: form.title,
+                    description: form.description,
+                    imageUrl: form.imageUrl,
+                  },
+                  { onSettled: () => setSubmitting(false) }
+                );
               }}
-              className="space-y-3"
+              className="space-y-4"
             >
               <input
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                 placeholder="Title"
                 value={form.title}
                 onChange={(e) =>
@@ -314,22 +350,32 @@ export default function StatusSection() {
                 required
               />
               <textarea
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                 placeholder="Description"
                 value={form.description}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, description: e.target.value }))
                 }
               />
-              <input
-                className="w-full border rounded px-3 py-2"
-                placeholder="Image URL"
-                value={form.imageUrl}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, imageUrl: e.target.value }))
-                }
-              />
-              <div className="flex gap-2 justify-end">
+              <div>
+                <label className="block mb-2 font-medium">Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="w-full border rounded-lg px-3 py-2"
+                  onChange={handleFileChange}
+                />
+                {form.imageUrl && (
+                  <div className="mt-3 flex justify-center">
+                    <img
+                      src={form.imageUrl}
+                      alt="Preview"
+                      className="max-h-40 rounded-lg border"
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2 justify-end mt-6">
                 <Button
                   type="button"
                   variant="outline"
@@ -338,7 +384,10 @@ export default function StatusSection() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={submitting || !form.title}>
+                <Button
+                  type="submit"
+                  disabled={submitting || !form.title || !form.imageUrl}
+                >
                   {submitting ? "Adding..." : "Add"}
                 </Button>
               </div>

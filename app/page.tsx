@@ -18,7 +18,6 @@ import { TopHeader } from "@/components/TopHeader";
 import { useUserData } from "@/store/userData";
 import { useAuthStep } from "@/store/authStep";
 import { useBot } from "@/store/bot";
-import { useMessages } from "@/store/messages";
 import { setCookie } from "cookies-next/client";
 import { useSections } from "@/store/section";
 
@@ -34,7 +33,6 @@ export default function Home() {
   const setLanguage = useLanguage((state) => state.setLanguage);
   const setBotState = useBot((state) => state.setBotState);
   const { setTheme } = useTheme();
-  const resetToInitial = useMessages((state) => state.resetToInitial);
 
   // const { data: user, isLoading } = useQuery<User>({
   //   queryKey: ["/api/auth/user"],
@@ -79,6 +77,9 @@ export default function Home() {
     setLanguage(language);
     localStorage.setItem("language", language);
   };
+  if (authStep === "language") {
+    return <LanguageSelection onLanguageSelect={handleLanguageSelect} />;
+  }
 
   const handleAuthStepChange = (step: AuthStep, mobile?: string) => {
     // setAuthStep(step);
@@ -101,7 +102,6 @@ export default function Home() {
   const handleOpenNewChat = () => {
     handleSectionChange("chat");
     setBotState({ step: "category", complaintData: {} });
-    resetToInitial();
   };
 
   // if (isLoading) {
@@ -116,10 +116,6 @@ export default function Home() {
   //     </div>
   //   );
   // }
-
-  if (authStep === "language") {
-    return <LanguageSelection onLanguageSelect={handleLanguageSelect} />;
-  }
 
   if (authStep === "login") {
     return (

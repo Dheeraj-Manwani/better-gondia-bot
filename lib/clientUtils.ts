@@ -19,7 +19,7 @@ export function generateComplaintIdFromDate(
 
   const paddedId = String(complaintId).padStart(4, "0");
 
-  return `GK-${dd}${mm}${yy}-${paddedId}`;
+  return `BG-${dd}${mm}${yy}-${paddedId}`;
 }
 
 export function formatCreatedAtLabel(createdAt: string | Date): string {

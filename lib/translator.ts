@@ -3,6 +3,7 @@
 import { BotState } from "@/store/bot";
 import trJson from "./translate-data.json";
 import { Language, User } from "@/types";
+import { getCategoryIcon } from "./clientUtils";
 
 interface transaleData {
   complaintId: string;
@@ -75,7 +76,9 @@ export function generateComplaintPreview(
 
   const preview = `**${t.title}:**
 - ${t.issue}: ${botState.complaintData.description}
-- ${t.category}: ${botState.complaintData.category}
+- ${t.category}: ${getCategoryIcon(
+    botState.complaintData.category ?? ""
+  )} ${translate(botState.complaintData.category as any, lang)}
 - ${t.location}: ${botState.complaintData.location || t.notSpecified}
 - ${t.yourDetails}: ${userData.name} • +91 ${userData.mobile}${mediaInfo}
 

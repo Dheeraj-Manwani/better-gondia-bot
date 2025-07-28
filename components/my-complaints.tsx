@@ -27,6 +27,7 @@ export const AllChats = ({
   handleOpenNewChat: () => void;
 }) => {
   const setMessages = useMessages((state) => state.setMessages);
+  const resetToInitial = useMessages((state) => state.resetToInitial);
   const setBotState = useBot((state) => state.setBotState);
   const language = useLanguage((state) => state.language);
   const { refetch, setRefetch } = useRefetch();
@@ -53,12 +54,12 @@ export const AllChats = ({
 
   useEffect(() => {
     if (refetch) {
-      const id = toast.loading("Fetching data again ......... ");
+      // const id = toast.loading("Fetching data again ......... ");
       setRefetch(false);
 
-      refetchData()
-        .then((res) => toast.success("Loaded successfully .. ", { id }))
-        .catch((err) => toast.error("Error occured", { id }));
+      refetchData();
+      // .then((res) => toast.success("Loaded successfully .. ", { id }))
+      // .catch((err) => toast.error("Error occured", { id }));
     }
   }, [refetch]);
 
@@ -96,7 +97,10 @@ export const AllChats = ({
         {complaints && complaints.length !== 0 && (
           <Button
             className="bg-[#075E54] hover:bg-[#0f5a51]  text-white  transition-colors shadow-md "
-            onClick={handleOpenNewChat}
+            onClick={() => {
+              handleOpenNewChat();
+              resetToInitial();
+            }}
           >
             <Plus /> {translate("new_complaint", language)}
           </Button>

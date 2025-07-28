@@ -1,8 +1,9 @@
 // app/api/complaints/route.ts
 import { authConfig } from "@/lib/auth";
 import { generateComplaintIdFromDate, getBotMessage } from "@/lib/clientUtils";
+import { translateServer } from "@/lib/server-utils";
 import prisma from "@/prisma/db";
-import { ChatMessage, SessionUser } from "@/types";
+import { ChatMessage, Language, SessionUser } from "@/types";
 import { getServerSession } from "next-auth";
 import { NextRequest } from "next/server";
 
@@ -194,6 +195,7 @@ export async function POST(req: NextRequest) {
   const location = form.get("location") as string | undefined;
   const latitude = form.get("latitude") as string | undefined;
   const longitude = form.get("longitude") as string | undefined;
+  const language = form.get("language") as string | undefined;
   let messages = form.get("messages") as string;
   const parsedMmessages: ChatMessage[] = JSON.parse(messages);
 
@@ -232,9 +234,13 @@ export async function POST(req: NextRequest) {
 
       parsedMmessages.push(
         getBotMessage(
-          `✅ Complaint submitted successfully! Your complaint ID is ${generateComplaintIdFromDate(
-            complaint.id
-          )}. We'll keep you updated on the progress.`
+          await translateServer(
+            "complaint_submitted_success",
+            language as Language,
+            {
+              complaintId: generateComplaintIdFromDate(Number(complaint.id)),
+            }
+          )
         )
       );
       parsedMmessages.push(
