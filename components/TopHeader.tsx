@@ -16,7 +16,10 @@ export const TopHeader = ({ isView = false }: { isView?: boolean }) => {
   const language = useLanguage((state) => state.language);
   return (
     <div className="bg-[#075E54] text-white p-3 flex items-center justify-between shadow-lg z-20">
-      <div className="flex items-center space-x-3">
+      <div
+        className="flex items-center space-x-3"
+        onClick={() => setIsOpen(true, "Social")}
+      >
         <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
           <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center">
             <Image src={logo} width={50} height={50} alt="logo"></Image>

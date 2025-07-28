@@ -398,5 +398,15 @@
     "english": "Close",
     "hindi": "बंद करें",
     "marathi": "बंद करा"
+  },
+  "better_gondia": {
+    "english": "Better Gondia",
+    "hindi": "बेहतर गोंदिया",
+    "marathi": "उत्तम गोंदिया"
+  },
+  "follow_us_on": {
+    "english": "Follow us on",
+    "hindi": "हमें यहां फॉलो करें",
+    "marathi": "आम्हाला येथे फॉलो करा"
   }
 }

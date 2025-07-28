@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react";
 import { isAdmin } from "@/lib/clientUtils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { appSession } from "@/lib/auth";
-import { storeFileInS3 } from "@/app/actions/s3"; // <-- Import upload function
+import { storeFileInS3 } from "@/app/actions/s3";
 
 export default function StatusSection() {
   const [selectedStatus, setSelectedStatus] = useState<StatusUpdate | null>(
@@ -137,10 +137,10 @@ export default function StatusSection() {
             {/* My Status */}
             {isAdmin(session.data?.user?.role) && (
               <Button
-                className="flex flex-col items-center"
+                className="flex flex-col items-center status-ring-viewed w-16 h-16 mb-2"
                 onClick={() => setShowAddModal(true)}
               >
-                <div className="status-ring-viewed w-16 h-16 mb-2">
+                <div className="status-ring-viewed w-16 h-16">
                   <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
                     <Plus className="w-6 h-6 text-gray-500" />
                   </div>

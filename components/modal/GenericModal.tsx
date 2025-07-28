@@ -8,6 +8,7 @@ import { LogIn, RefreshCcw, Route } from "lucide-react";
 import { resetApp } from "@/lib/clientUtils";
 import { useRouter } from "nextjs-toploader/app";
 import { ReportBug } from "./ReportBug";
+import { Social } from "./Social";
 
 export function GenericModal() {
   const { isOpen, setIsOpen, modalType } = useModal();
@@ -59,6 +60,8 @@ export function GenericModal() {
         );
       case "ReportBug":
         return <ReportBug />;
+      case "Social":
+        return <Social />;
     }
   };
   const comp = getModalFromType(modalType ?? "Reload");

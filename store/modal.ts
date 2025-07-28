@@ -1,6 +1,12 @@
 import { create } from "zustand";
 
-export type ModalType = "Reload" | "FAQ" | "Report" | "GoToHome" | "ReportBug";
+export type ModalType =
+  | "Reload"
+  | "FAQ"
+  | "Report"
+  | "GoToHome"
+  | "ReportBug"
+  | "Social";
 
 interface ModalData {
   confirmationFunction?: (...args: string[]) => void;

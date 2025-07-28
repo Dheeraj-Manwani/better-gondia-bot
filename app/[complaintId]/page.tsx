@@ -15,8 +15,9 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
 
   if (!complaint) {
     return {
-      title: "Complaint Not Found",
-      description: "The requested complaint could not be loaded.",
+      title: "Gondia Khabar Mitra",
+      description:
+        "Gondia khabar mitra is a platform where you can create a complaint or support existing one's related to gondia.",
     };
   }
 
@@ -33,6 +34,38 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
 
   const baseUrl =
     process.env.NEXT_PUBLIC_BASE_URL || "https://better-gondia-bot.vercel.app";
+
+  console.log("returning metadata json ===== ", {
+    title: complaint
+      ? `Complaint ${generateComplaintIdFromDate(
+          complaint.id,
+          complaint.createdAt
+        )}`
+      : "Complaint Detail",
+    description: complaint?.description ?? "See details of this complaint.",
+    openGraph: {
+      title: complaint
+        ? `Complaint ${generateComplaintIdFromDate(
+            complaint.id,
+            complaint.createdAt
+          )}`
+        : "Complaint Detail",
+      description: complaint?.description ?? "See details of this complaint.",
+      images: imageUrl ? [imageUrl] : [],
+      url: `${baseUrl}/${awaitedParams.complaintId}`,
+    },
+    twitter: {
+      card: imageUrl ? "summary_large_image" : "summary",
+      title: complaint
+        ? `Complaint ${generateComplaintIdFromDate(
+            complaint.id,
+            complaint.createdAt
+          )}`
+        : "Complaint Detail",
+      description: complaint?.description ?? "See details of this complaint.",
+      images: imageUrl ? [imageUrl] : [],
+    },
+  });
 
   return {
     title: complaint
