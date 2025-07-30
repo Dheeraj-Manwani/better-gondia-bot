@@ -16,6 +16,18 @@ import { Spinner } from "./ui/spinner";
 import { dummyData } from "@/lib/data";
 import { translate } from "@/lib/translator";
 import { useLanguage } from "@/store/language";
+import { apiRequest } from "@/lib/queryClient";
+
+interface PaginatedComplaintsResponse {
+  data: {
+    complaints: Complaint[];
+    count: number;
+    totalCount: number;
+    hasMore: boolean;
+    currentPage: number;
+    totalPages: number;
+  };
+}
 
 export const AllChats = ({
   user,
@@ -31,37 +43,72 @@ export const AllChats = ({
   const setBotState = useBot((state) => state.setBotState);
   const language = useLanguage((state) => state.language);
   const { refetch, setRefetch } = useRefetch();
-  const [complaints, setComplaints] = useState<Complaint[]>();
+  const [allComplaints, setAllComplaints] = useState<Complaint[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const {
-    data: chatMessages,
+    data: complaintsData,
     isLoading,
     refetch: refetchData,
-  } = useQuery<{
-    data: { complaints: Complaint[] };
-  }>({
+  } = useQuery<PaginatedComplaintsResponse>({
     queryKey: [`/api/complaints?userId=${user.id}&&fetch=my`],
+    queryFn: async () => {
+      const response = await apiRequest(
+        "GET",
+        `/api/complaints?userId=${user.id}&&fetch=my&&page=${currentPage}&&limit=10`
+      );
+      return response.json();
+    },
   });
 
   useEffect(() => {
-    if (chatMessages) {
-      const com: Complaint[] = chatMessages.data.complaints;
-      setComplaints(com);
-      // const messages = complaints.map((comp) => JSON.parse(comp.message));
-      // setMessages(messages);
+    if (complaintsData) {
+      if (currentPage === 1) {
+        setAllComplaints(complaintsData.data.complaints);
+        setHasMore(complaintsData.data.hasMore);
+      }
+      //   } else {
+      //     setAllComplaints((prev) => [
+      //       ...prev,
+      //       ...complaintsData.data.complaints,
+      //     ]);
+      //   }
+      //   setHasMore(complaintsData.data.hasMore);
     }
-  }, [chatMessages]);
+  }, [complaintsData]);
 
   useEffect(() => {
     if (refetch) {
-      // const id = toast.loading("Fetching data again ......... ");
       setRefetch(false);
-
+      setCurrentPage(1);
       refetchData();
-      // .then((res) => toast.success("Loaded successfully .. ", { id }))
-      // .catch((err) => toast.error("Error occured", { id }));
     }
   }, [refetch]);
+
+  const loadMoreComplaints = async () => {
+    if (!hasMore || isLoadingMore) return;
+
+    setIsLoadingMore(true);
+    const nextPage = currentPage + 1;
+
+    try {
+      const response = await apiRequest(
+        "GET",
+        `/api/complaints?userId=${user.id}&&fetch=my&&page=${nextPage}&&limit=10`
+      );
+      const data = await response.json();
+
+      setAllComplaints((prev) => [...prev, ...data.data.complaints]);
+      setHasMore(data.data.hasMore);
+      setCurrentPage(nextPage);
+    } catch (error) {
+      toast.error("Failed to load more complaints");
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const handleNavigateToChat = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +128,7 @@ export const AllChats = ({
     }
   };
 
-  if (isLoading) {
+  if (isLoading && currentPage === 1) {
     return <Spinner blur />;
   }
 
@@ -94,7 +141,7 @@ export const AllChats = ({
           <span>{translate("my_complaints", language)}</span>
         </div>
 
-        {complaints && complaints.length !== 0 && (
+        {allComplaints && allComplaints.length !== 0 && (
           <Button
             className="bg-[#075E54] hover:bg-[#0f5a51]  text-white  transition-colors shadow-md "
             onClick={() => {
@@ -108,7 +155,7 @@ export const AllChats = ({
       </div>
       <div className="max-w-11/12 mx-auto text-gray-700  min-h-[85dvh] flex flex-col bg-[#E5DDD5]  rounded-lg mt-3">
         {/* Complaints List */}
-        {complaints && complaints.length === 0 ? (
+        {allComplaints && allComplaints.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-16">
             <div className="text-7xl mb-4 animate-bounce">📋</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -127,13 +174,26 @@ export const AllChats = ({
           </div>
         ) : (
           <ScrollArea className="h-[70dvh]">
-            {complaints?.map((complaint: Complaint) => (
+            {allComplaints?.map((complaint: Complaint) => (
               <ComplaintCard
                 complaint={complaint}
                 key={complaint.id}
                 handleOpenExistingChat={handleOpenExistingChat}
               />
             ))}
+            {hasMore && (
+              <div className="w-full flex justify-center p-4">
+                <Button
+                  className="w-9/12 bg-[#075E54] text-white hover:bg-[#075E54]"
+                  onClick={loadMoreComplaints}
+                  disabled={isLoadingMore}
+                >
+                  {isLoadingMore
+                    ? translate("loading_more_complaints", language)
+                    : translate("load_more", language)}
+                </Button>
+              </div>
+            )}
             <ScrollBar orientation="vertical" color="black" />
           </ScrollArea>
         )}

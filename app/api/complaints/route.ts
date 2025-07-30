@@ -25,6 +25,10 @@ export async function GET(req: NextRequest) {
     const userId = searchParams.get("userId");
     const fetchOption = searchParams.get("fetch");
     const compId = searchParams.get("compId");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const offset = (page - 1) * limit;
+
     console.log("userId and searchParam ===== ", userId, searchParams);
 
     // if (!userId) {
@@ -49,16 +53,18 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authConfig);
     const user = session?.user as SessionUser;
 
-    console.log("Where obj :::::: ", {
-      ...(fetchOption == "my" && { userId: userIdNumber }),
-      ...((!user || user.role == "USER") &&
-        fetchOption == "all" && { isPublic: true }),
-    });
-
     let complaints = [];
+    let totalCount = 0;
+
     if (compId) {
       // Fetch the complaint with compId first
       const compIdNum = parseInt(compId);
+      console.log("Where obj :::::: ", {
+        id: compIdNum,
+        ...(fetchOption == "my" && { userId: userIdNumber }),
+        ...((!user || user.role == "USER") &&
+          fetchOption == "all" && { isPublic: true }),
+      });
       const compComplaint = await prisma.complaint.findFirst({
         where: {
           id: compIdNum,
@@ -72,7 +78,18 @@ export async function GET(req: NextRequest) {
           },
         },
       });
-      // Fetch the rest, excluding compId
+
+      // Get total count for pagination
+      totalCount = await prisma.complaint.count({
+        where: {
+          ...(fetchOption == "my" && { userId: userIdNumber }),
+          ...((!user || user.role == "USER") &&
+            fetchOption == "all" && { isPublic: true }),
+          id: { not: compIdNum },
+        },
+      });
+
+      // Fetch the rest with pagination, excluding compId
       const restComplaints = await prisma.complaint.findMany({
         where: {
           ...(fetchOption == "my" && { userId: userIdNumber }),
@@ -86,12 +103,25 @@ export async function GET(req: NextRequest) {
           },
         },
         orderBy: { createdAt: "desc" },
+        skip: offset,
+        take: limit,
       });
+
       complaints = [
         ...(compComplaint ? [compComplaint] : []),
         ...restComplaints,
       ];
+      totalCount += compComplaint ? 1 : 0;
     } else {
+      // Get total count for pagination
+      totalCount = await prisma.complaint.count({
+        where: {
+          ...(fetchOption == "my" && { userId: userIdNumber }),
+          ...((!user || user.role == "USER") &&
+            fetchOption == "all" && { isPublic: true }),
+        },
+      });
+
       complaints = await prisma.complaint.findMany({
         where: {
           ...(fetchOption == "my" && { userId: userIdNumber }),
@@ -104,6 +134,8 @@ export async function GET(req: NextRequest) {
           },
         },
         orderBy: { createdAt: "desc" },
+        skip: offset,
+        take: limit,
       });
     }
 
@@ -168,6 +200,10 @@ export async function GET(req: NextRequest) {
       data: {
         complaints: transformedComplaints,
         count: transformedComplaints.length,
+        totalCount,
+        hasMore: offset + limit < totalCount,
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
       },
     });
   } catch (error) {

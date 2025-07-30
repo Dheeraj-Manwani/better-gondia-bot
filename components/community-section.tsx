@@ -1,5 +1,10 @@
-import React from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useEffect, useState } from "react";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  UseQueryResult,
+} from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import {
   User,
@@ -28,26 +33,55 @@ interface CommunitySectionProps {
   user: User;
 }
 
+interface PaginatedComplaintsResponse {
+  data: {
+    complaints: Complaint[];
+    count: number;
+    totalCount: number;
+    hasMore: boolean;
+    currentPage: number;
+    totalPages: number;
+  };
+}
+
 export default function CommunitySection({ user }: CommunitySectionProps) {
   const session = useSession() as unknown as appSession;
   const setIsOpen = useModal((state) => state.setIsOpen);
   const compId = useCompId((state) => state.compId);
   const language = useLanguage((state) => state.language);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [allComplaints, setAllComplaints] = useState<Complaint[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  const { data: complaints, isLoading } = useQuery<{
-    data: { complaints: Complaint[] };
-  }>({
-    queryKey: ["/api/complaints", user.id],
-    queryFn: async () => {
-      const response = await apiRequest(
-        "GET",
-        `/api/complaints?userId=${user.id}&&fetch=all${
-          compId ? `&&compId=${compId}` : ""
-        }`
-      );
-      return response.json();
-    },
-  });
+  const { data: complaintsData, isLoading } =
+    useQuery<PaginatedComplaintsResponse>({
+      queryKey: ["/api/complaints", user.id],
+      queryFn: async () => {
+        const response = await apiRequest(
+          "GET",
+          `/api/complaints?userId=${user.id}&&fetch=all${
+            compId ? `&&compId=${compId}` : ""
+          }&&page=${currentPage}&&limit=10`
+        );
+        return response.json();
+      },
+    });
+
+  useEffect(() => {
+    if (complaintsData) {
+      if (currentPage === 1) {
+        setAllComplaints(complaintsData.data.complaints);
+        setHasMore(complaintsData.data.hasMore);
+      }
+      // else {
+      //   setAllComplaints((prev) => [
+      //     ...prev,
+      //     ...complaintsData.data.complaints,
+      //   ]);
+      // }
+    }
+  }, [complaintsData]);
 
   const toggleVisibility = useMutation({
     mutationFn: async ({
@@ -73,8 +107,6 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
       toast.success("Done !!", { id });
       return response.json();
     },
-    // onSuccess: (response: { complaintId: string }) => {},
-    // onError: (error: Error) => {},
   });
 
   const queryClient = useQueryClient();
@@ -198,10 +230,34 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
     },
   });
 
+  const loadMoreComplaints = async () => {
+    if (!hasMore || isLoadingMore) return;
+
+    setIsLoadingMore(true);
+    const nextPage = currentPage + 1;
+
+    try {
+      const response = await apiRequest(
+        "GET",
+        `/api/complaints?userId=${user.id}&&fetch=all${
+          compId ? `&&compId=${compId}` : ""
+        }&&page=${nextPage}&&limit=10`
+      );
+      const data = await response.json();
+
+      setAllComplaints((prev) => [...prev, ...data.data.complaints]);
+      setHasMore(data.data.hasMore);
+      setCurrentPage(nextPage);
+    } catch (error) {
+      toast.error("Failed to load more complaints");
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
   const handleCoSign = (complaintId: number) => {
-    const shouldApprove = !complaints?.data?.complaints?.find(
-      (c) => c.id === complaintId
-    )?.isCoSigned;
+    const shouldApprove = !allComplaints.find((c) => c.id === complaintId)
+      ?.isCoSigned;
 
     if (!user.id) {
       toast.error("Something went wrong, Please refresh the browser");
@@ -220,7 +276,6 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
     value: boolean,
     type: Visibility
   ) => {
-    // showLoader(true);
     toggleVisibility.mutate({ complaintId, value, type });
   };
 
@@ -265,11 +320,11 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
   //   return `${names[0].charAt(0)}${names[1].charAt(0)}`.toUpperCase();
   // };
 
-  if (isLoading) {
+  if (isLoading && currentPage === 1) {
     return <Spinner blur />;
   }
 
-  console.log("complaints ===== ", complaints);
+  console.log("complaints ===== ", allComplaints);
 
   return (
     <div className="h-full flex flex-col">
@@ -286,8 +341,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
       {/* Community Feed */}
       <div className="flex-1 overflow-y-auto">
         <div className="space-y-4 p-4">
-          {/* {dummyData.data.complaints.map((complaint) => ( */}
-          {complaints?.data?.complaints?.map((complaint) => (
+          {allComplaints.map((complaint) => (
             <CommunityComplaintCard
               key={complaint.id}
               complaint={complaint}
@@ -300,7 +354,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
             />
           ))}
 
-          {(!complaints || complaints.data.complaints.length === 0) && (
+          {(!allComplaints || allComplaints.length === 0) && !isLoading && (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8 text-gray-400" />
@@ -314,9 +368,20 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
             </div>
           )}
         </div>
-        <Button className="w-9/12 m-auto my-5 bg-[#075E54] text-white hover:bg-[#075E54]">
-          {translate("load_more", language)}
-        </Button>
+
+        {hasMore && (
+          <div className="w-full flex justify-center">
+            <Button
+              className="w-9/12 m-auto my-5 bg-[#075E54] text-white hover:bg-[#075E54]"
+              onClick={loadMoreComplaints}
+              disabled={isLoadingMore}
+            >
+              {isLoadingMore
+                ? translate("loading_more_complaints", language)
+                : translate("load_more", language)}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

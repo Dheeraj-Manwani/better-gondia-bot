@@ -374,6 +374,11 @@
     "hindi": "और लोड करें",
     "marathi": "अजून लोड करा"
   },
+  "loading_more_complaints": {
+    "english": "Loading more complaints...",
+    "hindi": "अधिक शिकायतें लोड हो रही हैं...",
+    "marathi": "अधिक तक्रारी लोड होत आहेत..."
+  },
   "better_gondia_mitra": {
     "english": "Better Gondia Mitra",
     "hindi": "बेहतर गोंदिया मित्र",

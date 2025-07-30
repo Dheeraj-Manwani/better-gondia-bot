@@ -51,7 +51,7 @@ export const BottomNavigation = ({
               } transition-colors`}
               onClick={() => handleSectionChange(item.id)}
             >
-              <IconComponent className="w-10 h-10" />
+              <IconComponent className="w-10 h-10" size={500} />
               <span className={`text-xs ${isActive ? "font-semibold" : ""}`}>
                 {item.label}
               </span>

@@ -9,6 +9,7 @@ import { resetApp } from "@/lib/clientUtils";
 import { useRouter } from "nextjs-toploader/app";
 import { ReportBug } from "./ReportBug";
 import { Social } from "./Social";
+import { ProfileModal } from "./ProfileModal";
 
 export function GenericModal() {
   const { isOpen, setIsOpen, modalType } = useModal();
@@ -61,7 +62,13 @@ export function GenericModal() {
       case "ReportBug":
         return <ReportBug />;
       case "Social":
-        return <Social />;
+        return (
+          <ProfileModal
+            userId={null}
+            isOpen={true}
+            onClose={() => setIsOpen(false)}
+          />
+        );
     }
   };
   const comp = getModalFromType(modalType ?? "Reload");
