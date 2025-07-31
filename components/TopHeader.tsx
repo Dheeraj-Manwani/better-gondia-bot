@@ -26,7 +26,7 @@ export const TopHeader = ({ isView = false }: { isView?: boolean }) => {
           </div>
         </div>
         <div>
-          <h1 className="font-medium text-[17px] flex gap-0.5 justify-center align-middle">
+          <h1 className="font-medium text-[17px] flex gap-0.5 align-middle">
             <span>{translate("better_gondia_mitra", language)}</span>{" "}
             <VerifiedCheck />
           </h1>

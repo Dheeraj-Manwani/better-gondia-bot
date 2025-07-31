@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -9,6 +11,8 @@ import { isAdmin } from "@/lib/clientUtils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { appSession } from "@/lib/auth";
 import { storeFileInS3 } from "@/app/actions/s3";
+import { translate } from "@/lib/translator";
+import { useLanguage } from "@/store/language";
 
 export default function StatusSection() {
   const [selectedStatus, setSelectedStatus] = useState<StatusUpdate | null>(
@@ -25,6 +29,7 @@ export default function StatusSection() {
     file: null as File | null,
   });
   const [submitting, setSubmitting] = useState(false);
+  const language = useLanguage((state) => state.language);
 
   const { data: statusUpdates, isLoading } = useQuery<StatusUpdate[]>({
     queryKey: ["/api/status/updates"],
@@ -93,7 +98,10 @@ export default function StatusSection() {
       try {
         const url = await storeFileInS3(file);
         if (!url) throw new Error("Failed to upload image");
-        setForm((f) => ({ ...f, imageUrl: url }));
+        setForm((f) => ({
+          ...f,
+          imageUrl: process.env.NEXT_PUBLIC_CLOUDFRONT_URL + "/" + url,
+        }));
       } catch (err) {
         alert("Image upload failed");
       }
@@ -118,9 +126,9 @@ export default function StatusSection() {
         {/* Status Header */}
         <div className="bg-white px-4 py-3 border-b border-gray-200 flex items-center justify-between">
           <div>
-            <h2 className="font-semibold ">Status</h2>
+            <h2 className="font-semibold ">{translate("status", language)}</h2>
             <p className="text-sm whatsapp-gray">
-              Stay updated with the updates
+              {translate("stay_updated_with_better_gondia", language)}
             </p>
           </div>
           {/* {isAdmin(session.data?.user?.role) && (
@@ -137,15 +145,14 @@ export default function StatusSection() {
             {/* My Status */}
             {isAdmin(session.data?.user?.role) && (
               <Button
-                className="flex flex-col items-center status-ring-viewed w-16 h-16 mb-2"
+                className="flex flex-col items-center status-ring-viewed w-16 h-16 mb-2 rounded-full p-0"
                 onClick={() => setShowAddModal(true)}
               >
-                <div className="status-ring-viewed w-16 h-16">
-                  <div className="w-full h-full bg-gray-200 rounded-full flex items-center justify-center">
-                    <Plus className="w-6 h-6 text-gray-500" />
-                  </div>
+                {/* <div className="status-ring-viewed w-16 h-16"> */}
+                <div className=" bg-gray-200 w-16 h-16 rounded-full flex items-center justify-center m-0">
+                  <Plus className="w-10 h-10 text-gray-500" size={50} />
                 </div>
-                <p className="text-xs  text-center">My Status</p>
+                {/* </div> */}
               </Button>
             )}
 
@@ -156,16 +163,16 @@ export default function StatusSection() {
                 className="flex flex-col items-center cursor-pointer"
                 onClick={() => openStatus(status, index)}
               >
-                <div className="status-ring w-16 h-16 mb-2">
+                <div className="status-ring-viewed border-2 border-green-500 w-16 h-16 mb-2">
                   <img
                     src={status.imageUrl || "/placeholder-image.jpg"}
                     alt={status.title}
                     className="w-full h-full object-cover rounded-full"
                   />
                 </div>
-                <p className="text-xs  text-center">
+                {/* <p className="text-xs  text-center">
                   {status.title.slice(0, 10)}...
-                </p>
+                </p> */}
               </div>
             ))}
           </div>
@@ -305,9 +312,8 @@ export default function StatusSection() {
                   </p>
                 </div>
               </div>
-              <p className="text-sm">
-                {selectedStatus.description || selectedStatus.title}
-              </p>
+              <div>{selectedStatus.title}</div>
+              <div className="text-sm">{selectedStatus.description}</div>
             </div>
           </div>
         </div>

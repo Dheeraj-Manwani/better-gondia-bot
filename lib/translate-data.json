@@ -413,5 +413,15 @@
     "english": "Follow us on",
     "hindi": "हमें यहां फॉलो करें",
     "marathi": "आम्हाला येथे फॉलो करा"
+  },
+  "status": {
+    "english": "Status",
+    "hindi": "स्थिति",
+    "marathi": "स्थिती"
+  },
+  "stay_updated_with_better_gondia": {
+    "english": "Stay updated with Better Gondia",
+    "hindi": "बेहतर गोंदिया के साथ अपडेट रहें",
+    "marathi": "बेटर गोंदियासोबत अपडेट रहा"
   }
 }
