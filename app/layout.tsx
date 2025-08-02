@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: "Better Gondia - Bot",
   description: "A complaint bot for people of gondia",
   icons: {
-    icon: "./favicon.svg",
+    icon: "./favicon.ico",
   },
 };
 
