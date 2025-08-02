@@ -61,3 +61,35 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+// DELETE: Delete a status update (admin/superadmin only)
+export async function DELETE(req: NextRequest) {
+  // @ts-expect-error to be taken care of
+  const session = await getServerSession(authConfig);
+  const user = session?.user as SessionUser;
+  if (!user || (user.role !== "ADMIN" && user.role !== "SUPERADMIN")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+
+  if (!id || isNaN(Number(id))) {
+    return NextResponse.json(
+      { error: "Valid status ID is required" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const deletedStatus = await prisma.statusUpdate.delete({
+      where: { id: Number(id) },
+    });
+    return NextResponse.json({ success: true, deletedStatus });
+  } catch (e) {
+    return NextResponse.json(
+      { error: "Failed to delete status update" },
+      { status: 500 }
+    );
+  }
+}

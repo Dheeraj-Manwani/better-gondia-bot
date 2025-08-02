@@ -1,23 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { StatusUpdate } from "@/types";
-import { X, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { Spinner } from "./ui/spinner";
 import { useSession } from "next-auth/react";
-import { isAdmin } from "@/lib/clientUtils";
+import { cn, isAdmin } from "@/lib/clientUtils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { appSession } from "@/lib/auth";
 import { storeFileInS3 } from "@/app/actions/s3";
 import { translate } from "@/lib/translator";
 import { useLanguage } from "@/store/language";
+import Image from "next/image";
 
 export default function StatusSection() {
   const [selectedStatus, setSelectedStatus] = useState<StatusUpdate | null>(
     null
   );
+  const [progress, setProgress] = useState(0); // 0 to 100
+  const [isPaused, setIsPaused] = useState(false);
+  // const [currentStatusIndex, setCurrentStatusIndex] = useState(0);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const session = useSession() as unknown as appSession;
   const queryClient = useQueryClient();
@@ -26,10 +31,49 @@ export default function StatusSection() {
     title: "",
     description: "",
     imageUrl: "",
+    videoUrl: "",
     file: null as File | null,
   });
   const [submitting, setSubmitting] = useState(false);
   const language = useLanguage((state) => state.language);
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [duration, setDuration] = useState<number | null>(null);
+
+  useEffect(() => {
+    console.log("vide use eff ::::");
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleLoadedMetadata = () => {
+      setDuration(video.duration);
+      console.log("vide duration:::::::::::: ", video.duration);
+    };
+
+    video.addEventListener("loadedmetadata", handleLoadedMetadata);
+
+    return () => {
+      video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+    };
+  }, [videoRef, selectedStatus]);
+
+  useEffect(() => {
+    if (isPaused || !selectedStatus || selectedStatus.videoUrl) return;
+    console.log("useEffect ran :::: ");
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          // setCurrentIndex((prev) => prev + 1);
+          nextStatus();
+          return 0; // Reset for next status
+        }
+        return prev + 1; // increase 1% every 50ms → 5s total
+      });
+    }, 50); // 50ms × 100 = 5s
+
+    return () => clearInterval(interval);
+  }, [isPaused, currentIndex, selectedStatus]);
 
   const { data: statusUpdates, isLoading } = useQuery<StatusUpdate[]>({
     queryKey: ["/api/status/updates"],
@@ -47,7 +91,26 @@ export default function StatusSection() {
     },
     onSuccess: () => {
       setShowAddModal(false);
-      setForm({ title: "", description: "", imageUrl: "", file: null });
+      setForm({
+        title: "",
+        description: "",
+        imageUrl: "",
+        videoUrl: "",
+        file: null,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/status/updates"] });
+    },
+  });
+
+  const deleteStatusMutation = useMutation({
+    mutationFn: async (statusId: number) => {
+      const res = await fetch(`/api/status/updates?id=${statusId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete status");
+      return res.json();
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/status/updates"] });
     },
   });
@@ -73,11 +136,23 @@ export default function StatusSection() {
     setSelectedStatus(null);
   };
 
+  const handlePause = () => setIsPaused(true);
+  const handleResume = () => setIsPaused(false);
+
+  const handleDeleteStatus = (statusId: number) => {
+    if (confirm("Are you sure you want to delete this status?")) {
+      deleteStatusMutation.mutate(statusId);
+    }
+  };
+
   const nextStatus = () => {
     if (statusUpdates && currentIndex < statusUpdates.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
       setSelectedStatus(statusUpdates[nextIndex]);
+    } else {
+      setCurrentIndex(0);
+      setSelectedStatus(null);
     }
   };
 
@@ -98,10 +173,25 @@ export default function StatusSection() {
       try {
         const url = await storeFileInS3(file);
         if (!url) throw new Error("Failed to upload image");
-        setForm((f) => ({
-          ...f,
-          imageUrl: process.env.NEXT_PUBLIC_CLOUDFRONT_URL + "/" + url,
-        }));
+
+        const fileExtension = url.split(".").pop()?.toLowerCase();
+        if (
+          ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(
+            fileExtension || ""
+          )
+        ) {
+          setForm((f) => ({
+            ...f,
+            imageUrl: process.env.NEXT_PUBLIC_CLOUDFRONT_URL + "/" + url,
+          }));
+        } else if (
+          ["mp4", "avi", "mov", "webm"].includes(fileExtension || "")
+        ) {
+          setForm((f) => ({
+            ...f,
+            videoUrl: process.env.NEXT_PUBLIC_CLOUDFRONT_URL + "/" + url,
+          }));
+        }
       } catch (err) {
         alert("Image upload failed");
       }
@@ -157,19 +247,35 @@ export default function StatusSection() {
             )}
 
             {/* Admin Status Updates */}
-            {statusUpdates?.slice(0, 3).map((status, index) => (
+            {statusUpdates?.map((status, index) => (
               <div
                 key={status.id}
-                className="flex flex-col items-center cursor-pointer"
+                className="flex flex-col items-center cursor-pointer relative"
                 onClick={() => openStatus(status, index)}
               >
                 <div className="status-ring-viewed border-2 border-green-500 w-16 h-16 mb-2">
                   <img
-                    src={status.imageUrl || "/placeholder-image.jpg"}
+                    src={
+                      status.imageUrl ||
+                      "https://d2jow4rnitzfmr.cloudfront.net/e2c40e62-f8c3-44f0-bb48-d6258079243c_logopng.png"
+                    }
                     alt={status.title}
                     className="w-full h-full object-cover rounded-full"
                   />
                 </div>
+                {/* Delete button for admins */}
+                {isAdmin(session.data?.user?.role) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteStatus(status.id);
+                    }}
+                    className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 w-6 h-6 flex items-center justify-center transition-colors"
+                    title="Delete status"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                )}
                 {/* <p className="text-xs  text-center">
                   {status.title.slice(0, 10)}...
                 </p> */}
@@ -184,17 +290,25 @@ export default function StatusSection() {
             {statusUpdates?.map((update) => (
               <div
                 key={update.id}
-                className="bg-white rounded-lg p-4 border border-gray-200"
+                className="bg-white rounded-lg p-4 border border-gray-200 relative"
               >
+                {/* Delete button for admins */}
+                {isAdmin(session.data?.user?.role) && (
+                  <button
+                    onClick={() => handleDeleteStatus(update.id)}
+                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 w-8 h-8 flex items-center justify-center transition-colors z-40"
+                    title="Delete status"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 whatsapp-green rounded-full flex items-center justify-center">
                       <i className="fas fa-shield-alt text-white text-xs"></i>
                     </div>
                     <div>
-                      <p className="font-medium text-sm ">
-                        Gondia Municipal Corp
-                      </p>
+                      <p className="font-medium text-sm ">Better Gondia</p>
                       <p className="text-xs whatsapp-gray">
                         {formatTimeAgo(update.createdAt)}
                       </p>
@@ -207,6 +321,17 @@ export default function StatusSection() {
                     src={update.imageUrl}
                     alt={update.title}
                     className="w-full h-48 object-cover rounded-lg mb-3"
+                  />
+                )}
+
+                {update.videoUrl && (
+                  <video
+                    ref={videoRef}
+                    src={update.videoUrl}
+                    controls
+                    muted={false}
+                    className="object-cover rounded-lg mb-3"
+                    style={{ maxWidth: "100%", height: "auto" }}
                   />
                 )}
 
@@ -238,23 +363,59 @@ export default function StatusSection() {
 
       {/* Status Viewer Modal */}
       {selectedStatus && (
-        <div className="fixed inset-0 bg-black z-50">
-          <div className="flex flex-col h-full">
+        <div
+          className="fixed inset-0 bg-black z-40"
+          onMouseDown={handlePause}
+          onMouseUp={handleResume}
+          onTouchStart={handlePause}
+          onTouchEnd={handleResume}
+        >
+          <div className="flex flex-col h-[100dvh]">
             {/* Status Header */}
-            <div className="flex items-center justify-between p-4 text-white">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={closeStatus}
-                className="p-2 text-white hover:bg-white hover:bg-opacity-10"
-              >
-                <X className="w-6 h-6" />
-              </Button>
-              <div className="flex-1 mx-4">
-                <div className="h-1 bg-gray-600 rounded-full">
-                  <div className="h-1 bg-white rounded-full status-progress"></div>
-                </div>
+            <div
+              className={cn(
+                "flex items-center justify-between p-2 text-white",
+                selectedStatus.videoUrl && "absolute z-50 w-full"
+              )}
+            >
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={closeStatus}
+                  className="p-2 text-white hover:bg-white hover:bg-opacity-10"
+                >
+                  <X className="w-6 h-6" />
+                </Button>
+                {/* Delete button for admins in modal */}
+                {isAdmin(session.data?.user?.role) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      handleDeleteStatus(selectedStatus.id);
+                      closeStatus();
+                    }}
+                    className="p-2 text-red-400 hover:bg-red-500 hover:bg-opacity-20"
+                    title="Delete status"
+                  >
+                    <Trash2 className="w-6 h-6" />
+                  </Button>
+                )}
               </div>
+              {!selectedStatus.videoUrl && (
+                <div className="flex-1 mx-4">
+                  {/* <div className="h-1 bg-gray-600 rounded-full">
+                  <div className="h-1 bg-white rounded-full status-progress"></div>
+                </div> */}
+                  <div className="w-full h-1 bg-gray-300">
+                    <div
+                      className="h-1 bg-blue-500 transition-all duration-50"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
               <div className="flex space-x-2">
                 <Button
                   variant="ghost"
@@ -281,22 +442,33 @@ export default function StatusSection() {
 
             {/* Status Content */}
             <div className="flex-1 flex items-center justify-center">
-              {selectedStatus.imageUrl ? (
+              {selectedStatus.imageUrl && (
                 <img
                   src={selectedStatus.imageUrl}
                   alt={selectedStatus.title}
                   className="max-w-full max-h-full object-contain"
                 />
-              ) : (
-                <div className="text-white text-center">
-                  <p className="text-lg">{selectedStatus.title}</p>
-                  {selectedStatus.description && (
-                    <p className="text-sm opacity-75 mt-2">
-                      {selectedStatus.description}
-                    </p>
-                  )}
-                </div>
               )}
+              {selectedStatus.videoUrl && (
+                <video
+                  ref={videoRef}
+                  src={selectedStatus.videoUrl}
+                  controls
+                  autoPlay
+                  className="object-cover rounded-lg mb-3"
+                  style={{ maxWidth: "100%", height: "auto" }}
+                />
+              )}
+              {/* // ) : (
+              //   <div className="text-white text-center">
+              //     <p className="text-lg">{selectedStatus.title}</p>
+              //     {selectedStatus.description && (
+              //       <p className="text-sm opacity-75 mt-2">
+              //         {selectedStatus.description}
+              //       </p>
+              //     )}
+              //   </div>
+              // )} */}
             </div>
 
             {/* Status Footer */}
@@ -306,7 +478,7 @@ export default function StatusSection() {
                   <i className="fas fa-shield-alt text-xs"></i>
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Gondia Municipal Corp</p>
+                  <p className="font-medium text-sm">Better Gondia</p>
                   <p className="text-xs opacity-75">
                     {formatTimeAgo(selectedStatus.createdAt)}
                   </p>
@@ -320,7 +492,7 @@ export default function StatusSection() {
       )}
       {/* Add Status Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-40 flex items-center justify-center">
           <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md relative">
             <button
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
@@ -340,6 +512,7 @@ export default function StatusSection() {
                     title: form.title,
                     description: form.description,
                     imageUrl: form.imageUrl,
+                    videoUrl: form.videoUrl,
                   },
                   { onSettled: () => setSubmitting(false) }
                 );
@@ -367,17 +540,22 @@ export default function StatusSection() {
                 <label className="block mb-2 font-medium">Image</label>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/*,video/*"
                   className="w-full border rounded-lg px-3 py-2"
                   onChange={handleFileChange}
                 />
                 {form.imageUrl && (
-                  <div className="mt-3 flex justify-center">
+                  <div className="mt-3 flex justify-center max-h-40">
                     <img
                       src={form.imageUrl}
                       alt="Preview"
                       className="max-h-40 rounded-lg border"
                     />
+                  </div>
+                )}
+                {form.videoUrl && (
+                  <div className="mt-3 flex justify-center max-h-40">
+                    <video src={form.videoUrl} controls />
                   </div>
                 )}
               </div>
@@ -392,7 +570,11 @@ export default function StatusSection() {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={submitting || !form.title || !form.imageUrl}
+                  disabled={
+                    submitting ||
+                    !form.title ||
+                    (!form.imageUrl && !form.videoUrl)
+                  }
                 >
                   {submitting ? "Adding..." : "Add"}
                 </Button>
