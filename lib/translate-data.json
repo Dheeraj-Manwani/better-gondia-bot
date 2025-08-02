@@ -423,5 +423,10 @@
     "english": "Stay updated with Better Gondia",
     "hindi": "बेहतर गोंदिया के साथ अपडेट रहें",
     "marathi": "बेटर गोंदियासोबत अपडेट रहा"
+  },
+  "recent_updates": {
+    "english": "Recent Updates",
+    "hindi": "हालिया अपडेट",
+    "marathi": "अलीकडील अद्यतने"
   }
 }

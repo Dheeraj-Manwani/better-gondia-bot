@@ -13,7 +13,6 @@ import { appSession } from "@/lib/auth";
 import { storeFileInS3 } from "@/app/actions/s3";
 import { translate } from "@/lib/translator";
 import { useLanguage } from "@/store/language";
-import Image from "next/image";
 
 export default function StatusSection() {
   const [selectedStatus, setSelectedStatus] = useState<StatusUpdate | null>(
@@ -231,7 +230,7 @@ export default function StatusSection() {
         {/* Status Content */}
         <div className="flex-1 overflow-y-auto p-4">
           {/* Status Stories */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="flex gap-5 mb-6">
             {/* My Status */}
             {isAdmin(session.data?.user?.role) && (
               <Button
