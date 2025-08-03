@@ -27,7 +27,13 @@ function DialogPortal({
 function DialogClose({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Close>) {
-  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
+  return (
+    <DialogPrimitive.Close
+      data-slot="dialog-close"
+      {...props}
+      className="h-5 w-5 text-white"
+    />
+  );
 }
 
 function DialogOverlay({
@@ -70,9 +76,9 @@ function DialogContent({
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
-            className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+            className="ring-offset-background data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100  disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
           >
-            <XIcon />
+            <XIcon className="w-7 h-7 text-white mt-1.5" />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
         )}

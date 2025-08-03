@@ -21,10 +21,10 @@ export const AppWrapper = ({ children }: { children: React.ReactNode }) => {
           <NextTopLoader color="#155dfc" showSpinner={false} />
           <Toaster richColors position="top-center" expand closeButton />
           <TooltipProvider>
-            <div className="flex min-h-[100dvh] w-full md:justify-center md:items-center">
+            <div className="flex min-h-[100dvh] m-0 p-0 w-full md:justify-center md:items-center bg-black">
               {/* Left-side text (only on md and up) */}
               {/* Centered "mobile screen" */}
-              <div className="w-full md:w-[400px] m-auto h-full md:h-[100dvh] bg-white border border-gray-300 ">
+              <div className="w-full md:w-[400px] m-auto my-0 p-0 h-full md:h-[100dvh]">
                 <GenericModal />
                 {children}
                 {isLoading && <Spinner text={loaderText} blur />}

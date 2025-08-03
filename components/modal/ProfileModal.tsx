@@ -28,36 +28,28 @@ const VisuallyHidden = ({ children }: { children: React.ReactNode }) => (
 );
 
 interface ProfileModalProps {
-  userId: string | null;
-  isOpen: boolean;
   onClose: () => void;
 }
 
-export function ProfileModal({ userId, isOpen, onClose }: ProfileModalProps) {
+export function ProfileModal({ onClose }: ProfileModalProps) {
   const user = {
     name: "Better Gondia Mitra",
     profileImage: "https://via.placeholder.com/150",
     email: "support@bettergondia.org",
   };
 
-  const handleVideoCall = () => {
-    console.log("Video calling", user?.name);
-  };
-
-  if (!isOpen || !user) return null;
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="p-0 max-w-md mx-auto border-0 bg-white overflow-hidden w-full sm:max-w-md sm:h-auto max-h-[90dvh] sm:rounded-lg shadow-2xl md:w-[350px]">
-        <VisuallyHidden>
-          <DialogTitle>{user.name} Profile</DialogTitle>
-          <DialogDescription>
-            Profile information for {user.name}
-          </DialogDescription>
-        </VisuallyHidden>
+    <DialogContent className="bg-white h-[92dvh] w-full md:w-[350px] p-0 m-0">
+      <VisuallyHidden>
+        <DialogTitle>{user.name} Profile</DialogTitle>
+        <DialogDescription>
+          Profile information for {user.name}
+        </DialogDescription>
+      </VisuallyHidden>
 
-        {/* WhatsApp-style Header */}
-        <div className="bg-[#075E54] px-4 py-4 flex items-center space-x-4 shadow-sm">
+      {/* WhatsApp-style Header */}
+      <div className="w-full h-[90dvh]">
+        <div className="bg-[#075E54] flex items-center space-x-2 shadow-sm p-4 h-[8dvh]">
           <button
             onClick={onClose}
             className="text-white hover:text-gray-200 p-1 rounded-full"
@@ -66,16 +58,11 @@ export function ProfileModal({ userId, isOpen, onClose }: ProfileModalProps) {
           </button>
           <span className="text-white text-lg font-medium">Contact info</span>
         </div>
-        <div className="overflow-y-auto flex-1">
+        <div className="overflow-y-auto flex-1 p-4 h-[82dvh]">
           {/* Profile Section */}
           <div className="bg-white px-6 py-6 text-center border-b border-gray-100">
             <div className="relative mb-4">
               <Avatar className="w-36 h-36 mx-auto cursor-pointer hover:scale-105 transition-transform shadow-lg border border-gray-200">
-                {/* <AvatarImage
-                src={logo}
-                alt={user.name}
-                className="object-cover"
-              /> */}
                 <Image
                   src={logo}
                   className="m-auto"
@@ -284,7 +271,7 @@ export function ProfileModal({ userId, isOpen, onClose }: ProfileModalProps) {
             </p>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </DialogContent>
   );
 }

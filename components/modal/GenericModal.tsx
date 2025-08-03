@@ -62,13 +62,7 @@ export function GenericModal() {
       case "ReportBug":
         return <ReportBug />;
       case "Social":
-        return (
-          <ProfileModal
-            userId={null}
-            isOpen={true}
-            onClose={() => setIsOpen(false)}
-          />
-        );
+        return <ProfileModal onClose={() => setIsOpen(false)} />;
     }
   };
   const comp = getModalFromType(modalType ?? "Reload");

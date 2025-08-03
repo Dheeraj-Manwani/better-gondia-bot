@@ -153,7 +153,7 @@ export const AllChats = ({
           </Button>
         )}
       </div>
-      <div className="max-w-11/12 mx-auto text-gray-700  min-h-[85dvh] flex flex-col bg-[#E5DDD5]  rounded-lg mt-3">
+      <div className="max-w-11/12 mx-auto text-gray-700  min-h-[85dvh] flex flex-col bg-[#E5DDD5]  rounded-lg">
         {/* Complaints List */}
         {allComplaints && allComplaints.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-16">
@@ -173,7 +173,7 @@ export const AllChats = ({
             </Button>
           </div>
         ) : (
-          <ScrollArea className="h-[70dvh]">
+          <ScrollArea className="h-[82dvh] py-1.5 ">
             {allComplaints?.map((complaint: Complaint) => (
               <ComplaintCard
                 complaint={complaint}
