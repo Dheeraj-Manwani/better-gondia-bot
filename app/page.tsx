@@ -9,21 +9,21 @@ export function generateMetadata(): Metadata {
     process.env.NEXT_PUBLIC_BASE_URL || "https://better-gondia-bot.vercel.app";
 
   return {
-    title: "Gondia Khabar Mitra",
+    title: "Better Gondia Mitra",
     description:
-      "Gondia khabar mitra is a platform where you can create a complaint or support existing one's related to gondia.",
+      "Better Gondia mitra is a platform where you can create a complaint or support existing one's related to gondia.",
     openGraph: {
-      title: "Gondia Khabar Mitra",
+      title: "Better Gondia Mitra",
       description:
-        "Gondia khabar mitra is a platform where you can create a complaint or support existing one's related to gondia.",
+        "Better Gondia mitra is a platform where you can create a complaint or support existing one's related to gondia.",
       images: imageUrl ? [imageUrl] : [],
       url: baseUrl,
     },
     twitter: {
       card: imageUrl ? "summary_large_image" : "summary",
-      title: "Gondia Khabar Mitra",
+      title: "Better Gondia Mitra",
       description:
-        "Gondia khabar mitra is a platform where you can create a complaint or support existing one's related to gondia.",
+        "Better Gondia mitra is a platform where you can create a complaint or support existing one's related to gondia.",
       images: imageUrl ? [imageUrl] : [],
     },
   };

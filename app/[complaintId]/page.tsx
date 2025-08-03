@@ -15,9 +15,9 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
 
   if (!complaint) {
     return {
-      title: "Gondia Khabar Mitra",
+      title: "Better Gondia Mitra",
       description:
-        "Gondia khabar mitra is a platform where you can create a complaint or support existing one's related to gondia.",
+        "Better Gondia mitra is a platform where you can create a complaint or support existing one's related to gondia.",
     };
   }
 

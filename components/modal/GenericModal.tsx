@@ -45,7 +45,7 @@ export function GenericModal() {
             description={
               <>
                 For interacting with this Complaint, <br /> You need to log in
-                to Gondia Khabar Mitra
+                to Better Gondia Mitra
               </>
             }
             btn={

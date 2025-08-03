@@ -206,7 +206,7 @@ export const CommunityComplaintCard = ({
                     `Check out the complaint ${generateComplaintIdFromDate(
                       complaint.id,
                       complaint.createdAt
-                    )} in Gondia Khabar Mitra. \n` +
+                    )} in Better Gondia Mitra. \n` +
                       process.env.NEXT_PUBLIC_BASE_URL +
                       "/" +
                       complaint.id
