@@ -39,7 +39,7 @@ export function ProfileModal({ onClose }: ProfileModalProps) {
   };
 
   return (
-    <DialogContent className="bg-white h-[92dvh] w-full md:w-[350px] p-0 m-0">
+    <DialogContent className="bg-white h-[92dvh]  md:w-[350px] p-0 m-0">
       <VisuallyHidden>
         <DialogTitle>{user.name} Profile</DialogTitle>
         <DialogDescription>
@@ -48,7 +48,7 @@ export function ProfileModal({ onClose }: ProfileModalProps) {
       </VisuallyHidden>
 
       {/* WhatsApp-style Header */}
-      <div className="w-full h-[90dvh]">
+      <div className=" h-[90dvh]">
         <div className="bg-[#075E54] flex items-center space-x-2 shadow-sm p-4 h-[8dvh]">
           <button
             onClick={onClose}
@@ -58,7 +58,7 @@ export function ProfileModal({ onClose }: ProfileModalProps) {
           </button>
           <span className="text-white text-lg font-medium">Contact info</span>
         </div>
-        <div className="overflow-y-auto flex-1 p-4 h-[82dvh]">
+        <div className="overflow-y-auto flex-1  h-[82dvh]">
           {/* Profile Section */}
           <div className="bg-white px-6 py-6 text-center border-b border-gray-100">
             <div className="relative mb-4">

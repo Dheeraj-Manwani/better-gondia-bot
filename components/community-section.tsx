@@ -372,7 +372,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
         {hasMore && (
           <div className="w-full flex justify-center">
             <Button
-              className="w-9/12 m-auto my-5 bg-[#075E54] text-white hover:bg-[#075E54]"
+              className="w-9/12 m-auto my-5 mb-8  bg-[#075E54] text-white hover:bg-[#075E54]"
               onClick={loadMoreComplaints}
               disabled={isLoadingMore}
             >
