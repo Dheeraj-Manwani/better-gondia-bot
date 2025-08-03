@@ -80,7 +80,7 @@ export const ReportBug = ({ onSuccess }: { onSuccess?: () => void }) => {
   };
 
   return (
-    <DialogContent className="bg-white max-w-sm w-full">
+    <DialogContent className="bg-white md:w-[350px]">
       <DialogHeader>
         <DialogTitle>Report a Bug</DialogTitle>
         <DialogDescription>

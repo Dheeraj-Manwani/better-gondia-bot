@@ -137,7 +137,7 @@ export const AllChats = ({
       {/* Header */}
       <div className="bg-white text-gray-700 px-4 py-2.5 flex items-center  sticky top-0 z-10  justify-between">
         <div className="font-semibold text-md flex gap-1.5 justify-center align-middle">
-          <BookAlert className="mt-0.5" />{" "}
+          <BookAlert className="mt-0.5" />
           <span>{translate("my_complaints", language)}</span>
         </div>
 

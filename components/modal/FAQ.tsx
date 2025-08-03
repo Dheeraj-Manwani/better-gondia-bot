@@ -14,7 +14,7 @@ import logo from "@/public/logo.svg";
 
 export const FAQ = () => {
   return (
-    <DialogContent className="bg-white">
+    <DialogContent className="bg-white md:w-[350px]">
       <DialogHeader>
         <DialogTitle className="flex gap-1 justify-center items-center font-bold text-center text-gray-800 mb-2">
           <Image src={logo} height={30} width={30} alt="logo" />{" "}

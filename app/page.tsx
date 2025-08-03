@@ -30,5 +30,25 @@ export function generateMetadata(): Metadata {
 }
 
 export default function Page() {
-  return <Home />;
+  return (
+    // <div className="flex min-h-[100dvh] w-full md:justify-center md:items-center">
+    //   {/* Left-side text (only on md and up) */}
+    //   {/* Centered "mobile screen" */}
+    //   <div className="w-full md:w-[400px] h-full md:h-[100dvh] bg-white border border-gray-300 ">
+    //     <Home />
+    //   </div>{" "}
+    //   <div className="hidden  md:flex flex-col justify-center items-start text-gray-600 px-8 max-w-sm sm:w-20 lg:w-sm">
+    //     <h2 className="text-2xl font-semibold mb-4">Mobile Only Experience</h2>
+    //     <p>
+    //       Please open this website on a mobile device for the best experience.
+    //     </p>
+    //   </div>
+    // </div>
+
+    // <div className="h-[100dvh] w-[100dvw]">
+    //   <div className="h-[100dvh] w-72 m-auto">
+    <Home />
+    //   </div>
+    // </div>
+  );
 }

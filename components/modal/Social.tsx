@@ -8,7 +8,7 @@ import GradientText from "../GradientText";
 export const Social = () => {
   const language = useLanguage((state) => state.language);
   return (
-    <DialogContent className="bg-white">
+    <DialogContent className="bg-white md:w-[350px]">
       <DialogHeader>
         <div className="w-full">
           <Image

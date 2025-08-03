@@ -84,7 +84,7 @@ export const Report = () => {
     }
   };
   return (
-    <DialogContent className="bg-white">
+    <DialogContent className="bg-white md:w-[350px]">
       <DialogHeader>
         <DialogTitle className="flex gap-1 justify-center items-center font-bold text-center text-gray-800 mb-2">
           <span> Report Complaint {data?.complaintId && data.complaintId}</span>

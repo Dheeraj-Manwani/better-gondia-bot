@@ -24,7 +24,7 @@ export const AlertModal = ({
   onClick: () => void;
 }) => {
   return (
-    <DialogContent className="bg-white">
+    <DialogContent className="bg-white md:w-[350px]">
       <DialogHeader>
         <DialogTitle>{title}</DialogTitle>
         <DialogDescription>{description}</DialogDescription>

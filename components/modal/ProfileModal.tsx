@@ -48,7 +48,7 @@ export function ProfileModal({ userId, isOpen, onClose }: ProfileModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="p-0 max-w-md mx-auto border-0 bg-white overflow-hidden max-h-screen h-screen w-full sm:max-w-md sm:h-auto sm:max-h-[90vh] sm:rounded-lg shadow-2xl">
+      <DialogContent className="p-0 max-w-md mx-auto border-0 bg-white overflow-hidden w-full sm:max-w-md sm:h-auto max-h-[90dvh] sm:rounded-lg shadow-2xl md:w-[350px]">
         <VisuallyHidden>
           <DialogTitle>{user.name} Profile</DialogTitle>
           <DialogDescription>

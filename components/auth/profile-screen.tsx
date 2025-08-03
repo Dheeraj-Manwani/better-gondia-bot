@@ -150,7 +150,7 @@ export default function ProfileScreen({
   };
 
   return (
-    <div className="fixed inset-0 bg-white z-50">
+    <div className=" bg-white z-50 md:w-[400px]">
       <div className="flex flex-col h-full">
         {/* Header */}
         {onBack && (

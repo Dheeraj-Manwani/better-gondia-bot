@@ -13,7 +13,7 @@ import { Button } from "../ui/button";
 
 export const Test = () => {
   return (
-    <DialogContent className="sm:max-w-[425px] bg-white">
+    <DialogContent className="md:w-[350px] bg-white">
       <DialogHeader>
         <DialogTitle>Edit profile</DialogTitle>
         <DialogDescription>

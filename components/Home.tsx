@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import LanguageSelection from "@/components/language-selection";
 import LoginScreen from "@/components/auth/login-screen";
 import OTPScreen from "@/components/auth/otp-screen";
@@ -21,7 +21,7 @@ import { useBot } from "@/store/bot";
 import { setCookie } from "cookies-next/client";
 import { useSections } from "@/store/section";
 
-export default function Home() {
+export default function HomeComp() {
   const { authStep, setAuthStep } = useAuthStep();
   const { section, setSection } = useSections();
   const [hasUserOpened, setHasUserOpened] = useState<boolean>(false);
@@ -146,7 +146,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-[#E5DDD5]">
+    <div className="flex flex-col h-[100dvh] bg-[#E5DDD5] z-20">
       <TopHeader />
 
       {/* Content Area */}
@@ -176,3 +176,7 @@ export default function Home() {
     </div>
   );
 }
+
+export const Home = React.memo(HomeComp, () => {
+  return true;
+});

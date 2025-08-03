@@ -19,12 +19,26 @@ export const AppWrapper = ({ children }: { children: React.ReactNode }) => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <NextTopLoader color="#155dfc" showSpinner={false} />
-
           <Toaster richColors position="top-center" expand closeButton />
           <TooltipProvider>
-            <GenericModal />
-            {children}
-            {isLoading && <Spinner text={loaderText} blur />}
+            <div className="flex min-h-[100dvh] w-full md:justify-center md:items-center">
+              {/* Left-side text (only on md and up) */}
+              {/* Centered "mobile screen" */}
+              <div className="w-full md:w-[400px] m-auto h-full md:h-[100dvh] bg-white border border-gray-300 ">
+                <GenericModal />
+                {children}
+                {isLoading && <Spinner text={loaderText} blur />}
+              </div>
+              {/* <div className="hidden  md:flex flex-col justify-center items-start text-gray-600 px-8 max-w-sm sm:w-20 lg:w-sm">
+                <h2 className="text-2xl font-semibold mb-4">
+                  Mobile Only Experience
+                </h2>
+                <p>
+                  Please open this website on a mobile device for the best
+                  experience.
+                </p>
+              </div> */}
+            </div>
           </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>

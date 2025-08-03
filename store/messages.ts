@@ -15,7 +15,7 @@ interface UseMessages {
   removeMessage: (id: number) => void;
 }
 
-const getInitialMessage = (): ChatMessage => {
+const getInitialMessage = (lang?: Language): ChatMessage => {
   const language: Language =
     typeof window !== "undefined"
       ? (localStorage.getItem("language") as Language) ?? "english"
@@ -23,7 +23,7 @@ const getInitialMessage = (): ChatMessage => {
 
   return {
     id: 0,
-    content: translate("intro_message", language),
+    content: translate("intro_message", lang ?? language),
     messageType: "bot",
     isRead: false,
     createdAt: new Date().toISOString(),
@@ -31,7 +31,7 @@ const getInitialMessage = (): ChatMessage => {
 };
 
 export const useMessages = create<UseMessages>()((set, get) => ({
-  messages: [getInitialMessage()],
+  messages: [],
 
   setMessages: (messages: ChatMessage[]) => set({ messages }),
 

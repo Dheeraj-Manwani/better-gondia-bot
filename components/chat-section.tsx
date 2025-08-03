@@ -164,9 +164,13 @@ export default function ChatSection({
 
   useEffect(() => {
     // Add welcome message if no messages exist
-    if (messages.length === 1) {
-      addBotMessage(translate("select_complaint_category", language));
+    if (messages.length === 0) {
+      const intro = translate("intro_message", language);
+      const introBotMessage = getBotMessage(intro);
+      addMessage(introBotMessage);
     }
+    if (messages.length === 1)
+      addBotMessage(translate("select_complaint_category", language));
   }, [messages.length]);
 
   let botMessageTimeout: ReturnType<typeof setTimeout> | null = null;
