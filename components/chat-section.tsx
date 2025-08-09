@@ -16,6 +16,7 @@ import {
   MicOff,
 } from "lucide-react";
 import { useBot } from "@/store/bot";
+import type { BotState } from "@/store/bot";
 import { useMessages } from "@/store/messages";
 import { toast } from "sonner";
 import { ChatBubble } from "./chat-bubble";
@@ -78,7 +79,10 @@ export default function ChatSection({
   const { messages, addMessage, resetToInitial } = useMessages();
   const language = useLanguage((state) => state.language);
   const openModal = useModal((state) => state.setIsOpen);
-  const { botState, setBotState } = useBot();
+  const { botState, setBotState } = useBot() as unknown as {
+    botState: BotState;
+    setBotState: (state: BotState) => void;
+  };
   const [isRecording, setIsRecording] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
@@ -87,6 +91,85 @@ export default function ChatSection({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Function to update complaint messages in database
+  const updateComplaintMessages = async (
+    complaintId: number,
+    message: ChatMessage
+  ) => {
+    const finalMessages = [...messages, message];
+    console.log("messages ========= ", finalMessages);
+    try {
+      const response = await fetch(`/api/complaints/${complaintId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: JSON.stringify(finalMessages),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update complaint messages");
+      }
+    } catch (error) {
+      console.error("Error updating complaint messages:", error);
+      toast.error("Failed to save message");
+    }
+  };
+
+  // Function to change complaint status
+  const changeComplaintStatus = async (
+    complaintId: number,
+    newStatus: string
+  ) => {
+    try {
+      const response = await fetch(`/api/complaints/${complaintId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: newStatus,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update complaint status");
+      }
+
+      // Add bot message about status change
+      const statusMessage: ChatMessage = {
+        id: Date.now(),
+        content: `Status of your complaint has been changed to "${newStatus}"`,
+        messageType: "bot",
+        isRead: false,
+        createdAt: new Date().toISOString(),
+      };
+
+      addMessage(statusMessage);
+
+      // // Update the complaint messages in the database
+      // updateComplaintMessages(complaintId);
+
+      // Update bot state with new complaint data
+      // if (botState.complaintData) {
+      //   setBotState({
+      //     ...botState,
+      //     complaintData: {
+      //       ...botState.complaintData,
+      //       status: newStatus,
+      //     },
+      //   });
+      // }
+
+      toast.success(`Status updated to ${newStatus}`);
+    } catch (error) {
+      console.error("Error updating complaint status:", error);
+      toast.error("Failed to update status");
+    }
+  };
 
   const showTypingIndicator = (time: number) => {
     setIsTyping(true);
@@ -294,6 +377,27 @@ export default function ChatSection({
       });
 
       addBotMessage(translate("ask_media_upload", language));
+    } else if (botState.step === "admin") {
+      // Admin is replying to the chat
+      const adminMessage: ChatMessage = {
+        id: Date.now(),
+        userId: userData.id || 0,
+        content: messageInput,
+        messageType: "bot", // Admin messages appear as bot messages
+        isRead: false,
+        createdAt: new Date().toISOString(),
+      };
+
+      addMessage(adminMessage);
+
+      // Update the complaint messages in the database
+      if (botState.complaintData?.id) {
+        updateComplaintMessages(botState.complaintData.id, adminMessage);
+      }
+
+      // Don't add user message for admin replies
+      handleInputChange("");
+      return;
     }
 
     addMessage(userMessage);
@@ -942,11 +1046,15 @@ export default function ChatSection({
           </div>
         ))}
         {isTyping && <ChatBubble />}
-        {(botState.step == "done" || botState.step == "existing") && (
+        {(botState.step == "done" ||
+          botState.step == "existing" ||
+          botState.step == "admin") && (
           // <></>
           <div className=" mb-1 flex flex-col gap-3">
             <Alert type="warning" className="w-11/12 m-auto">
-              {translate("chat_ended_start_new", language)}
+              {botState.step === "admin"
+                ? "Admin Mode - You can reply to this chat and change complaint status"
+                : translate("chat_ended_start_new", language)}
             </Alert>
 
             <div className="flex justify-around items-center w-11/12 m-auto">
@@ -958,6 +1066,26 @@ export default function ChatSection({
                     onClick={() => handleSectionChange("my-issues")}
                   >
                     {translate("close", language)}
+                  </Button>
+                  <Button
+                    className="bg-[#5cd388] w-5/12  hover:bg-[#25D366]"
+                    onClick={() => {
+                      handleOpenNewChat();
+                      resetToInitial();
+                    }}
+                  >
+                    {translate("new_complaint", language)}
+                  </Button>
+                </>
+              )}
+              {botState.step == "admin" && (
+                <>
+                  <Button
+                    className="w-5/12"
+                    variant={"default"}
+                    onClick={() => handleSectionChange("community")}
+                  >
+                    Back to Community
                   </Button>
                   <Button
                     className="bg-[#5cd388] w-5/12  hover:bg-[#25D366]"
@@ -994,10 +1122,64 @@ export default function ChatSection({
 
       {/* Chat Input */}
       <div className="">
-        {!["done", "existing", "category", "media", "preview"].includes(
-          botState.step
-        ) ? (
+        {!["done", "category", "media", "preview"].includes(botState.step) ? (
           <div className="">
+            {/* Admin Status Change Controls */}
+            {botState.step === "admin" && (
+              <div className="bg-blue-50 p-3 border-b border-blue-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-blue-800">
+                    Admin Controls
+                  </span>
+                  <span className="text-xs text-blue-600">
+                    Current Status:{" "}
+                    {botState.complaintData?.status || "Unknown"}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      changeComplaintStatus(
+                        botState.complaintData?.id!,
+                        "submitted"
+                      )
+                    }
+                    className="text-xs"
+                  >
+                    Set Submitted
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      changeComplaintStatus(
+                        botState.complaintData?.id!,
+                        "forwarded"
+                      )
+                    }
+                    className="text-xs"
+                  >
+                    Set Forwarded
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      changeComplaintStatus(
+                        botState.complaintData?.id!,
+                        "resolved"
+                      )
+                    }
+                    className="text-xs"
+                  >
+                    Set Resolved
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <div className="bg-[#F0F0F0] p-2 border-t border-gray-300">
               <form
                 onSubmit={(e) => handleSendMessage(e)}
@@ -1008,7 +1190,11 @@ export default function ChatSection({
                     ref={textareaRef}
                     value={messageInput}
                     onChange={(e) => handleInputChange(e.target.value)}
-                    placeholder={"Describe your complaint in detail..."}
+                    placeholder={
+                      botState.step === "admin"
+                        ? "Reply as admin..."
+                        : "Describe your complaint in detail..."
+                    }
                     className="w-full py-2 px-3 bg-white rounded-[20px] border border-gray-300  text-gray-900 text-[15px] min-h-[44px] max-h-[250px] break-words break-all overflow-x-auto max-w-full "
                     style={{
                       fontFamily: "system-ui, -apple-system, sans-serif",
@@ -1016,7 +1202,9 @@ export default function ChatSection({
                   />
                 </div>
 
-                {botState.step === "description" && messageInput.trim() ? (
+                {(botState.step === "description" ||
+                  botState.step === "admin") &&
+                messageInput.trim() ? (
                   <Button
                     type="submit"
                     className="bg-[#25D366] text-white p-2 h-10 w-10 rounded-full hover:bg-[#128C7E] transition-colors shadow-md"

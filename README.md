@@ -34,3 +34,5 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+implement handleOpenExistingChat function in the community section, this function ca open chat section in amin state (Look up how this functon opens up chat in my-complaints in the 'existing' state. Allow the admin to reply to the chat as a bot when the chat is in 'admin' state. Implement a functionality where state of the complaint can be changed by admins and it also sents a message in the chat from the bot, saying the status of the complaint has been changed to 'the new status'

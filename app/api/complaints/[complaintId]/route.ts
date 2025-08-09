@@ -1,8 +1,15 @@
 import prisma from "@/prisma/db";
 import { NextRequest } from "next/server";
+import { getServerSession } from "next-auth";
+import { authConfig } from "@/lib/auth";
+import type { session as AppSession } from "@/lib/auth";
+import { Complaint } from "@/types";
 
-export async function GET(req: NextRequest, { params }: any) {
-  const complaintId = Number((await params).complaintId);
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { complaintId: string } }
+) {
+  const complaintId = Number(params.complaintId);
   if (!complaintId || isNaN(complaintId)) {
     return Response.json({ error: "Invalid complaint ID" }, { status: 400 });
   }
@@ -50,6 +57,61 @@ export async function GET(req: NextRequest, { params }: any) {
 
     return Response.json({ complaint: transformedComplaint });
   } catch (error) {
+    return Response.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ complaintId: string }> }
+) {
+  const session = (await getServerSession(
+    authConfig as any
+  )) as AppSession | null;
+
+  // Check if user is authenticated and is admin
+  const userRole = session?.user?.role as "ADMIN" | "SUPERADMIN" | undefined;
+  if (!session?.user || (userRole !== "ADMIN" && userRole !== "SUPERADMIN")) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const complaintId = Number((await params).complaintId);
+  if (!complaintId || isNaN(complaintId)) {
+    return Response.json({ error: "Invalid complaint ID" }, { status: 400 });
+  }
+
+  try {
+    const body = await req.json();
+    const { status, messages } = body;
+
+    const updateData: Partial<Complaint> = {};
+
+    if (status) {
+      updateData.status = status;
+    }
+
+    if (messages) {
+      updateData.messages = messages;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return Response.json(
+        { error: "No valid fields to update" },
+        { status: 400 }
+      );
+    }
+
+    const updatedComplaint = await prisma.complaint.update({
+      where: { id: complaintId },
+      data: updateData,
+    });
+
+    return Response.json({
+      success: true,
+      complaint: updatedComplaint,
+    });
+  } catch (error) {
+    console.error("Error updating complaint:", error);
     return Response.json({ error: "Server error" }, { status: 500 });
   }
 }

@@ -165,7 +165,12 @@ export default function HomeComp() {
           />
         )}
 
-        {section === "community" && <CommunitySection user={userData!} />}
+        {section === "community" && (
+          <CommunitySection
+            user={userData!}
+            handleSectionChange={handleSectionChange}
+          />
+        )}
         {section === "status" && <StatusSection />}
       </div>
 

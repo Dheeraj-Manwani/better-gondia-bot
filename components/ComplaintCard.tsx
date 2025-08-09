@@ -87,7 +87,7 @@ export const ComplaintCard = ({
           variant={"link"}
           onClick={() => handleOpenExistingChat(complaint)}
         >
-          View Details
+          View Chat
         </Button>
       </div>
       {/* <div>{JSON.stringify(complaint)}</div> */}

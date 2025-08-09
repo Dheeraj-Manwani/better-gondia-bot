@@ -182,7 +182,7 @@ export const AllChats = ({
               />
             ))}
             <div className="my-2" />
-            {hasMore && (
+            {hasMore ? (
               <div className="w-full flex justify-center p-4 my-5 mb-20">
                 <Button
                   className="w-9/12 bg-[#075E54] text-white hover:bg-[#075E54]"
@@ -194,6 +194,8 @@ export const AllChats = ({
                     : translate("load_more", language)}
                 </Button>
               </div>
+            ) : (
+              <div className="my-28" />
             )}
             <ScrollBar orientation="vertical" color="black" />
           </ScrollArea>

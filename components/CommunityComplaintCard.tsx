@@ -27,6 +27,7 @@ interface CommunityComplaintCardProps {
   handleReport: (complaintId: number, createdAt: string) => void;
   role: Role;
   isShared: boolean;
+  handleOpenExistingChat: (mess: Complaint) => void;
 }
 
 export const CommunityComplaintCard = ({
@@ -37,6 +38,7 @@ export const CommunityComplaintCard = ({
   handleReport,
   role,
   isShared,
+  handleOpenExistingChat,
 }: CommunityComplaintCardProps) => {
   const [isComplaintVisible, setIsComplaintVisible] = useState(false);
   const [isMediaVisible, setIsMediaVisible] = useState(false);
@@ -195,7 +197,7 @@ export const CommunityComplaintCard = ({
               {translate(complaint.category as any, language)}
             </Badge>
           </div>
-          {isShared && (
+          {!isShared && (
             <Button
               variant="outline"
               size="sm"
@@ -240,6 +242,9 @@ export const CommunityComplaintCard = ({
               className="w-1/2"
             />
           </div>
+          <Button onClick={() => handleOpenExistingChat(complaint)}>
+            Reply in Chat
+          </Button>
         </div>
       )}
     </div>

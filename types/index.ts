@@ -12,10 +12,6 @@ export interface SessionUser {
 
 export interface User {
   id?: number;
-  // authStep: AuthStep;
-  // language: Language;
-  // firstName: string;
-  // lastName: string;
   name: string;
   age: number;
   gender: Gender;
@@ -23,7 +19,6 @@ export interface User {
   email?: string;
   address: string;
   ward?: string;
-  // isVerified: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

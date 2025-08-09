@@ -13,8 +13,9 @@ export interface BotState {
     | "media"
     | "preview"
     | "done"
-    | "existing";
-  complaintData: Partial<ComplaintFormData>;
+    | "existing"
+    | "admin";
+  complaintData: Partial<ComplaintFormData> & { id?: number; status?: string };
 }
 
 interface UseBot {

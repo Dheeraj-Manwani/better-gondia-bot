@@ -13,6 +13,8 @@ import {
   CoSignVars,
   ReportVars,
   ReportReason,
+  Section,
+  ChatMessage,
 } from "@/types";
 import { Users } from "lucide-react";
 import { CommunityComplaintCard } from "./CommunityComplaintCard";
@@ -27,10 +29,13 @@ import { useCompId } from "@/store/compId";
 import { Button } from "./ui/button";
 import { translate } from "@/lib/translator";
 import { useLanguage } from "@/store/language";
+import { useMessages } from "@/store/messages";
+import { useBot } from "@/store/bot";
 // import { dummyData } from "@/lib/data";
 
 interface CommunitySectionProps {
   user: User;
+  handleSectionChange?: (sec: Section) => void;
 }
 
 interface PaginatedComplaintsResponse {
@@ -44,11 +49,16 @@ interface PaginatedComplaintsResponse {
   };
 }
 
-export default function CommunitySection({ user }: CommunitySectionProps) {
+export default function CommunitySection({
+  user,
+  handleSectionChange,
+}: CommunitySectionProps) {
   const session = useSession() as unknown as appSession;
   const setIsOpen = useModal((state) => state.setIsOpen);
   const compId = useCompId((state) => state.compId);
   const language = useLanguage((state) => state.language);
+  const setMessages = useMessages((state) => state.setMessages);
+  const setBotState = useBot((state) => state.setBotState);
   const [currentPage, setCurrentPage] = useState(1);
   const [allComplaints, setAllComplaints] = useState<Complaint[]>([]);
   const [hasMore, setHasMore] = useState(true);
@@ -305,6 +315,32 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
     });
   };
 
+  const handleOpenExistingChat = (complaint: Complaint) => {
+    try {
+      if (!handleSectionChange) {
+        toast.error("Navigation not available");
+        return;
+      }
+
+      const cardMessages = complaint.messages;
+      handleSectionChange("chat");
+      const mess: ChatMessage[] = JSON.parse(cardMessages);
+      setMessages(mess);
+
+      // Check if user is admin and set appropriate state
+      const isUserAdmin =
+        session?.data?.user?.role === "ADMIN" ||
+        session?.data?.user?.role === "SUPERADMIN";
+      setBotState({
+        step: isUserAdmin ? "admin" : "existing",
+        complaintData: complaint,
+      });
+    } catch (e) {
+      console.log("Error occurred", e);
+      toast.error("Failed to open chat");
+    }
+  };
+
   // const getStatusColor = (status: string) => {
   //   const colors: Record<string, string> = {
   //     submitted: "bg-blue-100 text-blue-800",
@@ -350,7 +386,8 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
               handleToggleVisibility={handleToggleVisibility}
               handleReport={handleReport}
               role={session?.data?.user?.role ?? "USER"}
-              isShared
+              isShared={false}
+              handleOpenExistingChat={handleOpenExistingChat}
             />
           ))}
 
@@ -369,7 +406,7 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
           )}
         </div>
 
-        {hasMore && (
+        {hasMore ? (
           <div className="w-full flex justify-center">
             <Button
               className="w-9/12 m-auto my-5 mb-8  bg-[#075E54] text-white hover:bg-[#075E54]"
@@ -381,6 +418,8 @@ export default function CommunitySection({ user }: CommunitySectionProps) {
                 : translate("load_more", language)}
             </Button>
           </div>
+        ) : (
+          <div className="my-16" />
         )}
       </div>
     </div>
