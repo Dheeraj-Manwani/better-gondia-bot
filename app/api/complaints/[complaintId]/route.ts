@@ -7,9 +7,9 @@ import { Complaint } from "@/types";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { complaintId: string } }
+  { params }: { params: Promise<{ complaintId: string }> }
 ) {
-  const complaintId = Number(params.complaintId);
+  const complaintId = Number((await params).complaintId);
   if (!complaintId || isNaN(complaintId)) {
     return Response.json({ error: "Invalid complaint ID" }, { status: 400 });
   }

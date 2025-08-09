@@ -68,6 +68,7 @@ export const SharedComplaint = ({ complaintId }: { complaintId: string }) => {
         handleCoSign={openLoginPortal}
         isLoading={false}
         handleToggleVisibility={handleToggleVisibility}
+        handleOpenExistingChat={() => {}}
         handleReport={openLoginPortal}
         role={session?.data?.user?.role ?? "USER"}
         isShared={false}
