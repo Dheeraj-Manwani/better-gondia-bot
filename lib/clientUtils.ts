@@ -95,3 +95,7 @@ export const resetApp = () => {
   localStorage.removeItem("userData");
   window.location.reload();
 };
+
+export function normalizeDigits(str: string) {
+  return str.replace(/[०-९]/g, (d) => String(d.charCodeAt(0) - 0x0966));
+}

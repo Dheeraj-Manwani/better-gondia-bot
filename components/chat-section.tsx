@@ -1203,7 +1203,8 @@ export default function ChatSection({
                 </div>
 
                 {(botState.step === "description" ||
-                  botState.step === "admin") &&
+                  botState.step === "admin" ||
+                  botState.step === "location") &&
                 messageInput.trim() ? (
                   <Button
                     type="submit"

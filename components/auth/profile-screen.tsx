@@ -23,6 +23,7 @@ import { useSections } from "@/store/section";
 import { useLoaderStore } from "@/store/loader";
 import { translate } from "@/lib/translator";
 import { useLanguage } from "@/store/language";
+import { normalizeDigits } from "@/lib/clientUtils";
 
 interface ProfileScreenProps {
   mobile: string;
@@ -59,7 +60,7 @@ export default function ProfileScreen({
         "/api/auth/complete-profile",
         data
       );
-      console.log("Profile creation response:", response);
+      console.log("Profile creation response:", response, data);
       return response.json();
     },
     onSuccess: (res) => {
@@ -130,8 +131,11 @@ export default function ProfileScreen({
       return;
     }
 
-    // Mobile validation: 10 digits, only numbers
-    if (!/^\d{10}$/.test(formData.mobile)) {
+    const mobile = normalizeDigits(formData.mobile);
+
+    console.log("mobile ========= ", mobile);
+
+    if (!/^\d{10}$/.test(mobile)) {
       toast.error(translate("invalid_mobile", language));
       return;
     }
@@ -141,6 +145,8 @@ export default function ProfileScreen({
       toast.error(translate("address_min_length", language));
       return;
     }
+
+    formData.mobile = mobile;
 
     completeProfileMutation.mutate(formData);
   };
