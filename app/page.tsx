@@ -14,8 +14,8 @@ export function generateMetadata(): Metadata {
       "Better Gondia mitra is a platform where you can create a complaint or support existing one's related to gondia.",
     icons: {
       icon: "/favicon.ico", // normal
-      shortcut: "/logo.svg", // classic
-      apple: "/logo.svg", // mobile home screen
+      shortcut: "/logo_png.png", // classic
+      apple: "/logo_png.png", // mobile home screen
     },
     openGraph: {
       title: "Better Gondia Mitra",
