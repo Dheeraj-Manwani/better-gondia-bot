@@ -206,6 +206,8 @@ export default function ChatSection({
       // queryClient.invalidateQueries({ queryKey: ["/api/complaints/my"] });
       // queryClient.invalidateQueries({ queryKey: ["/api/complaints/public"] });
 
+      setBotState({ ...botState, step: "none" });
+
       // Add success message to chat
       setTimeout(() => {
         addBotMessage(
@@ -343,6 +345,7 @@ export default function ChatSection({
     e.preventDefault();
     e.stopPropagation();
     if (!messageInput.trim()) return;
+    if (botState.step == "none") return;
 
     const userMessage: ChatMessage = {
       id: Date.now(),
@@ -1122,7 +1125,9 @@ export default function ChatSection({
 
       {/* Chat Input */}
       <div className="">
-        {!["done", "category", "media", "preview"].includes(botState.step) ? (
+        {!["done", "category", "media", "preview", "none"].includes(
+          botState.step
+        ) ? (
           <div className="">
             {/* Admin Status Change Controls */}
             {botState.step === "admin" && (

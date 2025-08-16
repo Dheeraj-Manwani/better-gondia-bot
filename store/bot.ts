@@ -14,7 +14,8 @@ export interface BotState {
     | "preview"
     | "done"
     | "existing"
-    | "admin";
+    | "admin"
+    | "none";
   complaintData: Partial<ComplaintFormData> & { id?: number; status?: string };
 }
 
