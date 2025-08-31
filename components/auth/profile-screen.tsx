@@ -23,7 +23,7 @@ import { useSections } from "@/store/section";
 import { useLoaderStore } from "@/store/loader";
 import { translate } from "@/lib/translator";
 import { useLanguage } from "@/store/language";
-import { normalizeDigits } from "@/lib/clientUtils";
+import { getRandom10DigitNumber, normalizeDigits } from "@/lib/clientUtils";
 
 interface ProfileScreenProps {
   mobile: string;
@@ -155,6 +155,58 @@ export default function ProfileScreen({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const fillRandomInfo = () => {
+    const randomNames = [
+      "John Smith",
+      "Sarah Johnson",
+      "Michael Brown",
+      "Emily Davis",
+      "David Wilson",
+      "Lisa Anderson",
+      "Robert Taylor",
+      "Jennifer Martinez",
+      "William Garcia",
+      "Amanda Rodriguez",
+    ];
+
+    const randomAddresses = [
+      "123 Main Street, Downtown Area, City Center, 441001",
+      "456 Oak Avenue, Residential District, Suburban Area, 441002",
+      "789 Pine Road, Business Quarter, Urban Zone, 441003",
+      "321 Elm Street, Community Hub, Metropolitan Region, 441004",
+      "654 Maple Drive, Cultural District, Civic Center, 441005",
+    ];
+
+    const randomGenders: Array<"Male" | "Female" | "Other"> = [
+      "Male",
+      "Female",
+      "Other",
+    ];
+
+    const randomData: ProfileFormData = {
+      name: randomNames[Math.floor(Math.random() * randomNames.length)],
+      mobile: getRandom10DigitNumber(),
+      address:
+        randomAddresses[Math.floor(Math.random() * randomAddresses.length)],
+      age: Math.floor(Math.random() * 84) + 16,
+      gender: randomGenders[Math.floor(Math.random() * randomGenders.length)],
+    };
+
+    setFormData(randomData);
+
+    // Auto-submit the form after filling random data
+    setTimeout(() => {
+      const submitEvent = new Event("submit", {
+        bubbles: true,
+        cancelable: true,
+      });
+      const form = document.querySelector("form");
+      if (form) {
+        form.dispatchEvent(submitEvent);
+      }
+    }, 1000);
+  };
+
   return (
     <div className=" bg-white z-50 md:w-[400px] h-[100dvh]">
       <div className="flex flex-col h-full">
@@ -279,7 +331,17 @@ export default function ProfileScreen({
         </div>
 
         {/* Bottom Button */}
-        <div className="p-6 border-t border-gray-200">
+        <div className="p-6 border-t border-gray-200 space-y-3">
+          {/* Dev Button - Fill Random Info */}
+          <Button
+            type="button"
+            onClick={fillRandomInfo}
+            className="w-full bg-gray-600 text-white py-2 rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm"
+            disabled={completeProfileMutation.isPending}
+          >
+            Fill Random Info (dev)
+          </Button>
+
           <Button
             onClick={handleSubmit}
             className="w-full bg-[#075E54] text-white py-3 rounded-lg font-medium hover:bg-[#075E54] transition-colors"

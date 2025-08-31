@@ -99,3 +99,23 @@ export const resetApp = () => {
 export function normalizeDigits(str: string) {
   return str.replace(/[०-९]/g, (d) => String(d.charCodeAt(0) - 0x0966));
 }
+
+export function getRandom10DigitNumber() {
+  let digits = "0123456789".split("");
+
+  for (let i = digits.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [digits[i], digits[j]] = [digits[j], digits[i]];
+  }
+
+  if (digits[0] === "0") {
+    for (let i = 1; i < digits.length; i++) {
+      if (digits[i] !== "0") {
+        [digits[0], digits[i]] = [digits[i], digits[0]];
+        break;
+      }
+    }
+  }
+
+  return digits.slice(0, 10).join("");
+}
