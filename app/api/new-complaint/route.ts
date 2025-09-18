@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     // Send email using Resend
     const emailResponse = await resend.emails.send({
       from: "portfolio@updates.bydm.site",
-      to: "dkmanwani2000@gmail.com",
+      to: "tarun.manuja@gmail.com",
       subject: `New Complaint: ${complaintData.ticketId} - ${complaintData.customerName}`,
       html: emailContent,
     });
@@ -128,7 +128,7 @@ ${errorStack}
 
       await resend.emails.send({
         from: "portfolio@updates.bydm.site",
-        to: "dkmanwani2000@gmail.com",
+        to: "tarun.manuja@gmail.com",
         subject: `API Error Alert - New Complaint Route - ${errorTime}`,
         html: errorEmailContent,
       });
