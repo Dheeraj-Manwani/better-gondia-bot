@@ -1,5 +1,5 @@
 export type AuthStep = "language" | "login" | "otp" | "profile" | "complete";
-export type Section = "chat" | "my-issues" | "community" | "status";
+export type Section = "my-issues" | "community" | "status";
 export type Language = "english" | "hindi" | "marathi";
 export type Gender = "Male" | "Female" | "Other";
 

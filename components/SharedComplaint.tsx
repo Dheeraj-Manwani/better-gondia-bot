@@ -77,7 +77,7 @@ export const SharedComplaint = ({ complaintId }: { complaintId: string }) => {
         <Button
           className="text-green-600 hover:text-green-700 bg-green-100 hover:bg-green-200 w-2/3 m-auto border border-green-600"
           onClick={() => {
-            setSection("chat");
+            setSection("my-issues");
             router.push("/");
           }}
         >

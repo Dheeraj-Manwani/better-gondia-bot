@@ -323,7 +323,7 @@ export default function CommunitySection({
       }
 
       const cardMessages = complaint.messages;
-      handleSectionChange("chat");
+      // Chat section removed
       const mess: ChatMessage[] = JSON.parse(cardMessages);
       setMessages(mess);
 

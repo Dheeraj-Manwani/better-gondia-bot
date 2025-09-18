@@ -1,5 +1,5 @@
 import { Section } from "@/types";
-import { Circle, Globe, List, MessageCircle, Users } from "lucide-react";
+import { Circle, Globe, List, Users } from "lucide-react";
 import { Button } from "./ui/button";
 
 // Define the navigation items array
@@ -8,11 +8,6 @@ const navigationItems = [
     id: "my-issues" as Section,
     label: "My Issues",
     icon: List,
-  },
-  {
-    id: "chat" as Section,
-    label: "Chat",
-    icon: MessageCircle,
   },
   {
     id: "community" as Section,

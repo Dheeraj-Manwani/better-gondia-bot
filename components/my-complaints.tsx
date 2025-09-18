@@ -32,11 +32,9 @@ interface PaginatedComplaintsResponse {
 export const AllChats = ({
   user,
   handleSectionChange,
-  handleOpenNewChat,
 }: {
   user: User;
   handleSectionChange: (sec: Section) => void;
-  handleOpenNewChat: () => void;
 }) => {
   const setMessages = useMessages((state) => state.setMessages);
   const resetToInitial = useMessages((state) => state.resetToInitial);
@@ -113,13 +111,13 @@ export const AllChats = ({
   const handleNavigateToChat = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    handleSectionChange("chat");
+    // Chat section removed
   };
 
   const handleOpenExistingChat = (comp: Complaint) => {
     try {
       const cardMessages = comp.messages;
-      handleSectionChange("chat");
+      // Chat section removed
       const mess: ChatMessage[] = JSON.parse(cardMessages);
       setMessages(mess);
       setBotState({ step: "existing", complaintData: comp });
@@ -140,18 +138,6 @@ export const AllChats = ({
           <BookAlert className="mt-0.5" />
           <span>{translate("my_complaints", language)}</span>
         </div>
-
-        {allComplaints && allComplaints.length !== 0 && (
-          <Button
-            className="bg-[#075E54] hover:bg-[#0f5a51]  text-white  transition-colors shadow-md "
-            onClick={() => {
-              handleOpenNewChat();
-              resetToInitial();
-            }}
-          >
-            <Plus /> {translate("new_complaint", language)}
-          </Button>
-        )}
       </div>
       <div className="max-w-11/12 mx-auto text-gray-700  min-h-[85dvh] flex flex-col bg-[#E5DDD5]  rounded-lg">
         {/* Complaints List */}

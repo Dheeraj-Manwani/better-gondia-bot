@@ -77,7 +77,7 @@ export default function ProfileScreen({
       //   //   },
       //   // },
       // });
-      setSection("chat");
+      setSection("my-issues");
       console.log("Data recieved on success:", res);
       const savedUser = res.data;
       const newUser = { ...savedUser } as User;

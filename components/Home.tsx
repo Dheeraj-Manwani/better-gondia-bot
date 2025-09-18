@@ -5,7 +5,6 @@ import LanguageSelection from "@/components/language-selection";
 import LoginScreen from "@/components/auth/login-screen";
 import OTPScreen from "@/components/auth/otp-screen";
 import ProfileScreen from "@/components/auth/profile-screen";
-import ChatSection from "@/components/chat-section";
 import CommunitySection from "@/components/community-section";
 import StatusSection from "@/components/status-section";
 import { AuthStep, Language, Section, User } from "@/types";
@@ -99,11 +98,6 @@ export default function HomeComp() {
     setHasUserOpened(true);
   };
 
-  const handleOpenNewChat = () => {
-    handleSectionChange("chat");
-    setBotState({ step: "category", complaintData: {} });
-  };
-
   // if (isLoading) {
   //   return (
   //     <div className="min-h-screen flex items-center justify-center whatsapp-bg">
@@ -155,13 +149,6 @@ export default function HomeComp() {
           <AllChats
             user={userData!}
             handleSectionChange={handleSectionChange}
-            handleOpenNewChat={handleOpenNewChat}
-          />
-        )}
-        {section === "chat" && (
-          <ChatSection
-            handleSectionChange={handleSectionChange}
-            handleOpenNewChat={handleOpenNewChat}
           />
         )}
 
