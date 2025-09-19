@@ -35,50 +35,24 @@ export async function POST(request: NextRequest) {
     //   );
     // }
 
-    const { orgId, eventId, requestBody: complaintData } = body;
+    // const { orgId, eventId, requestBody: complaintData } = body;
 
-    // Create email content
+    // Create email content with complete request body JSON
     const emailContent = `
       <h2>New Complaint Received</h2>
       
-      <h3>Organization Details</h3>
-      <p><strong>Organization ID:</strong> ${orgId}</p>
-      <p><strong>Event ID:</strong> ${eventId}</p>
-      
-      <h3>Customer Information</h3>
-      <p><strong>Customer Name:</strong> ${complaintData.customerName}</p>
-      <p><strong>Mobile Number:</strong> ${complaintData.mobileNo}</p>
-      <p><strong>Business Name:</strong> ${complaintData.businessName}</p>
-      <p><strong>Business Number:</strong> ${complaintData.businessNumber}</p>
-      
-      <h3>Complaint Details</h3>
-      <p><strong>Ticket ID:</strong> ${complaintData.ticketId}</p>
-      <p><strong>Ticket Status:</strong> ${complaintData.ticketStatus}</p>
-      <p><strong>Message:</strong> ${complaintData.message}</p>
-      <p><strong>Message Type:</strong> ${complaintData.msgType}</p>
-      <p><strong>File Type:</strong> ${complaintData.fileType}</p>
-      <p><strong>Message Date:</strong> ${complaintData.msgDate}</p>
-      
-      <h3>WhatsApp Details</h3>
-      <p><strong>WhatsApp Message ID:</strong> ${
-        complaintData.whatsappMsgId
-      }</p>
-      <p><strong>WhatsApp Reply Message ID:</strong> ${
-        complaintData.whatsappReplyMsgId
-      }</p>
-      
-      ${
-        complaintData.msgfile
-          ? `<h3>Attachment</h3><p><strong>File:</strong> ${complaintData.msgfile}</p>`
-          : ""
-      }
+      <h3>Complete Request Body</h3>
+      <pre style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; font-family: 'Courier New', monospace; white-space: pre-wrap;">
+${JSON.stringify(body, null, 2)}
+      </pre>
     `;
 
     // Send email using Resend
     const emailResponse = await resend.emails.send({
       from: "portfolio@updates.bydm.site",
-      to: "tarun.manuja@gmail.com",
-      subject: `New Complaint: ${complaintData.ticketId} - ${complaintData.customerName}`,
+      // to: "tarun.manuja@gmail.com",
+      to: "dkmanwani2000@gmail.com",
+      subject: `New Complaint:`,
       html: emailContent,
     });
 
@@ -128,7 +102,8 @@ ${errorStack}
 
       await resend.emails.send({
         from: "portfolio@updates.bydm.site",
-        to: "tarun.manuja@gmail.com",
+        // to: "tarun.manuja@gmail.com",
+        to: "dkmanwani2000@gmail.com",
         subject: `API Error Alert - New Complaint Route - ${errorTime}`,
         html: errorEmailContent,
       });
