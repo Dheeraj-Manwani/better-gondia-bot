@@ -218,106 +218,106 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
-  const form = await req.formData();
+// export async function POST(req: NextRequest) {
+//   const form = await req.formData();
 
-  // Required fields
-  const description = form.get("description") as string;
-  const category = form.get("category") as string;
-  const isPublic = form.get("isPublic") === "true";
-  const userId = Number(form.get("userId")) ?? 0;
+//   // Required fields
+//   const description = form.get("description") as string;
+//   const category = form.get("category") as string;
+//   const isPublic = form.get("isPublic") === "true";
+//   const userId = Number(form.get("userId")) ?? 0;
 
-  // Optional fields
-  const location = form.get("location") as string | undefined;
-  const latitude = form.get("latitude") as string | undefined;
-  const longitude = form.get("longitude") as string | undefined;
-  const language = form.get("language") as string | undefined;
-  let messages = form.get("messages") as string;
-  const parsedMmessages: ChatMessage[] = JSON.parse(messages);
+//   // Optional fields
+//   const location = form.get("location") as string | undefined;
+//   const latitude = form.get("latitude") as string | undefined;
+//   const longitude = form.get("longitude") as string | undefined;
+//   const language = form.get("language") as string | undefined;
+//   let messages = form.get("messages") as string;
+//   const parsedMmessages: ChatMessage[] = JSON.parse(messages);
 
-  const imageUrls = getFormDataArray(form, "imageUrls");
-  const videoUrls = getFormDataArray(form, "videoUrls");
+//   const imageUrls = getFormDataArray(form, "imageUrls");
+//   const videoUrls = getFormDataArray(form, "videoUrls");
 
-  console.log("Creating complaint with data :::::::::: ", {
-    userId,
-    title: description, // Or use a separate title if you have one
-    description,
-    messages,
-    category,
-    location,
-    latitude,
-    longitude,
-    imageUrls,
-    videoUrls,
-    isPublic,
-  });
+//   console.log("Creating complaint with data :::::::::: ", {
+//     userId,
+//     title: description, // Or use a separate title if you have one
+//     description,
+//     messages,
+//     category,
+//     location,
+//     latitude,
+//     longitude,
+//     imageUrls,
+//     videoUrls,
+//     isPublic,
+//   });
 
-  try {
-    const data = await prisma.$transaction(async (tx) => {
-      const complaint = await tx.complaint.create({
-        data: {
-          userId,
-          title: description,
-          description,
-          category,
-          location,
-          latitude,
-          longitude,
-          imageUrls,
-          videoUrls,
-        },
-      });
+//   try {
+//     const data = await prisma.$transaction(async (tx) => {
+//       const complaint = await tx.complaint.create({
+//         data: {
+//           userId,
+//           title: description,
+//           description,
+//           category,
+//           location,
+//           latitude,
+//           longitude,
+//           imageUrls,
+//           videoUrls,
+//         },
+//       });
 
-      parsedMmessages.push(
-        getBotMessage(
-          await translateServer(
-            "complaint_submitted_success",
-            language as Language,
-            {
-              complaintId: generateComplaintIdFromDate(Number(complaint.id)),
-            }
-          )
-        )
-      );
-      parsedMmessages.push(
-        getBotMessage(`Call to action (to be framed in requirement).`)
-      );
+//       parsedMmessages.push(
+//         getBotMessage(
+//           await translateServer(
+//             "complaint_submitted_success",
+//             language as Language,
+//             {
+//               complaintId: generateComplaintIdFromDate(Number(complaint.id)),
+//             }
+//           )
+//         )
+//       );
+//       parsedMmessages.push(
+//         getBotMessage(`Call to action (to be framed in requirement).`)
+//       );
 
-      const stringMess = JSON.stringify(parsedMmessages);
-      console.log("updating messages for complaint ", parsedMmessages);
-      await tx.complaint.update({
-        data: { messages: stringMess },
-        where: {
-          id: complaint.id,
-        },
-      });
+//       const stringMess = JSON.stringify(parsedMmessages);
+//       console.log("updating messages for complaint ", parsedMmessages);
+//       await tx.complaint.update({
+//         data: { messages: stringMess },
+//         where: {
+//           id: complaint.id,
+//         },
+//       });
 
-      return complaint;
-    });
+//       return complaint;
+//     });
 
-    return Response.json({
-      complaintId: data.id,
-      success: true,
-    });
-  } catch (error: any) {
-    if (
-      // error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2003" // Foreign key violation
-    ) {
-      console.error("Foreign key constraint failed:", error.meta?.field_name);
-      return Response.json({
-        error: "USER_NOT_FOUND",
-        success: false,
-      });
-      // Handle missing user
-    } else {
-      console.error("Transaction failed:", error);
-      return Response.json({
-        error: "SERVER_ERROR",
-        success: false,
-      });
+//     return Response.json({
+//       complaintId: data.id,
+//       success: true,
+//     });
+//   } catch (error: any) {
+//     if (
+//       // error instanceof Prisma.PrismaClientKnownRequestError &&
+//       error.code === "P2003" // Foreign key violation
+//     ) {
+//       console.error("Foreign key constraint failed:", error.meta?.field_name);
+//       return Response.json({
+//         error: "USER_NOT_FOUND",
+//         success: false,
+//       });
+//       // Handle missing user
+//     } else {
+//       console.error("Transaction failed:", error);
+//       return Response.json({
+//         error: "SERVER_ERROR",
+//         success: false,
+//       });
 
-      // Handle other kinds of errors
-    }
-  }
-}
+//       // Handle other kinds of errors
+//     }
+//   }
+// }

@@ -24,15 +24,35 @@ enum AuthType {
   GOOGLE
 }
 
+enum ComplaintPhase {
+  INIT
+  LANGUAGE
+  COMPLAINT_TYPE
+  CATEGORY
+  DESCRIPTION
+  COMPLETED
+}
+
+enum Language {
+  HINDI
+  ENGLISH
+  MARATHI
+}
+
+enum ComplaintType {
+  COMPLAINT
+  SUGGESTION
+}
+
 model User {
   id       Int      @id @default(autoincrement())
   name     String
-  age      Int
-  gender   Gender
+  age      Int?
+  gender   Gender?
   role     Role     @default(USER)
   mobile   String   @unique
   email    String?  @unique
-  address  String
+  address  String?
   authType AuthType @default(DETAILS)
 
   createdAt DateTime @default(now())
@@ -47,16 +67,19 @@ model User {
 }
 
 model Complaint {
-  id          Int     @id @default(autoincrement())
+  id          Int            @id @default(autoincrement())
   userId      Int
-  user        User    @relation(fields: [userId], references: [id])
-  title       String
-  description String
-  status      String  @default("pending")
-  category    String
+  user        User           @relation(fields: [userId], references: [id])
+  title       String?
+  description String?
+  status      String         @default("pending")
+  category    String?
   location    String?
   latitude    String?
   longitude   String?
+  type        ComplaintType?
+  phase       ComplaintPhase
+  language    Language       @default(ENGLISH)
 
   imageUrls String[] @default([])
   videoUrls String[] @default([])
