@@ -70,3 +70,44 @@ export const deleteFileFromS3 = async (fileKey: string) => {
     console.error("Error deleting file:", err);
   }
 };
+
+// Helper function to download file from URL and upload to S3
+export async function downloadAndUploadToS3(
+  url: string,
+  fileType: string
+): Promise<string | null> {
+  try {
+    // Download the file
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to download file: ${response.statusText}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Generate unique file key
+    const timestamp = Date.now();
+    const extension = fileType.split("/")[1] || "bin";
+    const fileKey = `whatsapp-media/${timestamp}_${Math.random()
+      .toString(36)
+      .substring(7)}.${extension}`;
+
+    // Upload to S3
+    const params = {
+      Bucket: process.env.AWS_BUCKET_NAME!,
+      Key: fileKey,
+      Body: buffer,
+      ContentType: fileType,
+    };
+
+    await s3.upload(params).promise();
+
+    // Return the S3 URL
+    // return `https://${process.env.AWS_BUCKET_NAME}.s3.ap-south-1.amazonaws.com/${fileKey}`;
+    return fileKey;
+  } catch (error) {
+    console.error("Error downloading and uploading file:", error);
+    return null;
+  }
+}

@@ -19,59 +19,22 @@ import { useAuthStep } from "@/store/authStep";
 import { useBot } from "@/store/bot";
 import { setCookie } from "cookies-next/client";
 import { useSections } from "@/store/section";
+import { useSearchParams } from "next/navigation";
 
 export default function HomeComp() {
   const { authStep, setAuthStep } = useAuthStep();
   const { section, setSection } = useSections();
-  const [hasUserOpened, setHasUserOpened] = useState<boolean>(false);
+  const searchParams = useSearchParams();
+  const user = searchParams.get("user");
+  // const [hasUserOpened, setHasUserOpened] = useState<boolean>(false);
   const [pendingMobile, setPendingMobile] = useState<string>("");
-  // const [selectedLanguage, setSelectedLanguage] = useState<Language>("english");
-  // const [userData, setUserData] = useState<User>(initUserData);
-  const { userData, setUserData } = useUserData();
-  // const {}
   const setLanguage = useLanguage((state) => state.setLanguage);
   const setBotState = useBot((state) => state.setBotState);
   const { setTheme } = useTheme();
 
-  // const { data: user, isLoading } = useQuery<User>({
-  //   queryKey: ["/api/auth/user"],
-  //   retry: false,
-  // });
-
-  // useEffect(() => {
-  //   if (user) {
-  //     setAuthStep("complete");
-  //   }
-  // }, [user]);
-
-  useEffect(() => {
-    const currentUserData = localStorage.getItem("userData");
-    const currentAuthStep = localStorage.getItem("authStep");
-    const currLang = localStorage.getItem("language");
-
-    if (currentUserData) {
-      const parsedCurrentUser: User = JSON.parse(currentUserData);
-      setUserData(parsedCurrentUser);
-      setLanguage(currLang as Language);
-      setAuthStep(currentAuthStep! as AuthStep);
-      setCookie("userId", parsedCurrentUser.id);
-    } else {
-      // setUserData(initUserData);
-      setLanguage("english");
-      // setSelectedLanguage("english");
-      // setAuthStep("language");
-      localStorage.setItem("userData", JSON.stringify(initUserData));
-      localStorage.setItem("authStep", "language");
-      localStorage.setItem("language", "english");
-    }
-    setTheme("light");
-  }, []);
-
   const handleLanguageSelect = (language: Language) => {
-    // setSelectedLanguage(language);
-
-    setAuthStep("profile");
-    localStorage.setItem("authStep", "profile");
+    setAuthStep("complete");
+    localStorage.setItem("authStep", "complete");
 
     setLanguage(language);
     localStorage.setItem("language", language);
@@ -95,21 +58,8 @@ export default function HomeComp() {
 
   const handleSectionChange = (section: Section) => {
     setSection(section);
-    setHasUserOpened(true);
+    // setHasUserOpened(true);
   };
-
-  // if (isLoading) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center whatsapp-bg">
-  //       <div className="text-center">
-  //         <div className="w-16 h-16 whatsapp-green rounded-full flex items-center justify-center mx-auto mb-4">
-  //           <Image src={logo} height={50} width={50} alt="logo"></Image>
-  //         </div>
-  //         <p className="whatsapp-gray">Loading...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   if (authStep === "login") {
     return (
@@ -129,16 +79,6 @@ export default function HomeComp() {
     );
   }
 
-  if (authStep === "profile") {
-    return (
-      <ProfileScreen
-        mobile={pendingMobile}
-        onNext={() => handleAuthStepChange("complete")}
-        onBack={() => handleAuthStepChange("language")}
-      />
-    );
-  }
-
   return (
     <div className="flex flex-col h-[100dvh] bg-[#E5DDD5] z-20">
       <TopHeader />
@@ -146,15 +86,12 @@ export default function HomeComp() {
       {/* Content Area */}
       <div className="flex-1 overflow-hidden">
         {section === "my-issues" && (
-          <AllChats
-            user={userData!}
-            handleSectionChange={handleSectionChange}
-          />
+          <AllChats user={user} handleSectionChange={handleSectionChange} />
         )}
 
         {section === "community" && (
           <CommunitySection
-            user={userData!}
+            user={user}
             handleSectionChange={handleSectionChange}
           />
         )}

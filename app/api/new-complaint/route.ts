@@ -10,6 +10,10 @@ import {
 import AWS from "aws-sdk";
 import prisma from "@/prisma/db";
 import { generateComplaintIdFromDate } from "@/lib/clientUtils";
+import { customAlphabet } from "nanoid";
+import { downloadAndUploadToS3 } from "@/app/actions/s3";
+import { sendWhatsAppConfirmation } from "@/app/actions/whatsapp";
+import { generateSlug } from "@/app/actions/slug";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -37,75 +41,22 @@ interface ComplaintRequestBody {
   businessName?: string;
 }
 
-// Helper function to send WhatsApp confirmation message
-async function sendWhatsAppConfirmation(
-  mobileNo: string,
-  message: string
-): Promise<void> {
-  try {
-    const whatsappResponse = await fetch(process.env.GO_4_WHATSAPP_URL!, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        customerMobileNo: mobileNo,
-        message: message,
-      }),
+async function generateUniqueSlug(): Promise<string> {
+  let slug: string = "";
+  let isUnique = false;
+
+  while (!isUnique) {
+    slug = generateSlug();
+    const existingUser = await prisma.user.findUnique({
+      where: { slug },
     });
 
-    if (!whatsappResponse.ok) {
-      console.error(
-        "WhatsApp confirmation failed:",
-        await whatsappResponse.text()
-      );
-    } else {
-      console.log("WhatsApp confirmation sent successfully");
+    if (!existingUser) {
+      isUnique = true;
     }
-  } catch (whatsappError) {
-    console.error("Error sending WhatsApp confirmation:", whatsappError);
   }
-}
 
-// Helper function to download file from URL and upload to S3
-async function downloadAndUploadToS3(
-  url: string,
-  fileType: string
-): Promise<string | null> {
-  try {
-    // Download the file
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to download file: ${response.statusText}`);
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    // Generate unique file key
-    const timestamp = Date.now();
-    const extension = fileType.split("/")[1] || "bin";
-    const fileKey = `whatsapp-media/${timestamp}_${Math.random()
-      .toString(36)
-      .substring(7)}.${extension}`;
-
-    // Upload to S3
-    const params = {
-      Bucket: process.env.AWS_BUCKET_NAME!,
-      Key: fileKey,
-      Body: buffer,
-      ContentType: fileType,
-    };
-
-    await s3.upload(params).promise();
-
-    // Return the S3 URL
-    // return `https://${process.env.AWS_BUCKET_NAME}.s3.ap-south-1.amazonaws.com/${fileKey}`;
-    return fileKey;
-  } catch (error) {
-    console.error("Error downloading and uploading file:", error);
-    return null;
-  }
+  return slug;
 }
 
 export async function POST(request: NextRequest) {
@@ -126,11 +77,15 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
+      // Generate unique slug for new user
+      const uniqueSlug = await generateUniqueSlug();
+
       // Create new user
       user = await prisma.user.create({
         data: {
           name: body.customerName,
           mobile: body.mobileNo,
+          slug: uniqueSlug,
           authType: AuthType.DETAILS,
         },
       });

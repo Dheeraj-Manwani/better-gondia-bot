@@ -1,4 +1,5 @@
 // app/api/complaints/route.ts
+import { getUserIdFromSlug } from "@/app/actions/user";
 import { authConfig } from "@/lib/auth";
 import { generateComplaintIdFromDate, getBotMessage } from "@/lib/clientUtils";
 import { translateServer } from "@/lib/server-utils";
@@ -22,29 +23,24 @@ function getFormDataArray(form: FormData, key: string) {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("userId");
+    const userSlug = searchParams.get("userSlug");
     const fetchOption = searchParams.get("fetch");
     const compId = searchParams.get("compId");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const offset = (page - 1) * limit;
 
-    console.log("userId and searchParam ===== ", userId, searchParams);
+    console.log("userSlug and searchParam ===== ", userSlug, searchParams);
 
-    // if (!userId) {
-    //   return Response.json(
-    //     { error: "userId parameter is required" },
-    //     { status: 400 }
-    //   );
-    // }
+    let userIdNumber: number | null = null;
 
-    const userIdNumber = parseInt(userId ?? "-1", 10);
+    // Convert userSlug to userId if provided
+    if (userSlug) {
+      userIdNumber = await getUserIdFromSlug(userSlug);
 
-    if (isNaN(userIdNumber)) {
-      return Response.json(
-        { error: "userId must be a valid number" },
-        { status: 400 }
-      );
+      if (!userIdNumber) {
+        return Response.json({ error: "User not found" }, { status: 404 });
+      }
     }
 
     console.log("user id number ", userIdNumber);
@@ -68,7 +64,7 @@ export async function GET(req: NextRequest) {
       const compComplaint = await prisma.complaint.findFirst({
         where: {
           id: compIdNum,
-          ...(fetchOption == "my" && { userId: userIdNumber }),
+          ...(fetchOption == "my" && userIdNumber && { userId: userIdNumber }),
           ...((!user || user.role == "USER") &&
             fetchOption == "all" && { isPublic: true }),
         },
@@ -82,7 +78,7 @@ export async function GET(req: NextRequest) {
       // Get total count for pagination
       totalCount = await prisma.complaint.count({
         where: {
-          ...(fetchOption == "my" && { userId: userIdNumber }),
+          ...(fetchOption == "my" && userIdNumber && { userId: userIdNumber }),
           ...((!user || user.role == "USER") &&
             fetchOption == "all" && { isPublic: true }),
           id: { not: compIdNum },
@@ -92,7 +88,7 @@ export async function GET(req: NextRequest) {
       // Fetch the rest with pagination, excluding compId
       const restComplaints = await prisma.complaint.findMany({
         where: {
-          ...(fetchOption == "my" && { userId: userIdNumber }),
+          ...(fetchOption == "my" && userIdNumber && { userId: userIdNumber }),
           ...((!user || user.role == "USER") &&
             fetchOption == "all" && { isPublic: true }),
           id: { not: compIdNum },
@@ -116,7 +112,7 @@ export async function GET(req: NextRequest) {
       // Get total count for pagination
       totalCount = await prisma.complaint.count({
         where: {
-          ...(fetchOption == "my" && { userId: userIdNumber }),
+          ...(fetchOption == "my" && userIdNumber && { userId: userIdNumber }),
           ...((!user || user.role == "USER") &&
             fetchOption == "all" && { isPublic: true }),
         },
@@ -124,7 +120,7 @@ export async function GET(req: NextRequest) {
 
       complaints = await prisma.complaint.findMany({
         where: {
-          ...(fetchOption == "my" && { userId: userIdNumber }),
+          ...(fetchOption == "my" && userIdNumber && { userId: userIdNumber }),
           ...((!user || user.role == "USER") &&
             fetchOption == "all" && { isPublic: true }),
         },

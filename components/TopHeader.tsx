@@ -2,18 +2,50 @@
 
 import Image from "next/image";
 import logo from "@/public/logo.svg";
-// import { Button } from "./ui/button";
-// import { DropdownMenuContent, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { HeaderDropdown } from "./HeaderDropdown";
 import { VerifiedCheck } from "./ui/blue-check";
-import { CircleQuestionMark } from "lucide-react";
+import { CircleQuestionMark, Languages } from "lucide-react";
 import { useModal } from "@/store/modal";
 import { translate } from "@/lib/translator";
 import { useLanguage } from "@/store/language";
+import { Language } from "@/types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+} from "./ui/dropdown-menu";
 
 export const TopHeader = ({ isView = false }: { isView?: boolean }) => {
   const setIsOpen = useModal((state) => state.setIsOpen);
-  const language = useLanguage((state) => state.language);
+  const { language, setLanguage } = useLanguage();
+
+  const languages: {
+    value: Language;
+    label: string;
+    nativeLabel: string;
+    shortLabel: string;
+  }[] = [
+    {
+      value: "english",
+      label: "English",
+      nativeLabel: "English",
+      shortLabel: "E",
+    },
+    { value: "hindi", label: "Hindi", nativeLabel: "हिंदी", shortLabel: "H" },
+    {
+      value: "marathi",
+      label: "Marathi",
+      nativeLabel: "मराठी",
+      shortLabel: "M",
+    },
+  ];
+
+  const handleLanguageChange = (newLanguage: Language) => {
+    setLanguage(newLanguage);
+    localStorage.setItem("language", newLanguage);
+  };
+
   return (
     <div className="bg-[#075E54] text-white p-3 flex items-center justify-between shadow-lg z-20">
       <div
@@ -38,6 +70,33 @@ export const TopHeader = ({ isView = false }: { isView?: boolean }) => {
       </div>
 
       <div className="flex items-center space-x-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center space-x-1 hover:bg-white/10 rounded-md p-1 transition-colors">
+              <Languages className="w-5 h-5" />
+              <span className="text-sm font-semibold">
+                {languages.find((lang) => lang.value === language)?.shortLabel}
+              </span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-white text-gray-900">
+            {languages.map((lang) => (
+              <DropdownMenuItem
+                key={lang.value}
+                onClick={() => handleLanguageChange(lang.value)}
+                className={`cursor-pointer ${
+                  language === lang.value ? "bg-green-50 text-green-700" : ""
+                }`}
+              >
+                <span className="font-medium">{lang.nativeLabel}</span>
+                <span className="text-sm text-gray-500 ml-2">
+                  ({lang.label})
+                </span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <CircleQuestionMark
           cursor={"pointer"}
           onClick={() => setIsOpen(true, "FAQ")}

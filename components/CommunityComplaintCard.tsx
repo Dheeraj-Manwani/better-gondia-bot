@@ -28,6 +28,7 @@ interface CommunityComplaintCardProps {
   role: Role;
   isShared: boolean;
   handleOpenExistingChat: (mess: Complaint) => void;
+  isAuthenticated?: boolean;
 }
 
 export const CommunityComplaintCard = ({
@@ -39,6 +40,7 @@ export const CommunityComplaintCard = ({
   role,
   isShared,
   handleOpenExistingChat,
+  isAuthenticated = true,
 }: CommunityComplaintCardProps) => {
   const [isComplaintVisible, setIsComplaintVisible] = useState(false);
   const [isMediaVisible, setIsMediaVisible] = useState(false);
@@ -152,46 +154,61 @@ export const CommunityComplaintCard = ({
         {/* Action Buttons */}
         <div className="flex flex-col  items-center justify-between">
           <div className="flex items-center justify-between w-full">
-            <Button
-              variant={complaint.isCoSigned ? "default" : "ghost"}
-              size="sm"
-              className={`flex items-center space-x-0.5 ${
-                complaint.isCoSigned
-                  ? "bg-green-600 text-white hover:bg-green-700"
-                  : "text-green-600 hover:text-green-700 bg-green-100"
-              }`}
-              onClick={() => handleCoSign(complaint.id)}
-              disabled={isLoading}
-            >
-              <ThumbsUp
-                className={`w-4 h-4 ${
-                  complaint.isCoSigned ? "fill-current" : ""
-                }`}
-              />
-              <span className="text-sm font-medium">
-                {complaint.isCoSigned
-                  ? translate("co_sign", language)
-                  : translate("co_signed", language)}{" "}
-                ({complaint.coSignCount})
-              </span>
-            </Button>
-
-            {complaint.isReported ? (
-              <span className="text-sm text-gray-500 ml-2">
-                {translate("reported", language)} ☑️
-              </span>
-            ) : (
+            {isAuthenticated ? (
               <Button
-                variant="ghost"
+                variant={complaint.isCoSigned ? "default" : "ghost"}
                 size="sm"
-                className="flex items-center space-x-0.5 text-gray-500 hover:text-red-500 hover:bg-red-50"
-                onClick={() => handleReport(complaint.id, complaint.createdAt)}
+                className={`flex items-center space-x-0.5 ${
+                  complaint.isCoSigned
+                    ? "bg-green-600 text-white hover:bg-green-700"
+                    : "text-green-600 hover:text-green-700 bg-green-100"
+                }`}
+                onClick={() => handleCoSign(complaint.id)}
                 disabled={isLoading}
               >
-                <Flag className="w-4 h-4" />
-                <span className="text-sm">{translate("report", language)}</span>
+                <ThumbsUp
+                  className={`w-4 h-4 ${
+                    complaint.isCoSigned ? "fill-current" : ""
+                  }`}
+                />
+                <span className="text-sm font-medium">
+                  {complaint.isCoSigned
+                    ? translate("co_sign", language)
+                    : translate("co_signed", language)}{" "}
+                  ({complaint.coSignCount})
+                </span>
               </Button>
+            ) : (
+              <div className="flex items-center space-x-0.5 text-green-600">
+                <ThumbsUp className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  {translate("co_signed", language)} ({complaint.coSignCount})
+                </span>
+              </div>
             )}
+
+            {isAuthenticated ? (
+              complaint.isReported ? (
+                <span className="text-sm text-gray-500 ml-2">
+                  {translate("reported", language)} ☑️
+                </span>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center space-x-0.5 text-gray-500 hover:text-red-500 hover:bg-red-50"
+                  onClick={() =>
+                    handleReport(complaint.id, complaint.createdAt)
+                  }
+                  disabled={isLoading}
+                >
+                  <Flag className="w-4 h-4" />
+                  <span className="text-sm">
+                    {translate("report", language)}
+                  </span>
+                </Button>
+              )
+            ) : null}
             <Badge className={getCategoryColor(complaint.category)}>
               {getCategoryIcon(complaint.category)}{" "}
               {translate(complaint.category as any, language)}

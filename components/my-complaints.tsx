@@ -9,11 +9,9 @@ import { Button } from "./ui/button";
 import { ComplaintCard } from "./ComplaintCard";
 import { BookAlert, Plus } from "lucide-react";
 import { useBot } from "@/store/bot";
-import { ComplaintScreenSkeleton } from "./Skeletons";
 import { useRefetch } from "@/store/refetch";
 import { toast } from "sonner";
 import { Spinner } from "./ui/spinner";
-import { dummyData } from "@/lib/data";
 import { translate } from "@/lib/translator";
 import { useLanguage } from "@/store/language";
 import { apiRequest } from "@/lib/queryClient";
@@ -31,13 +29,12 @@ interface PaginatedComplaintsResponse {
 
 export const AllChats = ({
   user,
-  handleSectionChange,
 }: {
-  user: User;
+  user?: string | null;
   handleSectionChange: (sec: Section) => void;
 }) => {
   const setMessages = useMessages((state) => state.setMessages);
-  const resetToInitial = useMessages((state) => state.resetToInitial);
+  // const resetToInitial = useMessages((state) => state.resetToInitial);
   const setBotState = useBot((state) => state.setBotState);
   const language = useLanguage((state) => state.language);
   const { refetch, setRefetch } = useRefetch();
@@ -51,11 +48,11 @@ export const AllChats = ({
     isLoading,
     refetch: refetchData,
   } = useQuery<PaginatedComplaintsResponse>({
-    queryKey: [`/api/complaints?userId=${user.id}&&fetch=my`],
+    queryKey: [`/api/complaints?userSlug=${user}&&fetch=my`],
     queryFn: async () => {
       const response = await apiRequest(
         "GET",
-        `/api/complaints?userId=${user.id}&&fetch=my&&page=${currentPage}&&limit=10`
+        `/api/complaints?userSlug=${user}&&fetch=my&&page=${currentPage}&&limit=10`
       );
       return response.json();
     },
@@ -94,7 +91,7 @@ export const AllChats = ({
     try {
       const response = await apiRequest(
         "GET",
-        `/api/complaints?userId=${user.id}&&fetch=my&&page=${nextPage}&&limit=10`
+        `/api/complaints?userSlug=${user}&&fetch=my&&page=${nextPage}&&limit=10`
       );
       const data = await response.json();
 
@@ -111,7 +108,11 @@ export const AllChats = ({
   const handleNavigateToChat = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Chat section removed
+    // Open WhatsApp with the specified phone number and "Hi" message
+    const phoneNumber = "+917875441601";
+    const message = "Hi";
+    const whatsappUrl = `https://wa.me/${phoneNumber.replace(/\+/g, "")}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
   };
 
   const handleOpenExistingChat = (comp: Complaint) => {

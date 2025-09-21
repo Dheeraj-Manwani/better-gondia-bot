@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import prisma from "@/prisma/db";
+import { getUserIdFromSlug } from "@/app/actions/user";
 
 export async function POST(
   req: NextRequest
@@ -9,15 +9,22 @@ export async function POST(
   try {
     // Extract data from request body
     const body = await req.json();
-    let { userId, shouldApprove, complaintId } = body;
+    let { userSlug, shouldApprove, complaintId } = body;
     complaintId = Number(complaintId);
 
     // Validate required fields
-    if (!userId || shouldApprove === undefined) {
+    if (!userSlug || shouldApprove === undefined) {
       return NextResponse.json(
-        { error: "userId and shouldApprove are required" },
+        { error: "userSlug and shouldApprove are required" },
         { status: 400 }
       );
+    }
+
+    // Convert userSlug to userId
+    const userId = await getUserIdFromSlug(userSlug);
+
+    if (!userId) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // const complaintId = Number(params.complaintId);
@@ -46,7 +53,7 @@ export async function POST(
     const existingInteraction = await prisma.interaction.findFirst({
       where: {
         complaintId,
-        userId: Number(userId),
+        userId: userId,
         type: "CO_SIGN",
       },
     });
@@ -65,7 +72,7 @@ export async function POST(
         prisma.interaction.create({
           data: {
             complaintId,
-            userId: Number(userId),
+            userId: userId,
             type: "CO_SIGN",
           },
         }),

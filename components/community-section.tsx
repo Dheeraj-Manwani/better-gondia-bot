@@ -31,10 +31,10 @@ import { translate } from "@/lib/translator";
 import { useLanguage } from "@/store/language";
 import { useMessages } from "@/store/messages";
 import { useBot } from "@/store/bot";
-// import { dummyData } from "@/lib/data";
+import { useUserData } from "@/store/userData";
 
 interface CommunitySectionProps {
-  user: User;
+  user?: string | null;
   handleSectionChange?: (sec: Section) => void;
 }
 
@@ -59,6 +59,7 @@ export default function CommunitySection({
   const language = useLanguage((state) => state.language);
   const setMessages = useMessages((state) => state.setMessages);
   const setBotState = useBot((state) => state.setBotState);
+  const { isAuthenticated } = useUserData();
   const [currentPage, setCurrentPage] = useState(1);
   const [allComplaints, setAllComplaints] = useState<Complaint[]>([]);
   const [hasMore, setHasMore] = useState(true);
@@ -66,11 +67,11 @@ export default function CommunitySection({
 
   const { data: complaintsData, isLoading } =
     useQuery<PaginatedComplaintsResponse>({
-      queryKey: ["/api/complaints", user.id],
+      queryKey: ["/api/complaints", user],
       queryFn: async () => {
         const response = await apiRequest(
           "GET",
-          `/api/complaints?userId=${user.id}&&fetch=all${
+          `/api/complaints?userSlug=${user}&&fetch=all${
             compId ? `&&compId=${compId}` : ""
           }&&page=${currentPage}&&limit=10`
         );
@@ -122,14 +123,18 @@ export default function CommunitySection({
   const queryClient = useQueryClient();
 
   const coSignMutation = useMutation({
-    mutationFn: async ({ userId, shouldApprove, complaintId }: CoSignVars) => {
+    mutationFn: async ({
+      userSlug,
+      shouldApprove,
+      complaintId,
+    }: CoSignVars) => {
       const id = toast.loading(
         shouldApprove ? "Co - Signing Complaint..." : "Removing Co - Sign"
       );
       const response = await apiRequest(
         "POST",
         `/api/complaints/${complaintId}/co-sign`,
-        { userId, shouldApprove, complaintId }
+        { userSlug, shouldApprove, complaintId }
       );
       toast.success(
         shouldApprove ? "Co - Sign Successfull!!" : "Removed Successfully!!",
@@ -139,8 +144,8 @@ export default function CommunitySection({
       return response.json();
     },
 
-    onMutate: async ({ shouldApprove, complaintId, userId }) => {
-      const queryKey = ["/api/complaints", userId];
+    onMutate: async ({ shouldApprove, complaintId, userSlug }) => {
+      const queryKey = ["/api/complaints", userSlug];
 
       await queryClient.cancelQueries({ queryKey });
 
@@ -163,8 +168,8 @@ export default function CommunitySection({
                     (shouldApprove && !c.isCoSigned
                       ? 1
                       : !shouldApprove && c.isCoSigned
-                      ? -1
-                      : 0),
+                        ? -1
+                        : 0),
                 }
               : c
           );
@@ -190,7 +195,7 @@ export default function CommunitySection({
   // Report mutation
   const reportMutation = useMutation({
     mutationFn: async ({
-      userId,
+      userSlug,
       complaintId,
       reportReason,
       text,
@@ -198,12 +203,12 @@ export default function CommunitySection({
       const response = await apiRequest(
         "POST",
         `/api/complaints/${complaintId}/report`,
-        { userId, complaintId, reportReason, text }
+        { userSlug, complaintId, reportReason, text }
       );
       return response.json();
     },
-    onMutate: async ({ userId, complaintId, reportReason, text }) => {
-      const queryKey = ["/api/complaints", userId];
+    onMutate: async ({ userSlug, complaintId, reportReason, text }) => {
+      const queryKey = ["/api/complaints", userSlug];
 
       await queryClient.cancelQueries({ queryKey });
 
@@ -233,7 +238,7 @@ export default function CommunitySection({
       return { prevData, queryKey };
     },
     onSuccess: (_data, { complaintId }) => {
-      // queryClient.invalidateQueries({ queryKey: ["/api/complaints", user.id] });
+      // queryClient.invalidateQueries({ queryKey: ["/api/complaints", user] });
     },
     onError: () => {
       // toast.error("Failed to report complaint.");
@@ -249,7 +254,7 @@ export default function CommunitySection({
     try {
       const response = await apiRequest(
         "GET",
-        `/api/complaints?userId=${user.id}&&fetch=all${
+        `/api/complaints?userSlug=${user}&&fetch=all${
           compId ? `&&compId=${compId}` : ""
         }&&page=${nextPage}&&limit=10`
       );
@@ -266,17 +271,17 @@ export default function CommunitySection({
   };
 
   const handleCoSign = (complaintId: number) => {
-    const shouldApprove = !allComplaints.find((c) => c.id === complaintId)
-      ?.isCoSigned;
-
-    if (!user.id) {
-      toast.error("Something went wrong, Please refresh the browser");
+    if (!isAuthenticated || !user) {
+      toast.error("Please login to co-sign complaints");
       return;
     }
 
+    const shouldApprove = !allComplaints.find((c) => c.id === complaintId)
+      ?.isCoSigned;
+
     coSignMutation.mutate({
       complaintId,
-      userId: user.id,
+      userSlug: user,
       shouldApprove,
     });
   };
@@ -290,23 +295,23 @@ export default function CommunitySection({
   };
 
   const handleReport = (complaintId: number, createdAt: string) => {
-    if (!user.id) {
-      toast.error("Something went wrong, Please refresh the browser");
+    if (!isAuthenticated || !user) {
+      toast.error("Please login to report complaints");
       return;
     }
     setIsOpen(true, "Report", {
       complaintId: generateComplaintIdFromDate(complaintId, createdAt),
       confirmationFunction: (reportReason: string, text?: string) => {
         console.log("Reporting with ::::::: ", {
-          userId: user.id,
+          userSlug: user,
           complaintId,
           reportReason: reportReason as ReportReason,
           text,
         });
 
-        user.id &&
+        user &&
           reportMutation.mutate({
-            userId: user.id,
+            userSlug: user,
             complaintId,
             reportReason: reportReason as ReportReason,
             text,
@@ -388,6 +393,7 @@ export default function CommunitySection({
               role={session?.data?.user?.role ?? "USER"}
               isShared={false}
               handleOpenExistingChat={handleOpenExistingChat}
+              isAuthenticated={isAuthenticated}
             />
           ))}
 
@@ -406,7 +412,7 @@ export default function CommunitySection({
           )}
         </div>
 
-        {hasMore ? (
+        {hasMore && allComplaints.length > 0 ? (
           <div className="w-full flex justify-center">
             <Button
               className="w-9/12 m-auto my-5 mb-8  bg-[#075E54] text-white hover:bg-[#075E54]"

@@ -57,7 +57,7 @@ export interface Complaint {
 }
 
 export type CoSignVars = {
-  userId: number;
+  userSlug: string;
   shouldApprove: boolean;
   complaintId: number;
 };
@@ -123,7 +123,7 @@ export type ReportReason =
   | "OTHER";
 
 export interface ReportVars {
-  userId: number;
+  userSlug: string;
   complaintId: number;
   reportReason: ReportReason;
   text?: string;

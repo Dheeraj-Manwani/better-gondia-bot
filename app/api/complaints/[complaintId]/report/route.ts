@@ -1,13 +1,21 @@
+import { getUserIdFromSlug } from "@/app/actions/user";
 import prisma from "@/prisma/db";
 import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, complaintId, reportReason, text } = await req.json();
+    const { userSlug, complaintId, reportReason, text } = await req.json();
     // const complaintId = Number(params.complaintId);
 
-    if (!userId || isNaN(complaintId)) {
+    if (!userSlug || isNaN(complaintId)) {
       return Response.json({ error: "Invalid data" }, { status: 400 });
+    }
+
+    // Convert userSlug to userId
+    const userId = await getUserIdFromSlug(userSlug);
+
+    if (!userId) {
+      return Response.json({ error: "User not found" }, { status: 404 });
     }
 
     // Prevent duplicate reports by the same user
