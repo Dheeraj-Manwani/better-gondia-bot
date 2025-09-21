@@ -36,8 +36,9 @@ export const getComplaintById = async (
       latitude: complaint.latitude,
       longitude: complaint.longitude,
       status: complaint.status,
-      imageUrls: complaint.isMediaApproved ? complaint.imageUrls : undefined,
-      videoUrls: complaint.isMediaApproved ? complaint.videoUrls : undefined,
+      // imageUrls: complaint.isMediaApproved ? complaint.imageUrls : undefined,
+      // videoUrls: complaint.isMediaApproved ? complaint.videoUrls : undefined,
+      media: complaint.media ? (complaint.media as any[]) : undefined,
       isMediaApproved: complaint.isMediaApproved,
       isPublic: complaint.isPublic,
       coSignCount: complaint.coSignCount,
@@ -45,11 +46,40 @@ export const getComplaintById = async (
       isReported: false,
       createdAt: complaint.createdAt.toISOString(),
       updatedAt: complaint.updatedAt.toISOString(),
-      messages: complaint.messages,
+      // messages: complaint.messages,
     };
 
     return transformedComplaint;
   } catch (error) {
     return false;
+  }
+};
+
+export const deleteComplaintById = async (
+  complaintId: number | undefined | null
+): Promise<{ success: boolean; message: string }> => {
+  if (!complaintId || isNaN(complaintId)) {
+    return { success: false, message: "Invalid complaint ID" };
+  }
+
+  try {
+    // Check if complaint exists
+    // const complaint = await prisma.complaint.findUnique({
+    //   where: { id: complaintId },
+    // });
+
+    // if (!complaint) {
+    //   return { success: false, message: "Complaint not found" };
+    // }
+
+    // Delete the complaint (cascade will handle related records)
+    await prisma.complaint.delete({
+      where: { id: complaintId },
+    });
+
+    return { success: true, message: "Complaint deleted successfully" };
+  } catch (error) {
+    console.error("Error deleting complaint:", error);
+    return { success: false, message: "Failed to delete complaint" };
   }
 };

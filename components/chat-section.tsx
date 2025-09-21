@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 // import { useToast } from "@/hooks/use-toast";
-import { User, ChatMessage, Section } from "@/types";
+import { User, ChatMessage, Section, MediaObject } from "@/types";
 import {
   Send,
   MapPin,
@@ -659,24 +659,16 @@ export default function ChatSection({
       formData.append("longitude", botState.complaintData.longitude);
     }
 
-    // Add multiple image URLs
+    // Add media files
     if (
-      botState.complaintData.imageUrls &&
-      botState.complaintData.imageUrls.length > 0
+      botState.complaintData.media &&
+      botState.complaintData.media.length > 0
     ) {
-      botState.complaintData.imageUrls.forEach((url, index) => {
-        formData.append(`imageUrls[${index}]`, url);
-      });
-    }
-
-    // Add multiple video URLs
-    if (
-      botState.complaintData.videoUrls &&
-      botState.complaintData.videoUrls.length > 0
-    ) {
-      botState.complaintData.videoUrls.forEach((url, index) => {
-        formData.append(`videoUrls[${index}]`, url);
-      });
+      botState.complaintData.media.forEach(
+        (item: MediaObject, index: number) => {
+          formData.append(`media[${index}]`, JSON.stringify(item));
+        }
+      );
     }
 
     formData.append("language", language);
@@ -881,31 +873,38 @@ export default function ChatSection({
           </div>
 
           {/* Show uploaded files if any */}
-          {((botState.complaintData.imageUrls?.length || 0) > 0 ||
-            (botState.complaintData.videoUrls?.length || 0) > 0) && (
+          {(botState.complaintData.media?.length || 0) > 0 && (
             <div className="mb-3">
               <div className="text-xs text-gray-500 mb-2">
                 {translate("uploaded_files", language)}
               </div>
               <div className="grid grid-cols-2 gap-2">
-                {botState.complaintData.imageUrls?.map((url, index) => (
-                  <div key={`img-${index}`} className="relative">
-                    <img
-                      src={url}
-                      alt={`Uploaded image ${index + 1}`}
-                      className="w-full object-cover rounded border"
-                    />
-                  </div>
-                ))}
-                {botState.complaintData.videoUrls?.map((url, index) => (
-                  <div key={`vid-${index}`} className="relative">
-                    <video
-                      src={url}
-                      className="w-full  object-cover rounded border"
-                      controls
-                    />
-                  </div>
-                ))}
+                {botState.complaintData.media?.map(
+                  (item: MediaObject, index: number) => {
+                    if (item.type === "image") {
+                      return (
+                        <div key={`img-${index}`} className="relative">
+                          <img
+                            src={item.url}
+                            alt={`${item.filename} - Uploaded image ${index + 1}`}
+                            className="w-full object-cover rounded border"
+                          />
+                        </div>
+                      );
+                    } else if (item.type === "video") {
+                      return (
+                        <div key={`vid-${index}`} className="relative">
+                          <video
+                            src={item.url}
+                            className="w-full object-cover rounded border"
+                            controls
+                          />
+                        </div>
+                      );
+                    }
+                    return null;
+                  }
+                )}
               </div>
             </div>
           )}

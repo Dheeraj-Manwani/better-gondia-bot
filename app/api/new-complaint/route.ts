@@ -14,6 +14,8 @@ import { customAlphabet } from "nanoid";
 import { downloadAndUploadToS3 } from "@/app/actions/s3";
 import { sendWhatsAppConfirmation } from "@/app/actions/whatsapp";
 import { generateSlug, generateUniqueUserSlug } from "@/app/actions/slug";
+import { deleteComplaintById } from "@/app/actions/complaint";
+import { createMediaObject } from "@/lib/media-utils";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -91,44 +93,44 @@ export async function POST(request: NextRequest) {
       if (complaint) {
         let s3Url = null;
 
-        if (body.fileType.startsWith("image/")) {
-          s3Url = await downloadAndUploadToS3(body.msgfile, body.fileType);
-          if (s3Url) {
-            await prisma.complaint.update({
-              where: { id: complaint.id },
-              data: {
-                imageUrls: {
-                  push: `${process.env.NEXT_PUBLIC_CLOUDFRONT_URL}/${s3Url}`,
-                },
+        s3Url = await downloadAndUploadToS3(body.msgfile, body.fileType);
+        if (s3Url) {
+          await prisma.complaint.update({
+            where: { id: complaint.id },
+            data: {
+              media: {
+                push: createMediaObject(
+                  `${process.env.NEXT_PUBLIC_CLOUDFRONT_URL}/${s3Url}`
+                ),
               },
-            });
-          }
-        } else if (body.fileType.startsWith("video/")) {
-          s3Url = await downloadAndUploadToS3(body.msgfile, body.fileType);
-          if (s3Url) {
-            await prisma.complaint.update({
-              where: { id: complaint.id },
-              data: {
-                videoUrls: {
-                  push: `${process.env.NEXT_PUBLIC_CLOUDFRONT_URL}/${s3Url}`,
-                },
-              },
-            });
-          }
+              ...(complaint.phase === ComplaintPhase.DESCRIPTION && {
+                phase: ComplaintPhase.ATTACHMENT,
+              }),
+            },
+          });
         }
 
-        if (complaint.phase === ComplaintPhase.COMPLETED) {
+        if (
+          complaint.phase === ComplaintPhase.COMPLETED ||
+          complaint.phase === ComplaintPhase.LOCATION ||
+          complaint.phase === ComplaintPhase.ATTACHMENT
+        ) {
           return NextResponse.json({
             success: true,
             message: "Media uploaded successfully to recent complaint",
             complaintId: complaint.id,
-            phase: "COMPLETED",
             mediaAdded: true,
           });
         } else {
-          complaint = await prisma.complaint.update({
-            where: { id: complaint.id },
-            data: { phase: ComplaintPhase.COMPLETED },
+          await sendWhatsAppConfirmation(
+            body.mobileNo,
+            "Please enter the location for this complaint/suggestion ✍️"
+          );
+          return NextResponse.json({
+            success: true,
+            message: "ATTACHMENT uploaded",
+            complaintId: complaint.id,
+            mediaAdded: true,
           });
         }
       }
@@ -154,8 +156,10 @@ export async function POST(request: NextRequest) {
         [ComplaintPhase.INIT]: 1,
         [ComplaintPhase.LANGUAGE]: 2,
         [ComplaintPhase.COMPLAINT_TYPE]: 3,
-        [ComplaintPhase.CATEGORY]: 4,
+        [ComplaintPhase.TALUKA]: 4,
         [ComplaintPhase.DESCRIPTION]: 5,
+        [ComplaintPhase.ATTACHMENT]: 6,
+        [ComplaintPhase.LOCATION]: 6,
         [ComplaintPhase.COMPLETED]: 6,
       };
 
@@ -171,7 +175,7 @@ export async function POST(request: NextRequest) {
     }
     // Determine the current phase and update accordingly
     if (!complaint) {
-      // Create new complaint in INIT phase with random UUID
+      // Create new complaint in INIT phase
       complaint = await prisma.complaint.create({
         data: {
           userId: user.id,
@@ -197,7 +201,10 @@ export async function POST(request: NextRequest) {
       switch (phase) {
         case "INIT":
           // This should be the language selection
-          if (["English", "Hindi", "Marathi"].includes(body.message)) {
+          if (
+            ["English", "Hindi", "Marathi"].includes(body.message) &&
+            body.msgType === "interactive"
+          ) {
             const languageMap = {
               English: Language.ENGLISH,
               Hindi: Language.HINDI,
@@ -220,7 +227,10 @@ export async function POST(request: NextRequest) {
 
         case "LANGUAGE":
           // This should be the complaint type selection
-          if (["Complaint", "Suggestion"].includes(body.message)) {
+          if (
+            ["Complaint 📝", "Suggestion💡"].includes(body.message?.trim()) &&
+            body.msgType === "interactive"
+          ) {
             const complaintTypeMap = {
               Complaint: "COMPLAINT",
               Suggestion: "SUGGESTION",
@@ -234,31 +244,48 @@ export async function POST(request: NextRequest) {
                 phase: ComplaintPhase.COMPLAINT_TYPE,
               },
             });
+            return NextResponse.json({
+              success: true,
+              message: "Stored COMPLAINT_TYPE Successfully",
+              complaintId: complaint.id,
+              phase: "COMPLAINT_TYPE",
+            });
+          } else if (
+            body.message?.trim() === "Check Status 🔎" &&
+            body.msgType === "interactive"
+          ) {
+            const userLoggedUrlMessage =
+              "Please visit our website to track your complaint status 👉 https://better-gondia-bot.vercel.app?user=" +
+              user.slug +
+              "/n Thank you for trusting Better Gondia Mitra 🙏";
+            await sendWhatsAppConfirmation(body.mobileNo, userLoggedUrlMessage);
+            await deleteComplaintById(complaint.id);
+            return NextResponse.json({
+              success: true,
+              message: "Reverted with Status URL",
+              complaintId: complaint.id,
+            });
           }
-          return NextResponse.json({
-            success: true,
-            message: "Stored COMPLAINT_TYPE Successfully",
-            complaintId: complaint.id,
-            phase: "COMPLAINT_TYPE",
-          });
 
         case "COMPLAINT_TYPE":
-          // This should be the category selection
-          updatedComplaint = await prisma.complaint.update({
-            where: { id: complaint.id },
-            data: {
-              category: body.message,
-              phase: ComplaintPhase.CATEGORY,
-            },
-          });
-          return NextResponse.json({
-            success: true,
-            message: "Stored CATEGORY Successfully",
-            complaintId: complaint.id,
-            phase: "CATEGORY",
-          });
+          // This should be the taluka selection
+          if (body.msgType === "list_reply") {
+            updatedComplaint = await prisma.complaint.update({
+              where: { id: complaint.id },
+              data: {
+                taluka: body.message,
+                phase: ComplaintPhase.TALUKA,
+              },
+            });
+            return NextResponse.json({
+              success: true,
+              message: "Stored TALUKA Successfully",
+              complaintId: complaint.id,
+              phase: "TALUKA",
+            });
+          }
 
-        case "CATEGORY":
+        case "TALUKA":
           // This should be the description
           updatedComplaint = await prisma.complaint.update({
             where: { id: complaint.id },
@@ -273,6 +300,17 @@ export async function POST(request: NextRequest) {
             complaintId: complaint.id,
             phase: "DESCRIPTION",
           });
+
+        case "ATTACHMENT":
+        case "LOCATION":
+          updatedComplaint = await prisma.complaint.update({
+            where: { id: complaint.id },
+            data: {
+              description: body.message,
+              phase: ComplaintPhase.COMPLETED,
+            },
+          });
+          phase = "COMPLETED";
       }
     }
 
@@ -325,18 +363,8 @@ export async function POST(request: NextRequest) {
             <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Images:</td>
             <td style="border: 1px solid #ddd; padding: 8px;">
               ${
-                updatedComplaint.imageUrls.length > 0
-                  ? updatedComplaint.imageUrls.join(", ")
-                  : "None"
-              }
-            </td>
-          </tr>
-          <tr>
-            <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Videos:</td>
-            <td style="border: 1px solid #ddd; padding: 8px;">
-              ${
-                updatedComplaint.videoUrls.length > 0
-                  ? updatedComplaint.videoUrls.join(", ")
+                updatedComplaint?.media?.length > 0
+                  ? updatedComplaint.media.join(", ")
                   : "None"
               }
             </td>

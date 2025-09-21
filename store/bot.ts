@@ -1,6 +1,6 @@
 "use client";
 
-import { ComplaintFormData } from "@/types";
+import { ComplaintFormData, MediaObject } from "@/types";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
@@ -16,7 +16,7 @@ export interface BotState {
     | "existing"
     | "admin"
     | "none";
-  complaintData: Partial<ComplaintFormData> & { id?: number; status?: string };
+  complaintData: any;
 }
 
 interface UseBot {

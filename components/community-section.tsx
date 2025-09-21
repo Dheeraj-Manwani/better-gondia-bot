@@ -327,10 +327,7 @@ export default function CommunitySection({
         return;
       }
 
-      const cardMessages = complaint.messages;
-      // Chat section removed
-      const mess: ChatMessage[] = JSON.parse(cardMessages);
-      setMessages(mess);
+      // Messages functionality removed
 
       // Check if user is admin and set appropriate state
       const isUserAdmin =

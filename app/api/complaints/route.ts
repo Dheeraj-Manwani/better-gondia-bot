@@ -177,8 +177,7 @@ export async function GET(req: NextRequest) {
       longitude: complaint.longitude,
       status: complaint.status,
 
-      imageUrls: complaint.imageUrls,
-      videoUrls: complaint.videoUrls,
+      media: complaint.media,
 
       isMediaApproved: complaint.isMediaApproved,
       isPublic: complaint.isPublic,
@@ -188,7 +187,6 @@ export async function GET(req: NextRequest) {
 
       createdAt: complaint.createdAt.toISOString(),
       updatedAt: complaint.updatedAt.toISOString(),
-      messages: complaint.messages,
     }));
 
     return Response.json({

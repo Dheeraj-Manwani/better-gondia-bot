@@ -117,10 +117,7 @@ export const AllChats = ({
 
   const handleOpenExistingChat = (comp: Complaint) => {
     try {
-      const cardMessages = comp.messages;
-      // Chat section removed
-      const mess: ChatMessage[] = JSON.parse(cardMessages);
-      setMessages(mess);
+      // Messages functionality removed
       setBotState({ step: "existing", complaintData: comp });
     } catch (e) {
       console.log("Error occured", e);

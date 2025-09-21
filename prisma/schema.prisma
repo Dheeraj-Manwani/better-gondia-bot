@@ -7,6 +7,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// -------------------------
+/// ENUMS
+/// -------------------------
+
 enum Gender {
   Male
   Female
@@ -17,6 +21,10 @@ enum Role {
   USER
   ADMIN
   SUPERADMIN
+  COLLECTOR_TEAM
+  DEPARTMENT_TEAM
+  SUPERINTENDENT_OF_POLICE
+  MP_RAJYA_SABHA
 }
 
 enum AuthType {
@@ -24,13 +32,28 @@ enum AuthType {
   GOOGLE
 }
 
-enum ComplaintPhase {
-  INIT
-  LANGUAGE
-  COMPLAINT_TYPE
-  CATEGORY
-  DESCRIPTION
-  COMPLETED
+enum ComplaintStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  BACKLOG
+  NEED_DETAILS
+  INVALID
+}
+
+enum Priority {
+  NORMAL
+  HIGH
+}
+
+enum Department {
+  PUBLIC_WORKS
+  WATER_SUPPLY
+  SANITATION
+  HEALTH
+  URBAN_PLANNING
+  POLICE
 }
 
 enum Language {
@@ -43,6 +66,41 @@ enum ComplaintType {
   COMPLAINT
   SUGGESTION
 }
+
+enum InteractionType {
+  CO_SIGN
+  REPORT
+}
+
+enum ReportReason {
+  INAPPROPRIATE_CONTENT
+  MISLEADING_OR_FALSE_INFO
+  SPAM_OR_DUPLICATE
+  PRIVACY_VIOLATION
+  HARASSMENT_OR_HATE_SPEECH
+  OTHER
+}
+
+enum BugStatus {
+  OPEN
+  RESOLVED
+  IGNORED
+}
+
+enum ComplaintPhase {
+  INIT
+  LANGUAGE
+  COMPLAINT_TYPE
+  TALUKA
+  DESCRIPTION
+  ATTACHMENT
+  LOCATION
+  COMPLETED
+}
+
+/// -------------------------
+/// CORE ENTITIES
+/// -------------------------
 
 model User {
   id       Int      @id @default(autoincrement())
@@ -60,44 +118,72 @@ model User {
   updatedAt DateTime @updatedAt
 
   complaints   Complaint[]
-  Interactions Interaction[]
+  interactions Interaction[]
   bugs         Bug[]
+  history      ComplaintHistory[]
 
   @@index([mobile])
   @@index([email])
+  @@index([role])
 }
 
 model Complaint {
-  id          Int            @id @default(autoincrement())
+  id          Int             @id @default(autoincrement())
   userId      Int
-  user        User           @relation(fields: [userId], references: [id])
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   title       String?
   description String?
-  status      String         @default("pending")
+  status      ComplaintStatus @default(OPEN)
+  priority    Priority        @default(NORMAL)
+  department  Department?
   category    String?
+  subcategory String?
+  taluka      String?
   location    String?
-  latitude    String?
-  longitude   String?
-  type        ComplaintType?
-  phase       ComplaintPhase
-  language    Language       @default(ENGLISH)
+  latitude    Decimal?
+  longitude   Decimal?
 
-  imageUrls String[] @default([])
-  videoUrls String[] @default([])
+  language Language       @default(ENGLISH)
+  type     ComplaintType?
+  phase    ComplaintPhase
 
-  isMediaApproved Boolean @default(false)
-  isPublic        Boolean @default(false)
-  coSignCount     Int     @default(0)
-  reportCount     Int     @default(0)
+  media Json[] @default([])
 
-  messages String @default("[]")
+  isMediaApproved    Boolean  @default(false)
+  isPublic           Boolean  @default(false)
+  coSignCount        Int      @default(0)
+  reportCount        Int      @default(0)
+  linkedComplaintIds String[] @default([])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  history       ComplaintHistory[]
   interactions  Interaction[]
   statusUpdates StatusUpdate[]
 
   @@index([userId])
+  @@index([status])
+  @@index([department])
+  @@index([priority])
+  @@index([category, subcategory])
+}
+
+model ComplaintHistory {
+  id          Int       @id @default(autoincrement())
+  complaintId Int
+  complaint   Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        Role
+  action      String
+  notes       String?
+  attachment  String?
+  eta         DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([complaintId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model Interaction {
@@ -105,39 +191,25 @@ model Interaction {
   type         InteractionType
   reportReason ReportReason?
   text         String?
-
-  createdAt DateTime @default(now())
-
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
-
-  complaintId Int
-  complaint   Complaint @relation(fields: [complaintId], references: [id])
+  userId       Int
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  complaintId  Int
+  complaint    Complaint       @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  createdAt    DateTime        @default(now())
 
   @@unique([userId, complaintId, type])
 }
 
-enum ReportReason {
-  INAPPROPRIATE_CONTENT // Offensive, explicit, or abusive language
-  MISLEADING_OR_FALSE_INFO // Fake or deceptive complaint
-  SPAM_OR_DUPLICATE // Irrelevant, promotional, or repeated content
-  PRIVACY_VIOLATION // Personal data shared without consent
-  HARASSMENT_OR_HATE_SPEECH // Targeted abuse or discriminatory content
-  OTHER
-}
-
-enum InteractionType {
-  CO_SIGN
-  REPORT
-}
-
 model Bug {
-  id          Int    @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   title       String
   description String
-
-  reporterId Int
-  reporter   User @relation(fields: [reporterId], references: [id])
+  reporterId  Int
+  reporter    User      @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  status      BugStatus @default(OPEN)
+  priority    Priority  @default(NORMAL)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model StatusUpdate {
@@ -147,9 +219,13 @@ model StatusUpdate {
   imageUrl    String?
   videoUrl    String?
   complaintId Int?
-  complaint   Complaint? @relation(fields: [complaintId], references: [id])
+  complaint   Complaint? @relation(fields: [complaintId], references: [id], onDelete: Cascade)
   isActive    Boolean    @default(true)
   expiresAt   DateTime?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+
+  @@index([complaintId])
+  @@index([isActive])
+  @@index([createdAt])
 }

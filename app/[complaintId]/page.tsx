@@ -24,8 +24,12 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
   let imageUrl: string | undefined;
 
   if (complaint) {
-    if (complaint.imageUrls?.length && complaint.imageUrls?.length > 0) {
-      imageUrl = complaint.imageUrls[0];
+    if (complaint.media?.length && complaint.media?.length > 0) {
+      // Find first image in media array
+      const firstImage = complaint.media.find((item) => item.type === "image");
+      imageUrl =
+        firstImage?.url ||
+        "https://d2jow4rnitzfmr.cloudfront.net/e2c40e62-f8c3-44f0-bb48-d6258079243c_logopng.png";
     } else {
       imageUrl =
         "https://d2jow4rnitzfmr.cloudfront.net/e2c40e62-f8c3-44f0-bb48-d6258079243c_logopng.png";

@@ -104,31 +104,34 @@ export const CommunityComplaintCard = ({
           </div>
         </div>
 
-        {/* Complaint Image */}
+        {/* Complaint Media */}
         {(complaint.isMediaApproved ||
           role == "ADMIN" ||
           role == "SUPERADMIN") &&
-          complaint.imageUrls &&
-          complaint.imageUrls.map((url) => (
-            <img
-              src={url}
-              key={url}
-              alt="Complaint"
-              className=" object-cover rounded-lg mb-3"
-            />
-          ))}
-
-        {(complaint.isMediaApproved || isAdmin(role)) &&
-          complaint.videoUrls &&
-          complaint.videoUrls.map((url, idx) => (
-            <video
-              key={idx}
-              src={url}
-              controls // Enables play, pause, seek, volume, fullscreen, etc.
-              className="object-cover rounded-lg mb-3"
-              style={{ maxWidth: "100%", height: "auto" }} // Optional: responsive sizing
-            />
-          ))}
+          complaint.media &&
+          complaint.media.map((item) => {
+            if (item.type === "image") {
+              return (
+                <img
+                  src={item.url}
+                  key={item.url}
+                  alt={`Complaint image - ${item.filename}`}
+                  className=" object-cover rounded-lg mb-3"
+                />
+              );
+            } else if (item.type === "video") {
+              return (
+                <video
+                  key={item.url}
+                  src={item.url}
+                  controls
+                  className="object-cover rounded-lg mb-3"
+                  style={{ maxWidth: "100%", height: "auto" }}
+                />
+              );
+            }
+            return null;
+          })}
 
         {/* Complaint Text */}
         <p className="text-sm  mb-3">{complaint.description}</p>

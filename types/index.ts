@@ -1,3 +1,12 @@
+import { Decimal } from "@prisma/client/runtime/library";
+
+export interface MediaObject {
+  url: string;
+  filename: string;
+  extension: string;
+  type: "image" | "video" | "other";
+}
+
 export type AuthStep = "language" | "login" | "otp" | "profile" | "complete";
 export type Section = "my-issues" | "community" | "status";
 export type Language = "english" | "hindi" | "marathi";
@@ -38,12 +47,11 @@ export interface Complaint {
   description: string;
   category: string;
   location?: string | null;
-  latitude?: string | null;
-  longitude?: string | null;
+  latitude?: Decimal | null;
+  longitude?: Decimal | null;
   status: string;
 
-  imageUrls?: string[];
-  videoUrls?: string[];
+  media?: MediaObject[];
 
   isMediaApproved: boolean;
   isPublic: boolean;
@@ -53,7 +61,6 @@ export interface Complaint {
 
   createdAt: string;
   updatedAt: string;
-  messages: string;
 }
 
 export type CoSignVars = {
@@ -91,8 +98,7 @@ export interface ComplaintFormData {
   location?: string | null;
   latitude?: string | null;
   longitude?: string | null;
-  imageUrls?: string[];
-  videoUrls?: string[];
+  media?: MediaObject[];
 }
 
 export interface OTPFormData {

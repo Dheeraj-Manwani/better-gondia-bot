@@ -43,8 +43,7 @@ export async function GET(
       latitude: complaint.latitude,
       longitude: complaint.longitude,
       status: complaint.status,
-      imageUrls: complaint.imageUrls,
-      videoUrls: complaint.videoUrls,
+      media: complaint.media,
       isMediaApproved: complaint.isMediaApproved,
       isPublic: complaint.isPublic,
       coSignCount: complaint.coSignCount,
@@ -52,7 +51,6 @@ export async function GET(
       isReported: false, // You can enhance this with session/user info
       createdAt: complaint.createdAt.toISOString(),
       updatedAt: complaint.updatedAt.toISOString(),
-      messages: complaint.messages,
     };
 
     return Response.json({ complaint: transformedComplaint });
@@ -82,16 +80,12 @@ export async function PATCH(
 
   try {
     const body = await req.json();
-    const { status, messages } = body;
+    const { status } = body;
 
-    const updateData: Partial<Complaint> = {};
+    const updateData: any = {};
 
     if (status) {
       updateData.status = status;
-    }
-
-    if (messages) {
-      updateData.messages = messages;
     }
 
     if (Object.keys(updateData).length === 0) {
