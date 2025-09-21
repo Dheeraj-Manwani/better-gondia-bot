@@ -241,7 +241,7 @@ export async function POST(request: NextRequest) {
             updatedComplaint = await prisma.complaint.update({
               where: { id: complaint.id },
               data: {
-                type: complaintType as ComplaintType,
+                type: complaintType,
                 phase: ComplaintPhase.COMPLAINT_TYPE,
               },
             });
@@ -302,6 +302,20 @@ export async function POST(request: NextRequest) {
             phase: "DESCRIPTION",
           });
 
+        case "DESCRIPTION":
+          await prisma.complaint.update({
+            where: { id: complaint.id },
+            data: {
+              phase: ComplaintPhase.ATTACHMENT,
+            },
+          });
+          return NextResponse.json({
+            success: true,
+            message: "Skipping ATTACHMENT",
+            complaintId: complaint.id,
+            phase: "ATTACHMENT",
+          });
+
         case "ATTACHMENT":
         case "LOCATION":
           updatedComplaint = await prisma.complaint.update({
@@ -349,9 +363,9 @@ export async function POST(request: NextRequest) {
             }</td>
           </tr>
           <tr>
-            <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Category:</td>
+            <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">type:</td>
             <td style="border: 1px solid #ddd; padding: 8px;">${
-              updatedComplaint.category
+              updatedComplaint.type
             }</td>
           </tr>
           <tr>
@@ -399,7 +413,7 @@ ${JSON.stringify(body, null, 2)}
 📋 Complaint ID: ${formattedComplaintId}
 👤 Name: ${body.customerName}
 📱 Mobile: ${body.mobileNo}
-📝 Category: ${updatedComplaint.category || "Not specified"}
+📝 Type: ${updatedComplaint.type || "Not specified"}
 📄 Description: ${updatedComplaint.description || "Not provided"}
 
 Your complaint is now being processed. You will be notified of any updates.
