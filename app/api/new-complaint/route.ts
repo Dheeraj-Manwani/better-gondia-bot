@@ -309,6 +309,10 @@ export async function POST(request: NextRequest) {
               phase: ComplaintPhase.ATTACHMENT,
             },
           });
+          await sendWhatsAppConfirmation(
+            body.mobileNo,
+            "Please enter the location for this complaint/suggestion ✍️"
+          );
           return NextResponse.json({
             success: true,
             message: "Skipping ATTACHMENT",
