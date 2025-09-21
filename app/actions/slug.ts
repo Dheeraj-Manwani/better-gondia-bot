@@ -1,5 +1,6 @@
 "use server";
 
+import prisma from "@/prisma/db";
 import { customAlphabet } from "nanoid";
 
 const adjectives = [
@@ -109,9 +110,27 @@ const animals = [
 ];
 const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz", 3);
 
-export function generateSlug(): string {
+export async function generateSlug(): Promise<string> {
   const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
   const animal = animals[Math.floor(Math.random() * animals.length)];
   const rand = nanoid();
   return `bgm-${adj}-${animal}-${rand}`;
+}
+
+export async function generateUniqueUserSlug(): Promise<string> {
+  let slug: string = "";
+  let isUnique = false;
+
+  while (!isUnique) {
+    slug = await generateSlug();
+    const existingUser = await prisma.user.findUnique({
+      where: { slug },
+    });
+
+    if (!existingUser) {
+      isUnique = true;
+    }
+  }
+
+  return slug;
 }

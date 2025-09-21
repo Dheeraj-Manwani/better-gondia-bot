@@ -4,6 +4,7 @@ import { NextAuthOptions, Session } from "next-auth";
 import { Role } from "@prisma/client/index.js";
 import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
+import { generateUniqueUserSlug } from "@/app/actions/slug";
 
 export interface appSession extends Session {
   status: "loading" | "authenticated" | "unauthenticated";
@@ -119,10 +120,13 @@ export const authConfig = {
           const userId = Number(cookieStore.get("userId")?.value) ?? -1597;
           console.log("cookie and user id ", cookieStore, userId);
 
+          const slug = await generateUniqueUserSlug();
+
           await prisma.user.create({
             data: {
               email: email,
               name: profile?.name ?? "Unknown",
+              slug,
               mobile: uuid(),
               address: "",
               age: 0,

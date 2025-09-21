@@ -1,5 +1,6 @@
 import Home from "@/components/Home";
 import { Metadata } from "next";
+import { Suspense } from "react";
 
 export function generateMetadata(): Metadata {
   const imageUrl =
@@ -52,7 +53,9 @@ export default function Page() {
 
     // <div className="h-[100dvh] w-[100dvw]">
     //   <div className="h-[100dvh] w-72 m-auto">
-    <Home />
+    <Suspense fallback={<p>Loading...</p>}>
+      <Home />
+    </Suspense>
     //   </div>
     // </div>
   );

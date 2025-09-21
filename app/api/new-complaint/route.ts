@@ -13,7 +13,7 @@ import { generateComplaintIdFromDate } from "@/lib/clientUtils";
 import { customAlphabet } from "nanoid";
 import { downloadAndUploadToS3 } from "@/app/actions/s3";
 import { sendWhatsAppConfirmation } from "@/app/actions/whatsapp";
-import { generateSlug } from "@/app/actions/slug";
+import { generateSlug, generateUniqueUserSlug } from "@/app/actions/slug";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -41,24 +41,6 @@ interface ComplaintRequestBody {
   businessName?: string;
 }
 
-async function generateUniqueSlug(): Promise<string> {
-  let slug: string = "";
-  let isUnique = false;
-
-  while (!isUnique) {
-    slug = generateSlug();
-    const existingUser = await prisma.user.findUnique({
-      where: { slug },
-    });
-
-    if (!existingUser) {
-      isUnique = true;
-    }
-  }
-
-  return slug;
-}
-
 export async function POST(request: NextRequest) {
   try {
     const body: ComplaintRequestBody = await request.json();
@@ -78,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       // Generate unique slug for new user
-      const uniqueSlug = await generateUniqueSlug();
+      const uniqueSlug = await generateUniqueUserSlug();
 
       // Create new user
       user = await prisma.user.create({
