@@ -103,9 +103,11 @@ export async function POST(request: NextRequest) {
                   `${process.env.NEXT_PUBLIC_CLOUDFRONT_URL}/${s3Url}`
                 ),
               },
-              ...(complaint.phase === ComplaintPhase.DESCRIPTION && {
-                phase: ComplaintPhase.ATTACHMENT,
-              }),
+              ...(complaint.phase !== ComplaintPhase.COMPLETED &&
+                complaint.phase !== ComplaintPhase.LOCATION &&
+                complaint.phase !== ComplaintPhase.ATTACHMENT && {
+                  phase: ComplaintPhase.ATTACHMENT,
+                }),
             },
           });
         }
@@ -231,16 +233,15 @@ export async function POST(request: NextRequest) {
             ["Complaint 📝", "Suggestion💡"].includes(body.message?.trim()) &&
             body.msgType === "interactive"
           ) {
-            const complaintTypeMap = {
-              Complaint: "COMPLAINT",
-              Suggestion: "SUGGESTION",
-            };
+            const complaintType = body.message
+              .toLowerCase()
+              .includes("complaint")
+              ? "COMPLAINT"
+              : "SUGGESTION";
             updatedComplaint = await prisma.complaint.update({
               where: { id: complaint.id },
               data: {
-                type: complaintTypeMap[
-                  body.message as keyof typeof complaintTypeMap
-                ] as ComplaintType,
+                type: complaintType as ComplaintType,
                 phase: ComplaintPhase.COMPLAINT_TYPE,
               },
             });
@@ -257,7 +258,7 @@ export async function POST(request: NextRequest) {
             const userLoggedUrlMessage =
               "Please visit our website to track your complaint status 👉 https://better-gondia-bot.vercel.app?user=" +
               user.slug +
-              "/n Thank you for trusting Better Gondia Mitra 🙏";
+              "\n Thank you for trusting Better Gondia Mitra 🙏";
             await sendWhatsAppConfirmation(body.mobileNo, userLoggedUrlMessage);
             await deleteComplaintById(complaint.id);
             return NextResponse.json({
@@ -395,15 +396,14 @@ ${JSON.stringify(body, null, 2)}
       // Send WhatsApp confirmation message for completed complaint
       const whatsappConfirmationMessage = `✅ Thank you! Your complaint has been successfully submitted and recorded. 
 
-       📋 Complaint ID: ${formattedComplaintId}
-       👤 Name: ${body.customerName}
-       📱 Mobile: ${body.mobileNo}
-       📝 Category: ${updatedComplaint.category || "Not specified"}
-       📄 Description: ${updatedComplaint.description || "Not provided"}
+📋 Complaint ID: ${formattedComplaintId}
+👤 Name: ${body.customerName}
+📱 Mobile: ${body.mobileNo}
+📝 Category: ${updatedComplaint.category || "Not specified"}
+📄 Description: ${updatedComplaint.description || "Not provided"}
 
-       Your complaint is now being processed. You will be notified of any updates.
-
-       Thank you for helping make Gondia better! 🙏`;
+Your complaint is now being processed. You will be notified of any updates.
+Thank you for helping make Gondia better! 🙏`;
 
       await sendWhatsAppConfirmation(
         body.mobileNo,
