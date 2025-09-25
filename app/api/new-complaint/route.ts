@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
     let phase = null;
 
     // Handle media upload for the most recent completed complaint
-    if (body.fileType && body.msgfile && body.msgType === "text") {
+    if (body.fileType && body.msgfile && body.msgType === "image") {
       // Find the most recent completed complaint for this user
       complaint = await prisma.complaint.findFirst({
         where: {
@@ -433,11 +433,11 @@ export async function POST(request: NextRequest) {
       );
 
       // Send WhatsApp confirmation message for completed complaint
-      const whatsappConfirmationMessage = `🎉 *Complaint Successfully Submitted!*
+      const whatsappConfirmationMessage = `✅ *Complaint Successfully Submitted!*
 
 Dear ${body.customerName},
 
-Your ${updatedComplaint.type === "SUGGESTION" ? "suggestion" : "complaint"} has been successfully submitted to the Gondia Municipal Corporation system.
+Your ${updatedComplaint.type === "SUGGESTION" ? "suggestion" : "complaint"} has been successfully submitted to the Better Gondia Mitra.
 
 📋 *Complaint Details:*
 • Complaint ID: *${formattedComplaintId}*
@@ -460,12 +460,6 @@ ${updatedComplaint.description || "No description provided"}
       })}
 
 📞 *Your Contact:* ${body.mobileNo}
-
-🔄 *What happens next?*
-1. Your ${updatedComplaint.type === "SUGGESTION" ? "suggestion" : "complaint"} will be reviewed by our team
-2. It will be assigned to the appropriate department
-3. You'll receive updates via WhatsApp on the progress
-4. Our team will work towards resolving your concern
 
 💡 *Keep this Complaint ID safe for future reference!*
 
