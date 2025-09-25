@@ -83,3 +83,75 @@ export const deleteComplaintById = async (
     return { success: false, message: "Failed to delete complaint" };
   }
 };
+
+// const emailContent = `
+// <h2>New Complaint Received via WhatsApp</h2>
+
+// <h3>Complaint Details</h3>
+// <table style="border-collapse: collapse; width: 100%;">
+//   <tr>
+//     <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Complaint ID:</td>
+//     <td style="border: 1px solid #ddd; padding: 8px;">${formattedComplaintId}</td>
+//   </tr>
+//   <tr>
+//     <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Customer Name:</td>
+//     <td style="border: 1px solid #ddd; padding: 8px;">${
+//       body.customerName
+//     }</td>
+//   </tr>
+//   <tr>
+//     <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Mobile Number:</td>
+//     <td style="border: 1px solid #ddd; padding: 8px;">${
+//       body.mobileNo
+//     }</td>
+//   </tr>
+//   <tr>
+//     <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Language:</td>
+//     <td style="border: 1px solid #ddd; padding: 8px;">${
+//       updatedComplaint.language
+//     }</td>
+//   </tr>
+//   <tr>
+//     <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">type:</td>
+//     <td style="border: 1px solid #ddd; padding: 8px;">${
+//       updatedComplaint.type
+//     }</td>
+//   </tr>
+//   <tr>
+//     <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Description:</td>
+//     <td style="border: 1px solid #ddd; padding: 8px;">${
+//       updatedComplaint.description
+//     }</td>
+//   </tr>
+//   <tr>
+//     <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Images:</td>
+//     <td style="border: 1px solid #ddd; padding: 8px;">
+//       ${
+//         updatedComplaint?.media?.length > 0
+//           ? updatedComplaint.media.join(", ")
+//           : "None"
+//       }
+//     </td>
+//   </tr>
+//   <tr>
+//     <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Created At:</td>
+//     <td style="border: 1px solid #ddd; padding: 8px;">${updatedComplaint.createdAt.toISOString()}</td>
+//   </tr>
+// </table>
+
+// <h3>WhatsApp Message Details</h3>
+// <pre style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; font-family: 'Courier New', monospace; white-space: pre-wrap;">
+// ${JSON.stringify(body, null, 2)}
+// </pre>
+// `;
+
+// const emailResponse = await resend.emails.send({
+// from: "portfolio@updates.bydm.site",
+// to: "dkmanwani2000@gmail.com",
+// subject: `New WhatsApp Complaint #${formattedComplaintId} - ${body.customerName}`,
+// html: emailContent,
+// });
+
+// if (emailResponse.error) {
+// console.error("Resend error:", emailResponse.error);
+// }
