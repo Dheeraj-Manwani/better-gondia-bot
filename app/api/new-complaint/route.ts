@@ -18,7 +18,7 @@ import { createMediaObject } from "@/lib/media-utils";
 import {
   getUserLoggedUrlMessage,
   getWhatsappConfirmationMessage,
-} from "@/lib/server-utils";
+} from "@/lib/clientUtils";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 

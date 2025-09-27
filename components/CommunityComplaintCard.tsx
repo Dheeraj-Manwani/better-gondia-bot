@@ -212,8 +212,8 @@ export const CommunityComplaintCard = ({
                 </Button>
               )
             ) : null}
-            <Badge className={getCategoryColor(complaint.category)}>
-              {getCategoryIcon(complaint.category)}{" "}
+            <Badge className={getCategoryColor(complaint.category || "")}>
+              {getCategoryIcon(complaint.category || "")}{" "}
               {translate(complaint.category as any, language)}
             </Badge>
           </div>
