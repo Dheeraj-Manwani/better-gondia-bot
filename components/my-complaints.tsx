@@ -31,7 +31,7 @@ export const AllChats = ({
   user,
 }: {
   user?: string | null;
-  handleSectionChange: (sec: Section) => void;
+  handleSectionChange?: (sec: Section) => void;
 }) => {
   const setMessages = useMessages((state) => state.setMessages);
   // const resetToInitial = useMessages((state) => state.resetToInitial);
@@ -115,15 +115,6 @@ export const AllChats = ({
     window.open(whatsappUrl, "_blank");
   };
 
-  const handleOpenExistingChat = (comp: Complaint) => {
-    try {
-      // Messages functionality removed
-      setBotState({ step: "existing", complaintData: comp });
-    } catch (e) {
-      console.log("Error occured", e);
-    }
-  };
-
   if (isLoading && currentPage === 1) {
     return <Spinner blur />;
   }
@@ -136,6 +127,14 @@ export const AllChats = ({
           <BookAlert className="mt-0.5" />
           <span>{translate("my_complaints", language)}</span>
         </div>
+        {allComplaints && allComplaints.length > 0 && (
+          <Button
+            className="bg-[#075E54] hover:bg-[#0f5a51]  transition-colors shadow-md text-white"
+            onClick={handleNavigateToChat}
+          >
+            <Plus /> {translate("new_complaint", language)}
+          </Button>
+        )}
       </div>
       <div className="max-w-11/12 mx-auto text-gray-700  min-h-[85dvh] flex flex-col bg-[#E5DDD5]  rounded-lg">
         {/* Complaints List */}
@@ -159,11 +158,7 @@ export const AllChats = ({
         ) : (
           <ScrollArea className="h-[82dvh] py-1.5 ">
             {allComplaints?.map((complaint: Complaint) => (
-              <ComplaintCard
-                complaint={complaint}
-                key={complaint.id}
-                handleOpenExistingChat={handleOpenExistingChat}
-              />
+              <ComplaintCard complaint={complaint} key={complaint.id} />
             ))}
             <div className="my-2" />
             {hasMore ? (

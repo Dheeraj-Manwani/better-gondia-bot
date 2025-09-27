@@ -22,6 +22,7 @@ import { appSession } from "@/lib/auth";
 import { cn, isAdmin, resetApp } from "@/lib/clientUtils";
 import { useRouter } from "nextjs-toploader/app";
 import { useModal } from "@/store/modal";
+// import { clearStoredUserSlug } from "@/lib/slug-utils";
 
 export function HeaderDropdown() {
   const setIsOpen = useModal((state) => state.setIsOpen);
@@ -29,6 +30,8 @@ export function HeaderDropdown() {
   const router = useRouter();
 
   const handleEmailLogin = () => {
+    // Clear any existing stored slug before initiating Google sign-in
+    // clearStoredUserSlug();
     signIn("google");
   };
   return (

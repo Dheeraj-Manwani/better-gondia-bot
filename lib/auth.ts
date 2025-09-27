@@ -118,9 +118,33 @@ export const authConfig = {
 
           const cookieStore = await cookies();
           const userId = Number(cookieStore.get("userId")?.value) ?? -1597;
+          const pendingUserSlug = cookieStore.get("pendingUserSlug")?.value;
           console.log("cookie and user id ", cookieStore, userId);
+          console.log("pending user slug from cookie:", pendingUserSlug);
 
-          const slug = await generateUniqueUserSlug();
+          // Use the pending slug from URL if available, otherwise generate a new one
+          let slug: string;
+          if (pendingUserSlug) {
+            // Check if the slug is already taken
+            const existingUser = await prisma.user.findUnique({
+              where: { slug: pendingUserSlug },
+            });
+
+            if (existingUser) {
+              await prisma.user.update({
+                data: {
+                  email: email,
+                  authType: "GOOGLE",
+                },
+                where: {
+                  slug: existingUser.slug,
+                },
+              });
+              return true;
+            }
+          }
+          slug = await generateUniqueUserSlug();
+          console.log("No pending slug, generated new slug:", slug);
 
           await prisma.user.create({
             data: {

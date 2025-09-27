@@ -6,7 +6,8 @@ export type ModalType =
   | "Report"
   | "GoToHome"
   | "ReportBug"
-  | "Social";
+  | "Social"
+  | "MobileLookup";
 
 interface ModalData {
   confirmationFunction?: (...args: string[]) => void;

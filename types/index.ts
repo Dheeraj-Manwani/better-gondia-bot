@@ -43,21 +43,29 @@ export interface Complaint {
   id: number;
   complaintId: string;
   userId: number;
-  title: string;
-  description: string;
-  category: string;
+  title?: string | null;
+  description?: string | null;
+  category?: string | null;
+  subcategory?: string | null;
+  taluka?: string | null;
   location?: string | null;
   latitude?: Decimal | null;
   longitude?: Decimal | null;
   status: string;
+  priority?: string | null;
+  department?: string | null;
+  type?: string | null;
+  language?: string | null;
 
   media?: MediaObject[];
 
   isMediaApproved: boolean;
   isPublic: boolean;
   coSignCount: number;
+  reportCount?: number;
   isCoSigned: boolean;
   isReported: boolean;
+  linkedComplaintIds?: string[];
 
   createdAt: string;
   updatedAt: string;

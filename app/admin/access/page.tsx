@@ -87,7 +87,7 @@ export default function AdminAccessPage() {
     <div className="min-h-[100dvh] bg-gradient-to-b from-[#f8fafc] to-[#e0e7ef] flex flex-col">
       {/* Sticky header */}
       <header className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm">
-        <ArrowLeft onClick={() => router.push("/")} />
+        <ArrowLeft onClick={() => router.back()} />
         <h1 className="text-lg font-bold tracking-tight">
           Google Users Management
         </h1>

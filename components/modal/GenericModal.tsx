@@ -10,6 +10,7 @@ import { useRouter } from "nextjs-toploader/app";
 import { ReportBug } from "./ReportBug";
 import { Social } from "./Social";
 import { ProfileModal } from "./ProfileModal";
+import { MobileLookupModal } from "./MobileLookupModal";
 
 export function GenericModal() {
   const { isOpen, setIsOpen, modalType } = useModal();
@@ -63,6 +64,20 @@ export function GenericModal() {
         return <ReportBug />;
       case "Social":
         return <ProfileModal onClose={() => setIsOpen(false)} />;
+      case "MobileLookup":
+        return (
+          <MobileLookupModal
+            onClose={() => setIsOpen(false)}
+            onUserFound={(slug) => {
+              setIsOpen(false);
+              router.push(`/?user=${slug}`);
+            }}
+            onUserNotFound={() => {
+              setIsOpen(false);
+              router.push("/user-not-found");
+            }}
+          />
+        );
     }
   };
   const comp = getModalFromType(modalType ?? "Reload");

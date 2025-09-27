@@ -20,12 +20,16 @@ import { useBot } from "@/store/bot";
 import { setCookie } from "cookies-next/client";
 import { useSections } from "@/store/section";
 import { useSearchParams } from "next/navigation";
+import { useModal } from "@/store/modal";
+import { GenericModal } from "./modal/GenericModal";
+import { extractAndStoreUserSlug } from "@/lib/slug-utils";
 
 export default function HomeComp() {
   const { authStep, setAuthStep } = useAuthStep();
   const { section, setSection } = useSections();
   const searchParams = useSearchParams();
   const user = searchParams.get("user");
+  const setIsOpen = useModal((state) => state.setIsOpen);
   // const [hasUserOpened, setHasUserOpened] = useState<boolean>(false);
   const [pendingMobile, setPendingMobile] = useState<string>("");
   const setLanguage = useLanguage((state) => state.setLanguage);
@@ -39,9 +43,9 @@ export default function HomeComp() {
     setLanguage(language);
     localStorage.setItem("language", language);
   };
-  if (authStep === "language") {
-    return <LanguageSelection onLanguageSelect={handleLanguageSelect} />;
-  }
+  // if (authStep === "language") {
+  //   return <LanguageSelection onLanguageSelect={handleLanguageSelect} />;
+  // }
 
   const handleAuthStepChange = (step: AuthStep, mobile?: string) => {
     // setAuthStep(step);
@@ -60,6 +64,24 @@ export default function HomeComp() {
     setSection(section);
     // setHasUserOpened(true);
   };
+
+  // Extract and store user slug from URL parameters
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      extractAndStoreUserSlug(searchParams);
+    }
+  }, [searchParams]);
+
+  // Check if user parameter is missing and show mobile lookup modal
+  React.useEffect(() => {
+    if (!user && typeof window !== "undefined") {
+      // Only show modal if we're on the root path without user parameter
+      const currentPath = window.location.pathname;
+      if (currentPath === "/") {
+        setIsOpen(true, "MobileLookup");
+      }
+    }
+  }, [user, setIsOpen]);
 
   if (authStep === "login") {
     return (
@@ -102,6 +124,9 @@ export default function HomeComp() {
         currentSection={section}
         handleSectionChange={handleSectionChange}
       />
+
+      {/* Generic Modal for mobile lookup */}
+      <GenericModal />
     </div>
   );
 }
