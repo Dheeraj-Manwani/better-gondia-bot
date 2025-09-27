@@ -11,6 +11,16 @@ const serverJSON = {
     marathi:
       "✅ तक्रार यशस्वीरित्या नोंदवली गेली आहे! तुमची तक्रार आयडी complaintId आहे. आम्ही तुम्हाला प्रगतीची माहिती देत राहू.",
   },
+  complaint: {
+    english: "Complaint",
+    hindi: "शिकायत",
+    marathi: "तक्रार",
+  },
+  suggestion: {
+    english: "Suggestion",
+    hindi: "सुझाव",
+    marathi: "सूचना",
+  },
 };
 
 interface transaleData {

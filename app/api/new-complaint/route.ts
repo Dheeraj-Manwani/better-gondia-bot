@@ -20,6 +20,8 @@ import {
   getWhatsappConfirmationMessage,
 } from "@/lib/clientUtils";
 
+type languages = "English" | "हिंदी" | "मराठी";
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Configure AWS
@@ -261,13 +263,13 @@ export async function POST(request: NextRequest) {
           ) {
             const languageMap = {
               English: Language.ENGLISH,
-              Hindi: Language.HINDI,
-              Marathi: Language.MARATHI,
+              हिंदी: Language.HINDI,
+              मराठी: Language.MARATHI,
             };
             updatedComplaint = await prisma.complaint.update({
               where: { id: complaint.id },
               data: {
-                language: languageMap[body.message as keyof typeof languageMap],
+                language: languageMap[body.message as languages],
                 phase: ComplaintPhase.LANGUAGE,
               },
             });
@@ -490,7 +492,7 @@ export async function POST(request: NextRequest) {
 
       // *Better Gondia Mitra*`;
 
-      const whatsappConfirmationMessage = getWhatsappConfirmationMessage(
+      const whatsappConfirmationMessage = await getWhatsappConfirmationMessage(
         complaint.language,
         body.customerName,
         updatedComplaint.type || ComplaintType.COMPLAINT,

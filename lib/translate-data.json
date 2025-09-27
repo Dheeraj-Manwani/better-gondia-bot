@@ -428,5 +428,15 @@
     "english": "Recent Updates",
     "hindi": "हालिया अपडेट",
     "marathi": "अलीकडील अद्यतने"
+  },
+  "complaint": {
+    "english": "Complaint",
+    "hindi": "शिकायत",
+    "marathi": "तक्रार"
+  },
+  "suggestion": {
+    "english": "Suggestion",
+    "hindi": "सुझाव",
+    "marathi": "सूचना"
   }
 }
