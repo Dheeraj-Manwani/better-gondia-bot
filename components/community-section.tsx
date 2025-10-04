@@ -60,6 +60,19 @@ export default function CommunitySection({
   const setMessages = useMessages((state) => state.setMessages);
   const setBotState = useBot((state) => state.setBotState);
   const { isAuthenticated } = useUserData();
+
+  // For this app, if we have a user parameter, we consider the user authenticated
+  const isUserAuthenticated = isAuthenticated || !!user;
+
+  // Debug authentication state
+  console.log(
+    "CommunitySection - isAuthenticated:",
+    isAuthenticated,
+    "user:",
+    user,
+    "isUserAuthenticated:",
+    isUserAuthenticated
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const [allComplaints, setAllComplaints] = useState<Complaint[]>([]);
   const [hasMore, setHasMore] = useState(true);
@@ -181,7 +194,9 @@ export default function CommunitySection({
       return { prevData, queryKey };
     },
 
-    onError: (_err, _vars, context) => {
+    onError: (err, _vars, context) => {
+      console.error("Co-sign mutation error:", err);
+      toast.error("Failed to co-sign complaint");
       if (context?.prevData) {
         queryClient.setQueryData(context.queryKey, context.prevData);
       }
@@ -271,13 +286,26 @@ export default function CommunitySection({
   };
 
   const handleCoSign = (complaintId: number) => {
-    if (!isAuthenticated || !user) {
+    console.log("handleCoSign called with:", {
+      complaintId,
+      isAuthenticated,
+      isUserAuthenticated,
+      user,
+    });
+
+    if (!isUserAuthenticated || !user) {
       toast.error("Please login to co-sign complaints");
       return;
     }
 
-    const shouldApprove = !allComplaints.find((c) => c.id === complaintId)
-      ?.isCoSigned;
+    const complaint = allComplaints.find((c) => c.id === complaintId);
+    const shouldApprove = !complaint?.isCoSigned;
+
+    console.log("Co-sign details:", {
+      complaint: complaint?.id,
+      isCoSigned: complaint?.isCoSigned,
+      shouldApprove,
+    });
 
     coSignMutation.mutate({
       complaintId,
@@ -295,7 +323,7 @@ export default function CommunitySection({
   };
 
   const handleReport = (complaintId: number, createdAt: string) => {
-    if (!isAuthenticated || !user) {
+    if (!isUserAuthenticated || !user) {
       toast.error("Please login to report complaints");
       return;
     }
@@ -390,7 +418,7 @@ export default function CommunitySection({
               role={session?.data?.user?.role ?? "USER"}
               isShared={false}
               handleOpenExistingChat={handleOpenExistingChat}
-              isAuthenticated={isAuthenticated}
+              isAuthenticated={isUserAuthenticated}
             />
           ))}
 

@@ -159,33 +159,41 @@ export const CommunityComplaintCard = ({
           <div className="flex items-center justify-between w-full">
             {isAuthenticated ? (
               <Button
-                variant={complaint.isCoSigned ? "default" : "ghost"}
+                variant={complaint.isCoSigned ? "outline" : "default"}
                 size="sm"
-                className={`flex items-center space-x-0.5 ${
+                className={`flex items-center space-x-1 ${
                   complaint.isCoSigned
-                    ? "bg-green-600 text-white hover:bg-green-700"
-                    : "text-green-600 hover:text-green-700 bg-green-100"
+                    ? "border-green-600 text-green-600 bg-green-50 hover:bg-green-100"
+                    : "bg-green-600 text-white hover:bg-green-700 shadow-sm"
                 }`}
-                onClick={() => handleCoSign(complaint.id)}
+                onClick={() => {
+                  console.log(
+                    "Co-sign button clicked for complaint:",
+                    complaint.id
+                  );
+                  handleCoSign(complaint.id);
+                }}
                 disabled={isLoading}
               >
                 <ThumbsUp
                   className={`w-4 h-4 ${
-                    complaint.isCoSigned ? "fill-current" : ""
+                    complaint.isCoSigned
+                      ? "fill-current text-green-600"
+                      : "text-white"
                   }`}
                 />
                 <span className="text-sm font-medium">
                   {complaint.isCoSigned
-                    ? translate("co_sign", language)
-                    : translate("co_signed", language)}{" "}
+                    ? translate("co_signed", language)
+                    : translate("co_sign", language)}{" "}
                   ({complaint.coSignCount})
                 </span>
               </Button>
             ) : (
-              <div className="flex items-center space-x-0.5 text-green-600">
+              <div className="flex items-center space-x-1 text-gray-500 bg-gray-50 px-3 py-1.5 rounded-md">
                 <ThumbsUp className="w-4 h-4" />
                 <span className="text-sm font-medium">
-                  {translate("co_signed", language)} ({complaint.coSignCount})
+                  {translate("co_sign", language)} ({complaint.coSignCount})
                 </span>
               </div>
             )}
@@ -214,7 +222,12 @@ export const CommunityComplaintCard = ({
             ) : null}
             <Badge className={getCategoryColor(complaint.category || "")}>
               {getCategoryIcon(complaint.category || "")}{" "}
-              {translate(complaint.category as any, language)}
+              {complaint.category &&
+              ["roads", "water", "electricity", "sanitation"].includes(
+                complaint.category
+              )
+                ? translate(complaint.category as any, language)
+                : complaint.category || "General"}
             </Badge>
           </div>
           {!isShared && (
@@ -262,9 +275,9 @@ export const CommunityComplaintCard = ({
               className="w-1/2"
             />
           </div>
-          <Button onClick={() => handleOpenExistingChat(complaint)}>
+          {/* <Button onClick={() => handleOpenExistingChat(complaint)}>
             Reply in Chat
-          </Button>
+          </Button> */}
         </div>
       )}
     </div>

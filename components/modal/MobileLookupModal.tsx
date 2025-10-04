@@ -79,8 +79,8 @@ export function MobileLookupModal({
             <Label className="block text-sm font-medium mb-2">
               Mobile Number
             </Label>
-            <div className="flex">
-              <span className="bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg px-3 py-3 text-gray-600">
+            <div className="flex justify-center items-center">
+              <span className="bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg p-1.5 text-gray-600">
                 +91
               </span>
               <Input

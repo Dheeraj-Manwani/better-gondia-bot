@@ -97,37 +97,43 @@ export const ComplaintCard = ({ complaint }: ComplaintCardProps) => {
   return (
     <Card className="w-full max-w-md mx-auto my-3 shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50">
       <CardHeader className="pb-3">
-        {/* Header with Category and ID */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">
-              {getCategoryIcon(complaint.category || "general")}
-            </span>
-            <div className="flex flex-col gap-1">
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-700 border-green-200"
-              >
-                {complaint.category || "General"}
-              </Badge>
-              {complaint.subcategory && (
-                <Badge
-                  variant="outline"
-                  className="text-xs bg-blue-50 text-blue-700 border-blue-200"
-                >
-                  {complaint.subcategory}
-                </Badge>
-              )}
+        {/* Primary Header - Complaint ID as main identifier */}
+        <div className="">
+          <div className="flex items-center justify-between ">
+            <div className="flex items-center gap-3">
+              {/* <span className="text-2xl">
+                {getCategoryIcon(complaint.category || "general")}
+              </span> */}
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 font-mono">
+                  {generateComplaintIdFromDate(
+                    complaint.id,
+                    complaint.createdAt
+                  )}
+                </h2>
+                <p className="text-xs text-gray-500">
+                  {formatTimeAgo(complaint.createdAt)}
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="text-right">
-            <p className="text-xs font-mono text-gray-500">
-              ID:{" "}
-              {generateComplaintIdFromDate(complaint.id, complaint.createdAt)}
-            </p>
-            <p className="text-xs text-gray-400">
-              {formatTimeAgo(complaint.createdAt)}
-            </p>
+            <div className="text-right">
+              <div className="flex flex-col gap-1">
+                <Badge
+                  variant="secondary"
+                  className="bg-green-100 text-green-700 border-green-200 text-xs"
+                >
+                  {complaint.category || "General"}
+                </Badge>
+                {complaint.subcategory && (
+                  <Badge
+                    variant="outline"
+                    className="text-xs bg-blue-50 text-blue-700 border-blue-200"
+                  >
+                    {complaint.subcategory}
+                  </Badge>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -185,11 +191,10 @@ export const ComplaintCard = ({ complaint }: ComplaintCardProps) => {
             </div>
           )}
         </div>
-      </CardHeader>
 
-      <CardContent className="pt-0 space-y-4">
+        {/* <CardContent className="pt-0 space-y-4"> */}
         {/* Description */}
-        <div className="space-y-2">
+        <div className="mt-3">
           <p className="text-gray-700 text-sm leading-relaxed">
             {showFullDescription
               ? complaint.description
@@ -208,9 +213,9 @@ export const ComplaintCard = ({ complaint }: ComplaintCardProps) => {
         </div>
 
         {/* Location and Department Info */}
-        <div className="space-y-2">
+        <div className="space-y-2 mt-3">
           {complaint.location && (
-            <div className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg">
+            <div className="flex items-start gap-2 bg-gray-50 rounded-lg">
               <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
               <p className="text-xs text-gray-600 flex-1">
                 {complaint.location}
@@ -243,19 +248,19 @@ export const ComplaintCard = ({ complaint }: ComplaintCardProps) => {
 
         {/* Media Attachments */}
         {complaint.media && complaint.media.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-2 ">
             <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
               <File className="w-3 h-3 text-gray-500" />
               <span>Attachments ({complaint.media.length})</span>
-              {!complaint.isMediaApproved && (
+              {/* {!complaint.isMediaApproved && (
                 <Badge variant="outline" className="text-xs px-2 py-0.5">
                   <EyeOff className="w-3 h-3 mr-1" />
                   Pending Approval
                 </Badge>
-              )}
+              )} */}
             </div>
 
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2">
               {complaint.media.map((media, index) => (
                 <div
                   key={index}
@@ -403,7 +408,7 @@ export const ComplaintCard = ({ complaint }: ComplaintCardProps) => {
         )}
 
         {/* Footer Info */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+        {/* <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <div className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
@@ -428,7 +433,6 @@ export const ComplaintCard = ({ complaint }: ComplaintCardProps) => {
             )}
           </div>
 
-          {/* Co-sign status */}
           {complaint.isCoSigned && (
             <Badge
               variant="outline"
@@ -438,8 +442,10 @@ export const ComplaintCard = ({ complaint }: ComplaintCardProps) => {
               Co-signed
             </Badge>
           )}
-        </div>
-      </CardContent>
+        </div> */}
+        {/* </CardContent>
+         */}
+      </CardHeader>
     </Card>
   );
 };

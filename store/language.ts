@@ -8,7 +8,18 @@ interface LanguageStore {
   setLanguage: (language: Language) => void;
 }
 
-export const useLanguage = create<LanguageStore>((set) => ({
-  language: "english",
-  setLanguage: (language: Language) => set({ language }),
+export const useLanguage = create<LanguageStore>((set, get) => ({
+  language: (() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("language") as Language;
+      return stored || "english";
+    }
+    return "english";
+  })(),
+  setLanguage: (language: Language) => {
+    set({ language });
+    if (typeof window !== "undefined") {
+      localStorage.setItem("language", language);
+    }
+  },
 }));

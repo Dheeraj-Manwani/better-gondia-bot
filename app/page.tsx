@@ -10,27 +10,59 @@ export function generateMetadata(): Metadata {
     process.env.NEXT_PUBLIC_BASE_URL || "https://better-gondia-bot.vercel.app";
 
   return {
-    title: "Better Gondia Mitra",
+    title: "Better Gondia Mitra - Report Issues & Track Complaints",
     description:
-      "Better Gondia mitra is a platform where you can create a complaint or support existing one's related to gondia.",
+      "Report civic issues in Gondia, track complaint status, and support community complaints. Make Gondia better together! 🏛️",
+    keywords:
+      "Gondia, complaints, civic issues, municipal, government, public services, community",
+    authors: [{ name: "Better Gondia Mitra" }],
+    creator: "Better Gondia Mitra",
+    publisher: "Better Gondia Mitra",
+    robots: "index, follow",
     icons: {
-      icon: "/favicon.ico", // normal
-      shortcut: "/logo_png.png", // classic
-      apple: "/logo_png.png", // mobile home screen
+      icon: "/favicon.ico",
+      shortcut: "/logo_png.png",
+      apple: "/logo_png.png",
     },
     openGraph: {
-      title: "Better Gondia Mitra",
+      type: "website",
+      locale: "en_IN",
+      title: "Better Gondia Mitra - Report Issues & Track Complaints",
       description:
-        "Better Gondia mitra is a platform where you can create a complaint or support existing one's related to gondia.",
-      images: imageUrl ? [imageUrl] : [],
+        "Report civic issues in Gondia, track complaint status, and support community complaints. Make Gondia better together! 🏛️",
       url: baseUrl,
+      siteName: "Better Gondia Mitra",
+      images: imageUrl
+        ? [
+            {
+              url: imageUrl,
+              width: 1200,
+              height: 630,
+              alt: "Better Gondia Mitra - Civic Complaint Platform",
+            },
+          ]
+        : [],
     },
     twitter: {
-      card: imageUrl ? "summary_large_image" : "summary",
-      title: "Better Gondia Mitra",
+      card: "summary_large_image",
+      title: "Better Gondia Mitra - Report Issues & Track Complaints",
       description:
-        "Better Gondia mitra is a platform where you can create a complaint or support existing one's related to gondia.",
+        "Report civic issues in Gondia, track complaint status, and support community complaints. Make Gondia better together! 🏛️",
       images: imageUrl ? [imageUrl] : [],
+      creator: "@BetterGondia",
+    },
+    // Additional meta tags for better WhatsApp sharing
+    other: {
+      "og:image:width": "1200",
+      "og:image:height": "630",
+      "og:image:type": "image/png",
+      "og:image:alt": "Better Gondia Mitra - Civic Complaint Platform",
+      "og:site_name": "Better Gondia Mitra",
+      "og:locale": "en_IN",
+      "og:type": "website",
+      "twitter:image:alt": "Better Gondia Mitra - Civic Complaint Platform",
+      "twitter:site": "@BetterGondia",
+      "twitter:creator": "@BetterGondia",
     },
   };
 }

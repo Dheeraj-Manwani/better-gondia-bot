@@ -14,6 +14,24 @@ export const translate = (
   language: Language,
   data?: transaleData
 ) => {
+  // Validate language parameter
+  if (!language || !["english", "hindi", "marathi"].includes(language)) {
+    console.warn(`Invalid language "${language}", falling back to english`);
+    language = "english";
+  }
+
+  // Check if the key exists in trJson
+  if (!trJson[key]) {
+    console.warn(`Translation key "${key}" not found in translation data`);
+    return key; // Return the key itself as fallback
+  }
+
+  // Check if the language exists for this key
+  if (!trJson[key][language]) {
+    console.warn(`Language "${language}" not found for key "${key}"`);
+    return trJson[key]["english"] || key;
+  }
+
   let mess = trJson[key][language];
 
   if (key == "complaint_submitted_success") {
