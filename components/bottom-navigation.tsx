@@ -39,15 +39,15 @@ export const BottomNavigation = ({
             <Button
               key={item.id}
               variant="ghost"
-              className={`flex flex-col items-center px-3 my-2 ${
+              className={`flex flex-col gap-1.5 items-center px-3 my-2  text-xs ${
                 isActive
-                  ? "text-black font-extrabold"
+                  ? "text-black font-extrabold "
                   : "text-gray-500 hover:text-black"
               } transition-colors`}
               onClick={() => handleSectionChange(item.id)}
             >
               <IconComponent className="w-10 h-10" size={500} />
-              <span className={`text-xs ${isActive ? "font-semibold" : ""}`}>
+              <span className={` ${isActive ? "font-semibold" : ""}`}>
                 {item.label}
               </span>
             </Button>

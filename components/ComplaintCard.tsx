@@ -89,7 +89,7 @@ export const ComplaintCard = ({ complaint }: ComplaintCardProps) => {
     return filename;
   };
 
-  const truncateText = (text: string, maxLength: number = 120) => {
+  const truncateText = (text: string, maxLength: number = 170) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + "...";
   };
