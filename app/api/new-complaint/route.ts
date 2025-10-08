@@ -9,7 +9,10 @@ import {
 } from "@prisma/client";
 import AWS from "aws-sdk";
 import prisma from "@/prisma/db";
-import { generateComplaintIdFromDate } from "@/lib/clientUtils";
+import {
+  generateComplaintIdFromDate,
+  getShortConfirmationMessage,
+} from "@/lib/clientUtils";
 import { downloadAndUploadToS3 } from "@/app/actions/s3";
 import { sendWhatsAppConfirmation } from "@/app/actions/whatsapp";
 import { generateUniqueUserSlug } from "@/app/actions/slug";
@@ -229,6 +232,51 @@ export async function POST(request: NextRequest) {
           );
         })[0] || null;
     }
+
+    // looking for submit/cancel actions to end complaint
+    if (body.message && complaint) {
+      if (
+        ["Submit ✅", "दर्ज करें ✅", "दर्ज करा ✅"].includes(
+          body.message?.trim()
+        ) &&
+        body.msgType === "interactive"
+      ) {
+        await prisma.complaint.update({
+          where: { id: complaint.id },
+          data: {
+            phase: ComplaintPhase.COMPLETED,
+          },
+        });
+        const formattedComplaintId = generateComplaintIdFromDate(
+          complaint.id,
+          complaint.createdAt
+        );
+        const shortMessage = getShortConfirmationMessage(
+          complaint.language,
+          body.customerName,
+          formattedComplaintId
+        );
+        await sendWhatsAppConfirmation(body.mobileNo, shortMessage);
+        return NextResponse.json({
+          success: true,
+          message: "Complaint Prematurely Submitted",
+          complaintId: complaint.id,
+        });
+      } else if (
+        ["Cancel ❌", "रद्द करें ❌", "रद्द करा ❌"].includes(
+          body.message?.trim()
+        ) &&
+        body.msgType === "interactive"
+      ) {
+        await deleteComplaintById(complaint.id);
+        return NextResponse.json({
+          success: true,
+          message: "Deleted Current Complaint",
+          complaintId: complaint.id,
+        });
+      }
+    }
+
     // Determine the current phase and update accordingly
     if (!complaint) {
       // Create new complaint in INIT phase

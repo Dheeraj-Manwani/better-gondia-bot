@@ -256,3 +256,55 @@ ${description || "कोणतेही वर्णन प्रदान क�
 
   return messages[language] || messages[PrismaLanguage.ENGLISH];
 }
+
+export function getShortConfirmationMessage(
+  language: PrismaLanguage,
+  customerName: string,
+  formattedComplaintId: string
+): string {
+  const messages = {
+    [PrismaLanguage.ENGLISH]: `Hello ${customerName}! 👋
+
+Your complaint has been received.
+
+📋 Complaint ID: *${formattedComplaintId}*
+📅 Date: ${new Date().toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })}
+
+Thank you for contacting Better Gondia Mitra! 🙏`,
+
+    [PrismaLanguage.HINDI]: `नमस्ते ${customerName}! 👋
+
+आपकी शिकायत प्राप्त हो गई है।
+
+📋 शिकायत ID: *${formattedComplaintId}*
+📅 तारीख: ${new Date().toLocaleString("hi-IN", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })}
+
+बेहतर गोंडिया मित्र से संपर्क करने के लिए धन्यवाद! 🙏`,
+
+    [PrismaLanguage.MARATHI]: `नमस्कार ${customerName}! 👋
+
+तुमची तक्रार प्राप्त झाली आहे.
+
+📋 तक्रार ID: *${formattedComplaintId}*
+📅 तारीख: ${new Date().toLocaleString("mr-IN", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })}
+
+बेहतर गोंडिया मित्राशी संपर्क साधल्याबद्दल धन्यवाद! 🙏`,
+  };
+
+  return messages[language] || messages[PrismaLanguage.ENGLISH];
+}
